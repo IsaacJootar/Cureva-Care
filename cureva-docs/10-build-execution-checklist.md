@@ -91,9 +91,9 @@ one facility."
       against it rather than retrofitted later. Dark-mode
       `--cv-button-primary-bg` signed off (open decision #9): inverse —
       `#f2f1ec` bg, `#111110` ink. Verified in-browser, both modes.
-- [ ] Theme toggle component built (top bar, per the component spec)
+- [x] Theme toggle component built (top bar, per the component spec)
       and wired to `localStorage` + `users.theme_preference`.
-- [ ] **Shared component library implemented once, here** — every
+- [x] **Shared component library implemented once, here** — every
       pattern under `09-ui-design-system.md`'s Component library section
       (toast notifications, the trend-chart loading/empty states, empty
       states generally, the destructive-action confirm dialog, filter/
