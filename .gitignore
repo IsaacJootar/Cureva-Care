@@ -1,0 +1,43 @@
+# ---- Secrets & env ----
+*.env
+.env
+.env.*
+!.env.example
+!*.env.example
+infra/.env
+
+# ---- Python / Django ----
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+*.log
+db.sqlite3
+/backend/staticfiles/
+/backend/media/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# ---- Node / Next.js ----
+node_modules/
+/frontend/.next/
+/frontend/out/
+/frontend/build/
+/frontend/.turbo/
+next-env.d.ts
+*.tsbuildinfo
+
+# ---- Editors / OS ----
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# ---- Reference material not part of the build ----
+CLAUDE_CODE_MASTER_PROMPT.md
+Cureva_Plain_English_Explanation_Updated.docx

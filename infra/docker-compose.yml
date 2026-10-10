@@ -1,0 +1,51 @@
+# Cureva Care — local development infrastructure.
+# Isolated from any other project on this machine: its own compose project
+# name, its own container names, its own named volumes, and a host port
+# (5434) that does not collide with other Postgres containers already running
+# here (vladd on 5432, vytte on 5433).
+#
+# Real PostgreSQL, honouring the locked stack in cureva-docs/04-architecture-and-stack.md.
+# Secrets here are LOCAL DEV ONLY and are read from infra/.env (gitignored);
+# production credentials live in the hosting platform's secrets manager, never here.
+
+name: cureva
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: cureva-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-cureva}
+      POSTGRES_USER: ${POSTGRES_USER:-cureva}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-cureva_dev_pw}
+    ports:
+      - "${POSTGRES_HOST_PORT:-5434}:5432"
+    volumes:
+      - cureva-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-cureva} -d ${POSTGRES_DB:-cureva}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # S3-compatible object storage for immutable source-file (register photo)
+  # retention — see cureva-docs/04-architecture-and-stack.md. Used from Module 2
+  # onward; defined here so the whole local stack comes up with one command.
+  minio:
+    image: minio/minio:RELEASE.2025-04-22T22-12-26Z
+    container_name: cureva-minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-cureva}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-cureva_dev_pw}
+    ports:
+      - "${MINIO_API_PORT:-9102}:9000"
+      - "${MINIO_CONSOLE_PORT:-9103}:9001"
+    volumes:
+      - cureva-miniodata:/data
+
+volumes:
+  cureva-pgdata:
+  cureva-miniodata:
