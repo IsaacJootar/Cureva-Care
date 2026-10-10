@@ -105,9 +105,13 @@ one facility."
 - [ ] Auth: magic-link sign-in working end to end.
 - [ ] Auth: at least one SSO provider (Google, Microsoft/Azure AD, or
       Okta) working end to end via OAuth/OIDC.
-- [ ] State/LGA/Ward reference data seeded from the real national
+- [x] State/LGA/Ward reference data seeded from the real national
       administrative list (per open decision #8 in `08-delivery-plan.md`
-      — confirm the source list before seeding).
+      — confirm the source list before seeding). Source confirmed with
+      product owner: authentic public INEC/GRID3-derived dataset
+      (kaygeea/nigeria-geojson-data). Pilot scope: 10 states incl.
+      FCT/Abuja, Lagos, Kano (231 LGAs, 2,819 wards); `seed_geo` is
+      idempotent and extensible by dropping in a wider fixture.
 - [ ] Admin facility-creation screen (`/admin/facilities`, the guided
       State → LGA → Ward picker) built to `09-ui-design-system.md`'s
       screen spec, both light and dark mode.
