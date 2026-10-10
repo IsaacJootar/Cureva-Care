@@ -73,10 +73,12 @@ one facility."
       (seeded with its default rows, including the `0.75` starting
       default for `identity_candidate_confidence_threshold`),
       `notification_preferences`.
-- [ ] Admin organisation-management screen (`/admin/organisations`)
+- [x] Admin organisation-management screen (`/admin/organisations`)
       built to `09-ui-design-system.md`'s screen 7 spec — create an
       organisation, grant/revoke facility- or region-level access with
-      a per-grant tier — both light and dark mode.
+      a per-grant tier — both light and dark mode. (Two-step create flow
+      + manage-access modal reusing the shared State→LGA→Ward→Facility
+      picker; build-verified. Live click-through pending.)
 - [x] Next.js project scaffolded with Tailwind, `darkMode: 'class'` set
       in the Tailwind config. (Next 16 + Tailwind v4, which is CSS-first:
       the `darkMode:'class'` intent is implemented as a `data-theme`
@@ -107,9 +109,14 @@ one facility."
       `disabled` attribute disables on presence regardless of its string
       value, so gate on conditional rendering or a controlled boolean
       prop instead.
-- [ ] Auth: magic-link sign-in working end to end.
+- [x] Auth: magic-link sign-in working end to end. Verified live:
+      request link → backend emails single-use ticket → exchange →
+      JWT → redirect to role landing, with CORS preflight passing.
 - [ ] Auth: at least one SSO provider (Google, Microsoft/Azure AD, or
-      Okta) working end to end via OAuth/OIDC.
+      Okta) working end to end via OAuth/OIDC. Google OAuth flow built
+      (Django-owned handshake → sign-in ticket → same exchange as
+      magic-link); awaiting real Google client credentials from the
+      product owner to verify end to end.
 - [x] State/LGA/Ward reference data seeded from the real national
       administrative list (per open decision #8 in `08-delivery-plan.md`
       — confirm the source list before seeding). Source confirmed with
@@ -117,9 +124,11 @@ one facility."
       (kaygeea/nigeria-geojson-data). Pilot scope: 10 states incl.
       FCT/Abuja, Lagos, Kano (231 LGAs, 2,819 wards); `seed_geo` is
       idempotent and extensible by dropping in a wider fixture.
-- [ ] Admin facility-creation screen (`/admin/facilities`, the guided
+- [x] Admin facility-creation screen (`/admin/facilities`, the guided
       State → LGA → Ward picker) built to `09-ui-design-system.md`'s
-      screen spec, both light and dark mode.
+      screen spec, both light and dark mode. Verified live: created
+      "Gama Primary Health Centre" (Kano · Nasarawa · Gama ward) by
+      walking the seeded picker; success toast + table row rendered.
 - [x] Empty dashboard shell reachable post-login, sidebar nav rendering
       correctly for at least the Systems admin role (full nav
       per the navigation map). App shell (sidebar + frosted top bar +
