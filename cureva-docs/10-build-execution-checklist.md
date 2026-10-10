@@ -54,19 +54,19 @@ agent) can open it and know exactly what's left without reading code.
 
 ## Module 1 — Foundations
 
-**Status:** Not started
+**Status:** In progress
 **Exit condition (from `08-delivery-plan.md`):** "A user can log in
 through either path, reach an empty dashboard shell, a Systems admin can
 create a facility by walking the seeded State → LGA → Ward picker, and a
 Systems admin can create an organisation and grant it access to at least
 one facility."
 
-- [ ] Django project scaffolded with the five apps from
+- [x] Django project scaffolded with the five apps from
       `04-architecture-and-stack.md`'s service boundaries (Identity &
       Access, Register Intake, Maternal Projection, Intelligence,
       Reporting) — empty apps, correct boundaries, no cross-app writes
       yet.
-- [ ] PostgreSQL schema migrated for every entity in `02-data-model.md`
+- [x] PostgreSQL schema migrated for every entity in `02-data-model.md`
       that doesn't depend on a later module: `organisations`,
       `organisation_facility_access`, `users`, `states`,
       `local_governments`, `wards`, `facilities`, `platform_settings`
