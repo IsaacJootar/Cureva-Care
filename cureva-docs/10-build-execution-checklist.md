@@ -120,9 +120,12 @@ one facility."
 - [ ] Admin facility-creation screen (`/admin/facilities`, the guided
       State → LGA → Ward picker) built to `09-ui-design-system.md`'s
       screen spec, both light and dark mode.
-- [ ] Empty dashboard shell reachable post-login, sidebar nav rendering
+- [x] Empty dashboard shell reachable post-login, sidebar nav rendering
       correctly for at least the Systems admin role (full nav
-      per the navigation map).
+      per the navigation map). App shell (sidebar + frosted top bar +
+      theme toggle), role-aware nav for all four roles with the
+      universal active-nav treatment, route guard, and placeholder
+      shells for every later-module route so no nav link 404s.
 
 ## Module 2 — Intake and templates
 
