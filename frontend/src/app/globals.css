@@ -1,0 +1,265 @@
+@import "tailwindcss";
+
+/* Cureva Care design system — cureva-docs/09-ui-design-system.md.
+   Tailwind v4 is CSS-first: dark mode is driven by a data-theme attribute on
+   <html> (set before first paint by the no-flash script in layout.tsx), which
+   is the modern equivalent of the doc's "darkMode: 'class'" intent — an
+   explicit, user-forced choice, not prefers-color-scheme alone. Every colour
+   is a CSS custom property; flipping data-theme is the ONLY code path that
+   changes a colour (doc: "read through the CSS variable, never hard-coded a
+   second time"). */
+
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/* ======================================================================
+   LIGHT MODE (default)
+   ====================================================================== */
+:root {
+  /* Backgrounds */
+  --cv-bg: #f7f6f2;
+  --cv-bg-wash-1: radial-gradient(1000px 640px at 108% -8%, rgba(91, 141, 239, 0.1), transparent 60%);
+  --cv-bg-wash-2: radial-gradient(760px 620px at -8% 112%, rgba(52, 201, 143, 0.08), transparent 55%);
+  --cv-sidebar-bg: linear-gradient(180deg, #151513, #0c0c0b);
+  --cv-topbar-bg: rgba(247, 246, 242, 0.78);
+
+  /* Text */
+  --cv-text-primary: #12131c;
+  --cv-text-secondary: #56554f;
+  --cv-text-muted: #898781;
+  --cv-text-on-dark: #ffffff;
+  --cv-text-on-dark-secondary: #b7b6b0;
+  --cv-text-on-dark-muted: #8b8a84;
+
+  /* Accent (brand) */
+  --cv-accent-gradient: linear-gradient(135deg, #5b8def, #2f5fd6);
+  --cv-accent-solid: #2f5fd6;
+  --cv-accent-glow: 0 6px 16px -4px rgba(47, 95, 214, 0.5);
+  --cv-accent-soft: rgba(47, 95, 214, 0.08);
+
+  /* Buttons */
+  --cv-button-primary-bg: #111110; /* dark ink — submit/commit actions only */
+  --cv-button-primary-text: #ffffff;
+  --cv-button-danger-bg: #b3372f;
+  --cv-button-danger-text: #ffffff;
+  --cv-button-success-bg: #0f6b3f; /* the success-flash after a save */
+  --cv-button-secondary-bg: #fcfcfb;
+  --cv-button-secondary-border: #e1e0d9;
+  --cv-button-disabled-bg: #eeede7;
+  --cv-button-disabled-text: #b7b6b0;
+
+  /* Cards / panels */
+  --cv-card-bg: linear-gradient(180deg, #ffffff, #fbfaf6);
+  --cv-card-border: rgba(20, 20, 26, 0.07);
+  --cv-card-shadow: 0 1px 2px rgba(20, 20, 10, 0.04), 0 14px 30px -18px rgba(30, 42, 90, 0.22);
+  --cv-hairline: #ece9e1;
+
+  /* Status — Neutral/info */
+  --cv-neutral-bg: linear-gradient(165deg, #f7faff, #edf2fc);
+  --cv-neutral-border: rgba(63, 110, 214, 0.14);
+  --cv-neutral-icon: #2f5fd6;
+  --cv-neutral-text: #2f5fd6;
+  --cv-neutral-pill-bg: linear-gradient(135deg, #eaf1fd, #dde9fb);
+  --cv-neutral-pill-text: #2f5fd6;
+
+  /* Status — Success */
+  --cv-success-bg: linear-gradient(165deg, #f2faf6, #e6f5ec);
+  --cv-success-border: rgba(15, 157, 99, 0.18);
+  --cv-success-icon: #0f9d63;
+  --cv-success-text: #0f6b3f;
+  --cv-success-pill-bg: linear-gradient(135deg, #e5f5ea, #d8f0e0);
+  --cv-success-pill-text: #0f6b3f;
+
+  /* Status — Warning */
+  --cv-warning-bg: linear-gradient(165deg, #fefaf1, #fcf3de);
+  --cv-warning-border: rgba(201, 133, 0, 0.18);
+  --cv-warning-icon: #c98500;
+  --cv-warning-text: #a3690a;
+  --cv-warning-pill-bg: linear-gradient(135deg, #fbf0dc, #f7e6c4);
+  --cv-warning-pill-text: #a3690a;
+
+  /* Status — Danger */
+  --cv-danger-bg: linear-gradient(165deg, #fdf5f4, #fbe8e5);
+  --cv-danger-border: rgba(211, 66, 53, 0.2);
+  --cv-danger-icon: #c2483d;
+  --cv-danger-text: #b3372f;
+  --cv-danger-pill-bg: linear-gradient(135deg, #fbe7e2, #f8d9d2);
+  --cv-danger-pill-text: #b3372f;
+
+  /* Controls */
+  --cv-input-bg: #ffffff;
+  --cv-input-border: #e1e0d9;
+  --cv-toggle-off: #d8d6cc;
+  --cv-skeleton: #e6e5df;
+  --cv-scrim: rgba(11, 11, 11, 0.45);
+  --cv-menu-shadow: 0 10px 26px -10px rgba(11, 11, 11, 0.25);
+  --cv-empty-border: #d8d6cc;
+
+  /* Chart series (validated categorical order) */
+  --cv-series-1: #2f5fd6;
+  --cv-series-2: #e08a3c;
+  --cv-series-3: #34c9a3;
+  --cv-series-4: #e0b43f;
+
+  /* Radii */
+  --cv-radius-control: 8px;
+  --cv-radius-card: 14px;
+  --cv-radius-pill: 20px;
+}
+
+/* ======================================================================
+   DARK MODE — a full parallel token set (not an invert).
+   ====================================================================== */
+:root[data-theme="dark"] {
+  --cv-bg: #0b0c10;
+  --cv-bg-wash-1: radial-gradient(1000px 640px at 108% -8%, rgba(91, 141, 239, 0.16), transparent 60%);
+  --cv-bg-wash-2: radial-gradient(760px 620px at -8% 112%, rgba(52, 201, 143, 0.1), transparent 55%);
+  --cv-sidebar-bg: linear-gradient(180deg, #0d0d0c, #070707);
+  --cv-topbar-bg: rgba(15, 16, 19, 0.72);
+
+  --cv-text-primary: #f2f1ec;
+  --cv-text-secondary: #b6b4ac;
+  --cv-text-muted: #86847c;
+  --cv-text-on-dark: #ffffff;
+  --cv-text-on-dark-secondary: #b7b6b0;
+  --cv-text-on-dark-muted: #8b8a84;
+
+  --cv-accent-gradient: linear-gradient(135deg, #6d9bf5, #3a68d8);
+  --cv-accent-solid: #6d9bf5;
+  --cv-accent-glow: 0 6px 18px -4px rgba(58, 104, 216, 0.6);
+  --cv-accent-soft: rgba(109, 155, 245, 0.12);
+
+  /* Primary/submit button — dark-mode value SIGNED OFF (open decision #9):
+     the inverse of light mode — a light neutral button with dark ink, so it
+     stays visible against the #0b0c10 page. */
+  --cv-button-primary-bg: #f2f1ec;
+  --cv-button-primary-text: #111110;
+  --cv-button-danger-bg: #f0776b;
+  --cv-button-danger-text: #1a0f0e;
+  --cv-button-success-bg: #4fd39b;
+  --cv-button-secondary-bg: #15171d;
+  --cv-button-secondary-border: rgba(255, 255, 255, 0.12);
+  --cv-button-disabled-bg: #1b1d23;
+  --cv-button-disabled-text: #5c5b55;
+
+  --cv-card-bg: linear-gradient(165deg, #171a20, #12141a);
+  --cv-card-border: rgba(255, 255, 255, 0.08);
+  --cv-card-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 14px 30px -18px rgba(0, 0, 0, 0.6);
+  --cv-hairline: rgba(255, 255, 255, 0.08);
+
+  --cv-neutral-bg: linear-gradient(165deg, rgba(91, 141, 239, 0.16), rgba(91, 141, 239, 0.05));
+  --cv-neutral-border: rgba(91, 141, 239, 0.28);
+  --cv-neutral-icon: #8fb4f5;
+  --cv-neutral-text: #8fb4f5;
+  --cv-neutral-pill-bg: rgba(91, 141, 239, 0.18);
+  --cv-neutral-pill-text: #8fb4f5;
+
+  --cv-success-bg: linear-gradient(165deg, rgba(52, 201, 143, 0.16), rgba(52, 201, 143, 0.05));
+  --cv-success-border: rgba(52, 201, 143, 0.28);
+  --cv-success-icon: #4fd39b;
+  --cv-success-text: #4fd39b;
+  --cv-success-pill-bg: rgba(52, 201, 143, 0.18);
+  --cv-success-pill-text: #4fd39b;
+
+  --cv-warning-bg: linear-gradient(165deg, rgba(230, 163, 0, 0.18), rgba(230, 163, 0, 0.05));
+  --cv-warning-border: rgba(230, 163, 0, 0.28);
+  --cv-warning-icon: #e0ad3f;
+  --cv-warning-text: #e0ad3f;
+  --cv-warning-pill-bg: rgba(230, 163, 0, 0.2);
+  --cv-warning-pill-text: #e0ad3f;
+
+  --cv-danger-bg: linear-gradient(165deg, rgba(224, 71, 60, 0.18), rgba(224, 71, 60, 0.06));
+  --cv-danger-border: rgba(224, 71, 60, 0.28);
+  --cv-danger-icon: #f0776b;
+  --cv-danger-text: #f0776b;
+  --cv-danger-pill-bg: rgba(224, 71, 60, 0.2);
+  --cv-danger-pill-text: #f0776b;
+
+  --cv-input-bg: #15171d;
+  --cv-input-border: rgba(255, 255, 255, 0.12);
+  --cv-toggle-off: #3a3a36;
+  --cv-skeleton: #23252c;
+  --cv-scrim: rgba(0, 0, 0, 0.6);
+  --cv-menu-shadow: 0 10px 26px -10px rgba(0, 0, 0, 0.6);
+  --cv-empty-border: rgba(255, 255, 255, 0.14);
+
+  --cv-series-1: #6d9bf5;
+  --cv-series-2: #e9a35a;
+  --cv-series-3: #4fd39b;
+  --cv-series-4: #e6c45f;
+}
+
+/* Expose a few tokens to Tailwind's theme so utilities can use them if needed. */
+@theme inline {
+  --color-cv-bg: var(--cv-bg);
+  --color-cv-accent: var(--cv-accent-solid);
+  --font-heading: var(--font-space-grotesk);
+}
+
+/* ======================================================================
+   Base
+   ====================================================================== */
+html {
+  height: 100%;
+}
+
+body {
+  min-height: 100%;
+  background-color: var(--cv-bg);
+  background-image: var(--cv-bg-wash-1), var(--cv-bg-wash-2);
+  background-attachment: fixed;
+  color: var(--cv-text-primary);
+  font-family: -apple-system, "Segoe UI", system-ui, sans-serif;
+  font-size: 13px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+.cv-heading,
+.cv-brand {
+  font-family: var(--font-space-grotesk), -apple-system, "Segoe UI", system-ui, sans-serif;
+  font-weight: 700;
+}
+
+/* Tabular numerals so columns of figures align (doc: typography). */
+.cv-num {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Skeleton pulse (doc: "Loading / skeleton"). */
+@keyframes cv-skel {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+.cv-skel {
+  background: var(--cv-skeleton);
+  border-radius: 4px;
+  animation: cv-skel 1.1s ease-in-out infinite;
+}
+
+/* Spinner ring for button loading states. */
+@keyframes cv-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.cv-spin {
+  animation: cv-spin 0.7s linear infinite;
+}
+
+/* Focus ring, consistent across the product. */
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--cv-accent-solid);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+* {
+  box-sizing: border-box;
+}

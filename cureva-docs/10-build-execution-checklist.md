@@ -77,15 +77,20 @@ one facility."
       built to `09-ui-design-system.md`'s screen 7 spec — create an
       organisation, grant/revoke facility- or region-level access with
       a per-grant tier — both light and dark mode.
-- [ ] Next.js project scaffolded with Tailwind, `darkMode: 'class'` set
-      in the Tailwind config.
-- [ ] **Design token system implemented** — every CSS custom property
+- [x] Next.js project scaffolded with Tailwind, `darkMode: 'class'` set
+      in the Tailwind config. (Next 16 + Tailwind v4, which is CSS-first:
+      the `darkMode:'class'` intent is implemented as a `data-theme`
+      custom variant + attribute on `<html>` — an explicit user-forced
+      choice, not prefers-color-scheme alone.)
+- [x] **Design token system implemented** — every CSS custom property
       in `09-ui-design-system.md`'s "Design tokens" sections (light and
       dark), the `:root` / `:root[data-theme="dark"]` override
       structure, and the render-blocking inline script that reads the
       saved theme before first paint (no flash of the wrong theme).
       Built once, here, so every screen from Module 2 onward is built
-      against it rather than retrofitted later.
+      against it rather than retrofitted later. Dark-mode
+      `--cv-button-primary-bg` signed off (open decision #9): inverse —
+      `#f2f1ec` bg, `#111110` ink. Verified in-browser, both modes.
 - [ ] Theme toggle component built (top bar, per the component spec)
       and wired to `localStorage` + `users.theme_preference`.
 - [ ] **Shared component library implemented once, here** — every
