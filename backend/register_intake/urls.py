@@ -9,6 +9,7 @@ from .views import (
     IntakeValidateView,
     MappingView,
     MyIntakesView,
+    ProgressView,
     PublishView,
     ResolveMismatchView,
     TemplateListCreateView,
@@ -17,6 +18,7 @@ from .views import (
 urlpatterns = [
     path("intakes", IntakeCreateView.as_view(), name="intake-create"),
     path("intakes/<uuid:intake_id>/validate", IntakeValidateView.as_view(), name="intake-validate"),
+    path("intakes/<uuid:intake_id>/progress", ProgressView.as_view(), name="intake-progress"),
     path("intakes/<uuid:intake_id>/rows", IntakeRowsView.as_view(), name="intake-rows"),
     path("intakes/<uuid:intake_id>/rows/<uuid:row_id>/confirm-field", ConfirmFieldView.as_view(), name="intake-confirm-field"),
     path("intakes/<uuid:intake_id>/publish", PublishView.as_view(), name="intake-publish"),

@@ -5,6 +5,10 @@ submitted batches. Field confirmation is also reachable by a Facility lead for
 their facility's batches. Template mapping is Systems-admin only. Organisation
 users are rejected on every endpoint here (cureva-docs/05, 07).
 """
+import json
+import time
+
+from django.http import StreamingHttpResponse
 from rest_framework import status
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.permissions import IsAuthenticated
@@ -112,6 +116,70 @@ class IntakeValidateView(APIView):
         result = process_intake(intake, images)
         intake.refresh_from_db()
         return Response({"result": result, "intake": IntakeSerializer(intake).data})
+
+
+class ProgressView(APIView):
+    """GET /intakes/{id}/progress — Server-Sent Events: runs extraction, then
+    streams the field-by-field "scanning and matching" checklist (the labor-
+    illusion effect, cureva-docs/03), ending on a summary or a register-family
+    mismatch banner. The frontend consumes this with fetch streaming so the JWT
+    travels in the Authorization header, never the URL."""
+
+    permission_classes = [IsDataOfficer]
+
+    def get(self, request, intake_id):
+        intake = _get_intake_for_officer(request, intake_id)
+        if intake is None:
+            return Response(status=404)
+
+        def sse(event: dict) -> str:
+            return f"data: {json.dumps(event)}\n\n"
+
+        def stream():
+            from .resolution import resolve_template
+
+            template = resolve_template(intake.register_family, intake.facility_id)
+            columns = template.schema.get("columns", [])
+            yield sse({"type": "start", "total_fields": len(columns), "register_family": intake.register_family})
+
+            images = [storage.fetch_page(img.object_key) for img in intake.images.all()]
+            result = process_intake(intake, images)
+
+            if result["status"] == "extraction_failed":
+                yield sse({"type": "extraction_failed"})
+                return
+
+            intake.refresh_from_db()
+            matched_fields = set()
+            for row in intake.rows.all():
+                matched_fields.update((row.normalized or {}).keys())
+            unmatched = sorted({label for row in intake.rows.all() for label in (row.unmatched_labels or [])})
+
+            for col in columns:
+                field = col["canonical_field"]
+                yield sse({"type": "field", "field": field, "label": col["label"], "state": "reading"})
+                time.sleep(0.12)
+                state = "matched" if field in matched_fields else "pending"
+                yield sse({"type": "field", "field": field, "label": col["label"], "state": state})
+
+            if result["status"] == "held_mismatch":
+                yield sse({
+                    "type": "mismatch",
+                    "declared": intake.register_family,
+                    "suspected": result["suspected_register_family"],
+                })
+            else:
+                yield sse({
+                    "type": "done",
+                    "row_count": result["row_count"],
+                    "matched": len(matched_fields),
+                    "needs_mapping": unmatched,
+                })
+
+        response = StreamingHttpResponse(stream(), content_type="text/event-stream")
+        response["Cache-Control"] = "no-cache"
+        response["X-Accel-Buffering"] = "no"
+        return response
 
 
 class IntakeRowsView(APIView):
