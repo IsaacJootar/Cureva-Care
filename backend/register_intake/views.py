@@ -311,6 +311,9 @@ class MappingView(APIView):
             ]
         flags = TemplateFlag.objects.filter(intake=intake, status=TemplateFlag.Status.OPEN)
         return Response({
+            "template_id": str(intake.template_id) if intake.template_id else None,
+            "register_family": intake.register_family,
+            "facility_name": intake.facility.name,
             "unmatched_labels": unmatched,
             "canonical_fields": canonical,
             "open_flags": TemplateFlagSerializer(flags, many=True).data,
@@ -336,7 +339,11 @@ class TemplateListCreateView(APIView):
     permission_classes = [IsSystemsAdmin]
 
     def get(self, request):
-        return Response(TemplateSerializer(Template.objects.all(), many=True).data)
+        qs = Template.objects.select_related("facility").all()
+        family = request.query_params.get("register_family")
+        if family:
+            qs = qs.filter(register_family=family)
+        return Response(TemplateSerializer(qs, many=True).data)
 
     def post(self, request):
         serializer = TemplateSerializer(data=request.data)
@@ -348,3 +355,83 @@ class TemplateListCreateView(APIView):
             metadata={"register_family": template.register_family, "version": template.version},
         )
         return Response(TemplateSerializer(template).data, status=201)
+
+
+class TemplateAliasView(APIView):
+    """POST /templates/{id}/aliases — add an alias to a canonical field. Writes
+    a NEW template version (rule #2: never edit a version in place); the old
+    version is deactivated but kept, so prior intakes still point at it."""
+
+    permission_classes = [IsSystemsAdmin]
+
+    def post(self, request, template_id):
+        import copy
+        from datetime import date
+
+        from django.db.models import Max
+
+        tpl = Template.objects.filter(pk=template_id).first()
+        if tpl is None:
+            return Response(status=404)
+        canonical = request.data.get("canonical_field")
+        alias = (request.data.get("alias") or "").strip()
+        if not canonical or not alias:
+            return Response({"detail": "canonical_field and alias are required."}, status=400)
+
+        new_schema = copy.deepcopy(tpl.schema)
+        found = False
+        for col in new_schema.get("columns", []):
+            if col["canonical_field"] == canonical:
+                found = True
+                if alias not in col.get("aliases", []):
+                    col.setdefault("aliases", []).append(alias)
+        if not found:
+            return Response({"detail": f"Unknown canonical field: {canonical}"}, status=400)
+
+        next_version = (
+            Template.objects.filter(
+                register_family=tpl.register_family, facility=tpl.facility
+            ).aggregate(m=Max("version"))["m"] or 0
+        ) + 1
+        new_schema["version"] = next_version
+        tpl.is_active = False
+        tpl.save(update_fields=["is_active"])
+        new = Template.objects.create(
+            register_family=tpl.register_family,
+            facility=tpl.facility,
+            version=next_version,
+            effective_date=date.today(),
+            is_active=True,
+            schema=new_schema,
+        )
+        AuditEvent.objects.create(
+            actor=request.user, event_type="template_alias_added",
+            subject_type="template", subject_id=new.id,
+            metadata={"canonical_field": canonical, "new_version": next_version},
+        )
+        return Response(TemplateSerializer(new).data, status=201)
+
+
+class TemplateFlagsListView(APIView):
+    """GET /template-flags — open template flags awaiting admin review."""
+
+    permission_classes = [IsSystemsAdmin]
+
+    def get(self, request):
+        flags = (
+            TemplateFlag.objects.filter(status=TemplateFlag.Status.OPEN)
+            .select_related("intake", "intake__facility", "flagged_by")
+            .order_by("-created_at")
+        )
+        data = []
+        for f in flags:
+            data.append({
+                "id": str(f.id),
+                "intake": str(f.intake_id),
+                "facility_name": f.intake.facility.name,
+                "register_family": f.intake.register_family,
+                "flagged_by_name": f.flagged_by.name,
+                "note": f.note,
+                "created_at": f.created_at,
+            })
+        return Response(data)

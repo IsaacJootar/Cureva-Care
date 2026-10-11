@@ -143,7 +143,14 @@ one facility."
 
 ## Module 2 — Intake and templates
 
-**Status:** In progress
+**Status:** Done — exit condition verified (golden-file tests pass for
+ANC/Delivery/PNC incl. a facility-specific override, a confirmed
+low-confidence batch, a mis-declared batch held by the cross-check, and a
+simulated extraction-provider failure that recovers on retry). Live
+extraction verified end to end with OpenAI gpt-4o; the full
+capture→extract(SSE)→confirm→publish flow and the admin template-mapping
+screen are built in both light and dark mode. Templates reconciled with
+the real NHMIS registers (open decision #1 resolved).
 **Exit condition:** "Golden-file tests pass for ANC, Delivery, and PNC,
 including a facility-specific template override, an image-sourced batch
 that only publishes after its low-confidence fields are confirmed, and
@@ -197,12 +204,21 @@ ANC) that gets held by the cross-check rather than publishing."
       field checklist, done, register-mismatch banner) — light and dark
       mode. (Desktop; the dedicated mobile screen 6 layout is still to
       build.)
-- [ ] Same screen's mobile layout (screen 6 spec — the workspace bar,
+- [x] Same screen's mobile layout (screen 6 spec — the workspace bar,
       the same intake-card states, and the plain two-item bottom tab bar
       with no More sheet, since a Data officer's whole nav is just those
-      two links) built, light and dark mode.
-- [ ] Template-mapping admin screen (`/admin/templates`) built to the
-      design system, light and dark mode.
+      two links) built, light and dark mode. Implemented as a responsive
+      AppShell: below 768px the sidebar is replaced by a bottom tab bar
+      (role-aware, with a More sheet for roles that have >4 links; the
+      Data officer's two links show as a plain two-item bar), content
+      stacks full-width, no horizontal page scroll.
+- [x] Template-mapping admin screen (`/admin/templates`) built to the
+      design system, light and dark mode — family segmented control,
+      shared-default card with field chips, facility-override table, and
+      the open-flags panel. Plus the per-intake mapping screen
+      (`/intakes/[id]/mapping`): map unmatched labels → canonical field,
+      save as alias (writes a NEW template version, rule #2). Backend:
+      `GET /template-flags`, `POST /templates/{id}/aliases` (new version).
 - [x] Facility flagging (`POST /api/v1/intakes/{id}/flag`) implemented.
       Full intake API wired: create (multipart, duplicate no-op), validate,
       rows, confirm-field, publish (idempotent), resolve-register-mismatch,

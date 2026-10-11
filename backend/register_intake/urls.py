@@ -12,6 +12,8 @@ from .views import (
     ProgressView,
     PublishView,
     ResolveMismatchView,
+    TemplateAliasView,
+    TemplateFlagsListView,
     TemplateListCreateView,
 )
 
@@ -27,4 +29,6 @@ urlpatterns = [
     path("intakes/<uuid:intake_id>/mapping", MappingView.as_view(), name="intake-mapping"),
     path("my-intakes", MyIntakesView.as_view(), name="my-intakes"),
     path("templates", TemplateListCreateView.as_view(), name="templates"),
+    path("templates/<uuid:template_id>/aliases", TemplateAliasView.as_view(), name="template-aliases"),
+    path("template-flags", TemplateFlagsListView.as_view(), name="template-flags"),
 ]

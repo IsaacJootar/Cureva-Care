@@ -4,7 +4,9 @@ import { useEffect, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth";
 import { roleLanding } from "@/lib/nav";
+import { useIsMobile } from "@/lib/useIsMobile";
 import type { Role } from "@/lib/types";
+import { BottomNav } from "./BottomNav";
 import { Sidebar } from "./Sidebar";
 import { TopBar } from "./TopBar";
 
@@ -28,6 +30,7 @@ export function AppShell({
 }) {
   const { user, loading } = useAuth();
   const router = useRouter();
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     if (loading) return;
@@ -43,6 +46,18 @@ export function AppShell({
       <main style={{ minHeight: "100dvh", display: "grid", placeItems: "center" }}>
         <span style={{ color: "var(--cv-text-muted)", fontSize: 12.5 }}>Loading…</span>
       </main>
+    );
+  }
+
+  if (isMobile) {
+    return (
+      <div style={{ display: "flex", flexDirection: "column", minHeight: "100dvh" }}>
+        <TopBar title={title} subtitle={subtitle} chips={chips} action={action} />
+        <main style={{ padding: 16, flex: 1, paddingBottom: 80, maxWidth: "100vw", overflowX: "hidden" }}>
+          {children}
+        </main>
+        <BottomNav user={user} />
+      </div>
     );
   }
 
