@@ -168,13 +168,14 @@ ANC) that gets held by the cross-check rather than publishing."
       (`compute_source_hash`, order-independent over multi-page batches).
 - [x] Template resolution (`resolve_template`) implemented and tested,
       including the facility-specific-over-shared-default fallback.
-- [~] AI/OCR extraction pipeline wired to the vision model, streaming
+- [x] AI/OCR extraction pipeline wired to the vision model, streaming
       per-field results over SSE (`GET /api/v1/intakes/{id}/progress`).
-      Extraction wired to a real provider and live-verified: provider is
-      swappable (open decision #8) — OpenAI (gpt-4o) and Claude
-      (sonnet-5-5) both implemented behind `extraction_engine`; the pilot
-      key is OpenAI's, auth confirmed live. **SSE live-progress stream
-      still to build** (alongside the data-officer intake screen).
+      Provider swappable (open decision #8): OpenAI (gpt-4o) + Claude
+      (sonnet-5-5) behind `extraction_engine`; pilot key is OpenAI's.
+      **Live-verified end to end**: a generated ANC register image was
+      read by gpt-4o and returned correct rows + confidence through the
+      pipeline. SSE stream consumed by the intake screen via fetch
+      streaming (JWT in header, not URL).
 - [x] `match_extracted_fields` implemented and tested against aliases.
 - [x] **Register-family cross-check implemented**
       (`detect_register_family`, `check_register_mismatch`, using
@@ -184,14 +185,18 @@ ANC) that gets held by the cross-check rather than publishing."
 - [x] Type/structure and plausibility-range validation implemented and
       tested (implausible BP/birth-weight flagged not blocked; blank is
       unknown, never flagged — rule #6).
-- [ ] Field-confirmation screen (`/intakes/[id]/confirm-fields`) built
-      to the design system, both modes.
-- [ ] Capture Register / Upload Register intake screen
+- [x] Field-confirmation screen (`/intakes/[id]/confirm-fields`) built
+      to the design system, both modes — per-row cards, low-confidence/
+      flagged fields highlighted with confidence %, confirm/correct per
+      field, publish gated on all fields confirmed.
+- [x] Capture Register / Upload Register intake screen
       (`DataOfficer` equivalent, `/intakes`) built to
-      `09-ui-design-system.md`'s screen 5 spec — the workspace switcher
-      (no facility active / facility active) and every intake-card state
-      within it (idle, staged, extracting, done, register-mismatch
-      banner) — light and dark mode.
+      `09-ui-design-system.md`'s screen 5 spec — the session-level
+      workspace switcher (facility index / active facility) and every
+      intake-card state (idle, staged, extracting with the live SSE
+      field checklist, done, register-mismatch banner) — light and dark
+      mode. (Desktop; the dedicated mobile screen 6 layout is still to
+      build.)
 - [ ] Same screen's mobile layout (screen 6 spec — the workspace bar,
       the same intake-card states, and the plain two-item bottom tab bar
       with no More sheet, since a Data officer's whole nav is just those
