@@ -238,22 +238,29 @@ ANC) that gets held by the cross-check rather than publishing."
 
 ## Module 3 — Identity linkage
 
-**Status:** Not started
+**Status:** In progress
 **Exit condition:** "Candidate matches never auto-merge; every
 confirm/reject is audited."
 
-- [ ] `identity_candidates` table migrated per `02-data-model.md`.
-- [ ] Strict-identifier fast-path matching implemented and tested.
-- [ ] Probabilistic candidate matching implemented (name, DOB, facility,
+- [x] `identity_candidates` table migrated per `02-data-model.md` (plus
+      `Woman` and `SourceRowLink`, built now as the dependency identity
+      linkage needs — noted per the "build the dependency first" rule).
+- [x] Strict-identifier fast-path matching implemented and tested
+      (links to an existing Woman by card/folder number, or creates one;
+      automatic, no human).
+- [x] Probabilistic candidate matching implemented (name, DOB/age,
       phone), confidence score computed and stored, threshold read from
       `identity_candidate_confidence_threshold` in `platform_settings`.
+      Hooked into publish (strict first, then candidate queuing).
 - [ ] Identity-review queue (`/identity-review`) built to the design
       system, light and dark mode.
-- [ ] Confirm/reject endpoints implemented; confirm merges into the
-      Woman record, reject leaves the encounter unlinked; both write an
-      audit event.
-- [ ] Tests confirm no code path can set a candidate match's status to
-      `confirmed` without a `reviewed_by` user.
+- [x] Confirm/reject endpoints implemented; confirm merges into the
+      Woman record (and rejects other pending candidates for that row),
+      reject leaves the encounter unlinked; both write an audit event.
+      Facility-lead-only, scoped to their facility.
+- [x] Tests confirm no code path can set a candidate match's status to
+      `confirmed` without a `reviewed_by` user (the single confirm path
+      requires a reviewing user and raises without one).
 
 ## Module 4 — Maternal model and dashboards
 

@@ -99,6 +99,13 @@ def publish_intake(intake: Intake, user) -> dict:
     intake.published_at = now
     intake.save(update_fields=["status", "published_at"])
 
-    # Identity resolution + maternal projection run here in Modules 3-4
-    # (strict fast path, then human-confirmed candidate matching).
-    return {"status": "published", "already": False, "rows": intake.rows.count()}
+    # Identity resolution runs now (strict fast path, then probabilistic
+    # candidate queuing). Maternal event projection follows in Module 4.
+    # Imported lazily to keep the app boundary clean.
+    from maternal_projection.identity import resolve_identity
+
+    identity_results = []
+    for row in intake.rows.all():
+        identity_results.append(resolve_identity(row))
+
+    return {"status": "published", "already": False, "rows": intake.rows.count(), "identity": identity_results}
