@@ -190,7 +190,12 @@ ANC) that gets held by the cross-check rather than publishing."
       two links) built, light and dark mode.
 - [ ] Template-mapping admin screen (`/admin/templates`) built to the
       design system, light and dark mode.
-- [ ] Facility flagging (`POST /api/v1/intakes/{id}/flag`) implemented.
+- [x] Facility flagging (`POST /api/v1/intakes/{id}/flag`) implemented.
+      Full intake API wired: create (multipart, duplicate no-op), validate,
+      rows, confirm-field, publish (idempotent), resolve-register-mismatch,
+      flag, mapping (admin), my-intakes, templates — with role enforcement
+      (org users rejected) and HTTP-level tests for the create→validate→
+      confirm→publish flow.
 - [x] Publish/hold logic implemented: a row only reaches `published`
       after every gate (type/structure, plausibility acknowledged,
       register-family resolved, every low-confidence field confirmed).

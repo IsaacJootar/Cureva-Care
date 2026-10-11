@@ -7,6 +7,7 @@ from django.urls import include, path
 
 urlpatterns = [
     path("", include("identity_access.urls")),
-    # register_intake / maternal_projection / intelligence / reporting
-    # routes are added in their respective modules.
+    path("", include("register_intake.urls")),
+    # maternal_projection / intelligence / reporting routes are added in
+    # their respective modules.
 ]
