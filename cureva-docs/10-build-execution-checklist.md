@@ -54,7 +54,12 @@ agent) can open it and know exactly what's left without reading code.
 
 ## Module 1 — Foundations
 
-**Status:** In progress
+**Status:** Done — exit condition verified live (login via magic-link →
+admin shell → created a facility by walking the seeded State→LGA→Ward
+picker → created an organisation and granted it one facility), in both
+light and dark mode. The one open item is SSO: the Google OAuth flow is
+fully built but deferred pending real Google client credentials, by
+product-owner decision (2026-10-11). Every other section is complete.
 **Exit condition (from `08-delivery-plan.md`):** "A user can log in
 through either path, reach an empty dashboard shell, a Systems admin can
 create a facility by walking the seeded State → LGA → Ward picker, and a
