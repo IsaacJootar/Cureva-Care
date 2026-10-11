@@ -143,20 +143,24 @@ one facility."
 
 ## Module 2 — Intake and templates
 
-**Status:** Not started
+**Status:** In progress
 **Exit condition:** "Golden-file tests pass for ANC, Delivery, and PNC,
 including a facility-specific template override, an image-sourced batch
 that only publishes after its low-confidence fields are confirmed, and
 a deliberately mis-declared batch (e.g. a Delivery photo submitted as
 ANC) that gets held by the cross-check rather than publishing."
 
-- [ ] `templates`, `intakes`, `source_rows`, `template_flags` tables
+- [x] `templates`, `intakes`, `source_rows`, `template_flags` tables
       migrated per `03-templates-and-intake.md`'s schema, including the
-      register-mismatch columns on `intakes`.
-- [ ] ANC v1, Delivery v1, and PNC v1 shared/default templates entered
-      exactly per `03-templates-and-intake.md` (confirm the abbreviated
-      Delivery/PNC field lists against the real registers before
-      finalizing — open decision #1 in `08-delivery-plan.md`).
+      register-mismatch columns on `intakes`. Also added `IntakeImage`
+      (multi-page batches) and `FieldCorrection` (append-only correction
+      history), both faithful to the lineage layer in `02-data-model.md`.
+- [x] ANC v1, Delivery v1, and PNC v1 shared/default templates entered
+      per `03-templates-and-intake.md` and seeded (facility IS NULL).
+      ANC exact; Delivery/PNC built out from the documented key + lens +
+      signature fields. **Open decision #1: final Delivery/PNC column
+      lists still to be confirmed against the real national registers**
+      — a new template version when they are, never an in-place edit.
 - [ ] Fingerprint/duplicate-checksum check implemented and tested.
 - [ ] Template resolution (`resolve_template`) implemented and tested,
       including the facility-specific-over-shared-default fallback.
