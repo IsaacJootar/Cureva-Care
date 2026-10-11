@@ -175,6 +175,10 @@ class SourceRow(models.Model):
     flags = models.JSONField(null=True, blank=True)  # plausibility warnings
     extraction_confidence = models.JSONField(default=dict)  # {"field": 0.0-1.0}
     field_image_regions = models.JSONField(null=True, blank=True)  # {"field": crop}
+    # Canonical fields a human has confirmed or corrected (drives the publish
+    # gate — every below-threshold/flagged field must appear here first).
+    confirmed_fields = models.JSONField(default=list, blank=True)
+    unmatched_labels = models.JSONField(default=list, blank=True)  # labels needing mapping
     confirmed_by = models.ForeignKey(
         "identity_access.User", on_delete=models.SET_NULL, null=True, blank=True, related_name="+"
     )

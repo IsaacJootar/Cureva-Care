@@ -168,10 +168,11 @@ ANC) that gets held by the cross-check rather than publishing."
 - [ ] AI/OCR extraction pipeline wired to the vision model, streaming
       per-field results over SSE (`GET /api/v1/intakes/{id}/progress`).
 - [x] `match_extracted_fields` implemented and tested against aliases.
-- [ ] **Register-family cross-check implemented**
+- [x] **Register-family cross-check implemented**
       (`detect_register_family`, `check_register_mismatch`, using
-      `register_mismatch_min_signal` from `platform_settings`) and
-      tested with a deliberately mis-declared batch per family.
+      `register_mismatch_min_signal` from `platform_settings` via the
+      shared accessor in the pipeline) and tested with a deliberately
+      mis-declared Delivery-as-ANC batch that is held, then switched.
 - [x] Type/structure and plausibility-range validation implemented and
       tested (implausible BP/birth-weight flagged not blocked; blank is
       unknown, never flagged — rule #6).
@@ -190,12 +191,16 @@ ANC) that gets held by the cross-check rather than publishing."
 - [ ] Template-mapping admin screen (`/admin/templates`) built to the
       design system, light and dark mode.
 - [ ] Facility flagging (`POST /api/v1/intakes/{id}/flag`) implemented.
-- [ ] Publish/hold logic implemented: a row only reaches `published`
+- [x] Publish/hold logic implemented: a row only reaches `published`
       after every gate (type/structure, plausibility acknowledged,
       register-family resolved, every low-confidence field confirmed).
-- [ ] Golden-file tests written and passing for all three register
+      Publish is idempotent (status + `select_for_update`), per-field
+      confirm/correct records append-only `FieldCorrection` history.
+- [x] Golden-file tests written and passing for all three register
       families, a facility-specific override, a confirmed
-      low-confidence batch, and a mis-declared-family batch.
+      low-confidence batch, a mis-declared-family batch (held → switched,
+      and held → confirm-declared), and a simulated extraction-provider
+      failure that lands on `extraction_failed` and recovers on retry.
 
 ## Module 3 — Identity linkage
 
