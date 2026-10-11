@@ -161,17 +161,20 @@ ANC) that gets held by the cross-check rather than publishing."
       signature fields. **Open decision #1: final Delivery/PNC column
       lists still to be confirmed against the real national registers**
       — a new template version when they are, never an in-place edit.
-- [ ] Fingerprint/duplicate-checksum check implemented and tested.
-- [ ] Template resolution (`resolve_template`) implemented and tested,
+- [x] Fingerprint/duplicate-checksum check implemented and tested
+      (`compute_source_hash`, order-independent over multi-page batches).
+- [x] Template resolution (`resolve_template`) implemented and tested,
       including the facility-specific-over-shared-default fallback.
 - [ ] AI/OCR extraction pipeline wired to the vision model, streaming
       per-field results over SSE (`GET /api/v1/intakes/{id}/progress`).
-- [ ] `match_extracted_fields` implemented and tested against aliases.
+- [x] `match_extracted_fields` implemented and tested against aliases.
 - [ ] **Register-family cross-check implemented**
       (`detect_register_family`, `check_register_mismatch`, using
       `register_mismatch_min_signal` from `platform_settings`) and
       tested with a deliberately mis-declared batch per family.
-- [ ] Type/structure and plausibility-range validation implemented.
+- [x] Type/structure and plausibility-range validation implemented and
+      tested (implausible BP/birth-weight flagged not blocked; blank is
+      unknown, never flagged — rule #6).
 - [ ] Field-confirmation screen (`/intakes/[id]/confirm-fields`) built
       to the design system, both modes.
 - [ ] Capture Register / Upload Register intake screen
