@@ -238,7 +238,11 @@ ANC) that gets held by the cross-check rather than publishing."
 
 ## Module 3 — Identity linkage
 
-**Status:** In progress
+**Status:** Done — exit condition verified: candidate matches never
+auto-merge (only a human confirmation, which requires a reviewing user,
+creates a link — tested), and every confirm/reject writes an audit
+event. Strict fast path + probabilistic matching both built, threshold
+read from platform_settings, review queue screen built in both modes.
 **Exit condition:** "Candidate matches never auto-merge; every
 confirm/reject is audited."
 
@@ -252,8 +256,10 @@ confirm/reject is audited."
       phone), confidence score computed and stored, threshold read from
       `identity_candidate_confidence_threshold` in `platform_settings`.
       Hooked into publish (strict first, then candidate queuing).
-- [ ] Identity-review queue (`/identity-review`) built to the design
-      system, light and dark mode.
+- [x] Identity-review queue (`/identity-review`) built to the design
+      system, light and dark mode — per-candidate cards showing the new
+      record vs the candidate Woman, matched-on fields, confidence %, and
+      Confirm/Reject actions. Facility-lead-only.
 - [x] Confirm/reject endpoints implemented; confirm merges into the
       Woman record (and rejects other pending candidates for that row),
       reject leaves the encounter unlinked; both write an audit event.
