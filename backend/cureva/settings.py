@@ -187,7 +187,15 @@ GOOGLE_OAUTH_CLIENT_ID = env("GOOGLE_OAUTH_CLIENT_ID", default="")
 GOOGLE_OAUTH_CLIENT_SECRET = env("GOOGLE_OAUTH_CLIENT_SECRET", default="")
 
 # --- External services (secrets; never in platform_settings) --------------
+# OCR/vision provider. The pilot default in the docs is Claude, but the
+# provider is swappable behind `extraction_engine` (open decision #8). The
+# active provider is chosen by EXTRACTION_PROVIDER, or auto-detected from
+# whichever key is configured (OpenAI preferred when both are set).
 ANTHROPIC_API_KEY = env("ANTHROPIC_API_KEY", default="")
+ANTHROPIC_VISION_MODEL = env("ANTHROPIC_VISION_MODEL", default="claude-sonnet-5-5")
+OPENAI_API_KEY = env("OPENAI_API_KEY", default="")
+OPENAI_VISION_MODEL = env("OPENAI_VISION_MODEL", default="gpt-4o")
+EXTRACTION_PROVIDER = env("EXTRACTION_PROVIDER", default="auto")  # auto|openai|claude
 TERMII_API_KEY = env("TERMII_API_KEY", default="")
 TERMII_SENDER_ID = env("TERMII_SENDER_ID", default="Cureva")
 

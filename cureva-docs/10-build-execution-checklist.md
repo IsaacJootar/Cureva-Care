@@ -157,16 +157,24 @@ ANC) that gets held by the cross-check rather than publishing."
       history), both faithful to the lineage layer in `02-data-model.md`.
 - [x] ANC v1, Delivery v1, and PNC v1 shared/default templates entered
       per `03-templates-and-intake.md` and seeded (facility IS NULL).
-      ANC exact; Delivery/PNC built out from the documented key + lens +
-      signature fields. **Open decision #1: final Delivery/PNC column
-      lists still to be confirmed against the real national registers**
-      — a new template version when they are, never an in-place edit.
+      ANC exact; Delivery/PNC **reconciled against the REAL NHMIS
+      registers** in Cureva's existing platform (app.cureva.care:
+      antenatal_registrations, deliveries, postnatal_records) — this
+      resolves open decision #1. ANC 22 / Delivery 25 / PNC 24 columns,
+      canonical names kept stable for the cross-check/lenses, real
+      register labels added as aliases. Post-launch changes go through a
+      new template version, never in-place (rule #2).
 - [x] Fingerprint/duplicate-checksum check implemented and tested
       (`compute_source_hash`, order-independent over multi-page batches).
 - [x] Template resolution (`resolve_template`) implemented and tested,
       including the facility-specific-over-shared-default fallback.
-- [ ] AI/OCR extraction pipeline wired to the vision model, streaming
+- [~] AI/OCR extraction pipeline wired to the vision model, streaming
       per-field results over SSE (`GET /api/v1/intakes/{id}/progress`).
+      Extraction wired to a real provider and live-verified: provider is
+      swappable (open decision #8) — OpenAI (gpt-4o) and Claude
+      (sonnet-5-5) both implemented behind `extraction_engine`; the pilot
+      key is OpenAI's, auth confirmed live. **SSE live-progress stream
+      still to build** (alongside the data-officer intake screen).
 - [x] `match_extracted_fields` implemented and tested against aliases.
 - [x] **Register-family cross-check implemented**
       (`detect_register_family`, `check_register_mismatch`, using
