@@ -6,6 +6,8 @@ from .views import (
     FacilitiesOverviewView,
     MaternalSummaryView,
     RecordsView,
+    WorklistActionView,
+    WorklistView,
     WorkspaceView,
 )
 
@@ -15,4 +17,6 @@ urlpatterns = [
     path("care-journey", CareJourneyView.as_view(), name="care-journey"),
     path("facilities-overview", FacilitiesOverviewView.as_view(), name="facilities-overview"),
     path("records", RecordsView.as_view(), name="records"),
+    path("worklists", WorklistView.as_view(), name="worklists"),
+    path("worklists/<str:item_id>/action", WorklistActionView.as_view(), name="worklist-action"),
 ]

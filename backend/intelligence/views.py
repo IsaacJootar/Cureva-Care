@@ -14,7 +14,12 @@ from identity_access.permissions import IsDashboardViewer
 from identity_access.services import get_setting
 from identity_access.settings_registry import STALE_FACILITY_ALERT_DAYS
 
+from identity_access.models import AuditEvent
+from identity_access.permissions import IsFacilityLead
+
 from .metrics import maternal_summary
+from .models import WorklistAction
+from .rules import evaluate_worklist
 from .scoping import caller_scope
 
 IDENTITY_FIELDS = {"card_number", "name", "woman_name", "phone", "cl_phone"}
@@ -121,6 +126,67 @@ class FacilitiesOverviewView(APIView):
                 "deliveries": summ["operational"]["deliveries"],
             })
         return Response({"facilities": rows, "stale_days": stale_days})
+
+
+class WorklistView(APIView):
+    """GET /worklists — Facility-lead-only (cureva-docs/05 "Notes for
+    implementation"). An Organisation user caller is rejected outright — this
+    is a read restriction, not just a filter. Each item carries its triggering
+    rule, severity, and any follow-up action history; an actioned item that is
+    still true resurfaces (cureva-docs/02)."""
+
+    permission_classes = [IsFacilityLead]
+
+    def get(self, request):
+        facility_id = request.user.facility_id
+        items = evaluate_worklist([facility_id])
+        # Attach the latest follow-up action per item, if any.
+        for item in items:
+            last = (
+                WorklistAction.objects.filter(
+                    rule_key=item["rule_key"], subject_id=item["subject_id"]
+                )
+                .select_related("actioned_by")
+                .order_by("-actioned_at")
+                .first()
+            )
+            item["last_actioned"] = (
+                {
+                    "by": last.actioned_by.name,
+                    "at": last.actioned_at,
+                    "note": last.note,
+                }
+                if last
+                else None
+            )
+        return Response({"items": items})
+
+
+class WorklistActionView(APIView):
+    """POST /worklists/{itemId}/action — Facility lead records a follow-up. An
+    audit overlay only: never edits the register data or referral_status."""
+
+    permission_classes = [IsFacilityLead]
+
+    def post(self, request, item_id):
+        try:
+            rule_key, subject_id = item_id.split(":", 1)
+        except ValueError:
+            return Response({"detail": "Malformed item id."}, status=400)
+        action = WorklistAction.objects.create(
+            rule_key=rule_key,
+            subject_type=request.data.get("subject_type", ""),
+            subject_id=subject_id,
+            facility_id=request.user.facility_id,
+            note=request.data.get("note") or None,
+            actioned_by=request.user,
+        )
+        AuditEvent.objects.create(
+            actor=request.user, event_type="worklist_actioned",
+            subject_type="worklist_action", subject_id=action.id,
+            facility_id=request.user.facility_id, metadata={"rule_key": rule_key},
+        )
+        return Response({"status": "actioned", "actioned_at": action.actioned_at}, status=201)
 
 
 class RecordsView(APIView):
