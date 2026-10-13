@@ -9,5 +9,6 @@ urlpatterns = [
     path("", include("identity_access.urls")),
     path("", include("register_intake.urls")),
     path("", include("maternal_projection.urls")),
-    # intelligence / reporting routes are added in their respective modules.
+    path("", include("intelligence.urls")),
+    # reporting routes are added in Module 5.
 ]

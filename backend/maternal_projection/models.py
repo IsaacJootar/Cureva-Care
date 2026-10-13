@@ -117,3 +117,107 @@ class IdentityCandidate(models.Model):
     class Meta:
         ordering = ["-confidence", "-created_at"]
         indexes = [models.Index(fields=["facility", "status"])]
+
+
+# --- Maternal domain events (Module 4) ------------------------------------
+class EpisodeStatus(models.TextChoices):
+    ACTIVE = "active", "Active"
+    DELIVERED = "delivered", "Delivered"
+    CLOSED = "closed", "Closed"
+
+
+class PregnancyEpisode(models.Model):
+    """One pregnancy for one woman. A woman may have multiple episodes over
+    time — never 1:1 (cureva-docs/02)."""
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    woman = models.ForeignKey(Woman, on_delete=models.CASCADE, related_name="episodes")
+    facility = models.ForeignKey("identity_access.Facility", on_delete=models.PROTECT, related_name="episodes")
+    episode_number = models.IntegerField(default=1)
+    booking_date = models.DateField(null=True, blank=True)
+    lmp = models.DateField(null=True, blank=True)
+    edd = models.DateField(null=True, blank=True)
+    booking_gestational_age_weeks = models.IntegerField(null=True, blank=True)
+    status = models.CharField(max_length=16, choices=EpisodeStatus.choices, default=EpisodeStatus.ACTIVE)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        indexes = [models.Index(fields=["facility", "status"]), models.Index(fields=["woman", "episode_number"])]
+
+
+class _MaternalEventBase(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    episode = models.ForeignKey(PregnancyEpisode, on_delete=models.CASCADE, null=True, blank=True)
+    woman = models.ForeignKey(Woman, on_delete=models.CASCADE)
+    facility = models.ForeignKey("identity_access.Facility", on_delete=models.PROTECT)
+    source_row = models.OneToOneField("register_intake.SourceRow", on_delete=models.CASCADE, related_name="+")
+    data = models.JSONField(default=dict)  # full normalized values for this row
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        abstract = True
+
+
+class ANCContact(_MaternalEventBase):
+    service_date = models.DateField(null=True, blank=True)
+    contact_number = models.IntegerField(null=True, blank=True)
+    gestational_age_weeks = models.IntegerField(null=True, blank=True)
+
+    class Meta:
+        indexes = [models.Index(fields=["facility", "service_date"]), models.Index(fields=["episode"])]
+
+
+class BirthEvent(_MaternalEventBase):
+    delivery_date = models.DateField(null=True, blank=True)
+    delivery_place = models.CharField(max_length=32, null=True, blank=True)
+    mode_of_delivery = models.CharField(max_length=32, null=True, blank=True)
+    attendant_category = models.CharField(max_length=32, null=True, blank=True)
+    maternal_outcome = models.CharField(max_length=32, null=True, blank=True)
+    baby_outcome = models.CharField(max_length=32, null=True, blank=True)
+    still_birth = models.BooleanField(null=True, blank=True)
+    birth_weight_kg = models.DecimalField(max_digits=4, decimal_places=2, null=True, blank=True)
+    baby_sex = models.CharField(max_length=8, null=True, blank=True)
+    babies = models.JSONField(default=list)  # one entry per baby (multi-baby support)
+    referral_status = models.CharField(max_length=64, null=True, blank=True)
+
+    class Meta:
+        indexes = [models.Index(fields=["facility", "delivery_date"]), models.Index(fields=["episode"])]
+
+
+class PNCContact(_MaternalEventBase):
+    class Subject(models.TextChoices):
+        MOTHER = "mother", "Mother"
+        NEWBORN = "newborn", "Newborn"
+
+    visit_date = models.DateField(null=True, blank=True)
+    days_postpartum = models.IntegerField(null=True, blank=True)
+    subject = models.CharField(max_length=16, choices=Subject.choices, null=True, blank=True)
+    feeding_status = models.CharField(max_length=32, null=True, blank=True)
+    family_planning = models.CharField(max_length=32, null=True, blank=True)
+    visit_outcome = models.CharField(max_length=32, null=True, blank=True)
+    referral_status = models.CharField(max_length=64, null=True, blank=True)
+
+    class Meta:
+        indexes = [models.Index(fields=["facility", "visit_date"]), models.Index(fields=["episode"])]
+
+
+class Referral(models.Model):
+    class Status(models.TextChoices):
+        OPEN = "open", "Open"
+        CLOSED = "closed", "Closed with documented outcome"
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    episode = models.ForeignKey(PregnancyEpisode, on_delete=models.CASCADE, null=True, blank=True, related_name="referrals")
+    woman = models.ForeignKey(Woman, on_delete=models.CASCADE, related_name="referrals")
+    facility = models.ForeignKey("identity_access.Facility", on_delete=models.PROTECT, related_name="referrals")
+    source_row = models.ForeignKey("register_intake.SourceRow", on_delete=models.CASCADE, related_name="+")
+    origin = models.CharField(max_length=16)  # 'Delivery' | 'PNC' | 'ANC'
+    reason = models.TextField(null=True, blank=True)
+    destination = models.TextField(null=True, blank=True)
+    date = models.DateField(null=True, blank=True)
+    status = models.CharField(max_length=16, choices=Status.choices, default=Status.OPEN)
+    outcome = models.TextField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        indexes = [models.Index(fields=["facility", "status"])]

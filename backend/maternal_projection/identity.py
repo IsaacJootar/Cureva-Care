@@ -168,6 +168,16 @@ def confirm_candidate(candidate: IdentityCandidate, user) -> dict:
         facility_id=candidate.facility_id,
         metadata={"confidence": str(candidate.confidence), "matched_fields": candidate.matched_fields},
     )
+
+    # The row is now linked — project it into the maternal model, and refresh
+    # this facility's metrics.
+    from .projection import project_row
+
+    project_row(candidate.source_row)
+    from intelligence.aggregation import rebuild_facility_metrics
+
+    rebuild_facility_metrics(candidate.facility_id)
+
     return {"status": "confirmed", "woman_id": str(candidate.candidate_woman_id)}
 
 

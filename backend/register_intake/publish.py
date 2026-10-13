@@ -103,9 +103,18 @@ def publish_intake(intake: Intake, user) -> dict:
     # candidate queuing). Maternal event projection follows in Module 4.
     # Imported lazily to keep the app boundary clean.
     from maternal_projection.identity import resolve_identity
+    from maternal_projection.projection import project_row
 
     identity_results = []
     for row in intake.rows.all():
         identity_results.append(resolve_identity(row))
+        # Strict-linked rows are now linked and project immediately; candidate
+        # rows project later, on confirmation.
+        project_row(row)
+
+    # Refresh daily facility metrics for this facility (idempotent).
+    from intelligence.aggregation import rebuild_facility_metrics
+
+    rebuild_facility_metrics(intake.facility_id)
 
     return {"status": "published", "already": False, "rows": intake.rows.count(), "identity": identity_results}

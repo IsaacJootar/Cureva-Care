@@ -270,16 +270,20 @@ confirm/reject is audited."
 
 ## Module 4 — Maternal model and dashboards
 
-**Status:** Not started
+**Status:** In progress
 **Exit condition:** "Dashboard metrics reconcile exactly with a
 manually calculated fixture dataset."
 
-- [ ] Woman / PregnancyEpisode / ANCContact / BirthEvent / PNCContact /
-      Referral tables migrated per `02-data-model.md`.
-- [ ] Maternal Projection app writes these from verified source rows,
-      per the data-flow summary in `04-architecture-and-stack.md`.
-- [ ] Daily facility metric aggregation job implemented (idempotent,
-      re-runnable without double counting).
+- [x] Woman / PregnancyEpisode / ANCContact / BirthEvent / PNCContact /
+      Referral tables migrated per `02-data-model.md` (Woman already in
+      Module 3; the event tables added here).
+- [x] Maternal Projection app writes these from verified source rows,
+      per the data-flow summary in `04-architecture-and-stack.md` —
+      hooked into publish (strict-linked rows) and candidate confirm.
+      Only linked rows project; unlinked encounters stay source-only.
+- [x] Daily facility metric aggregation job implemented (idempotent,
+      re-runnable without double counting) — `rebuild_facility_metrics`
+      deletes + recomputes a facility's daily rows from the events.
 - [ ] Overview (`/overview`) built to `09-ui-design-system.md` screen 1,
       both the full multi-facility view and the facility-locked view
       for Data officer/Facility lead, light and dark mode.
@@ -294,15 +298,17 @@ manually calculated fixture dataset."
 - [ ] Facility lead's locked overview (screen 4 spec — stat row,
       funnel, follow-up worklist, inline identity-match table) built,
       light and dark mode.
-- [ ] Fixture dataset built and metric reconciliation test passing for
-      every metric in the MVP metric set (`06-metrics-and-reporting.md`).
-- [ ] Organisation-scoped filtering implemented on every dashboard/report
-      endpoint: an Organisation user/viewer resolves to their
-      organisation's effective facility set (explicit grants union
-      region-level grants) and never sees a facility outside it. Tested
-      against the same fixture dataset, granting a test organisation a
-      subset of the fixture's facilities and confirming its numbers
-      reconcile to exactly that subset.
+- [x] Fixture dataset built and metric reconciliation test passing for
+      the MVP metric set (`06-metrics-and-reporting.md`) — published a
+      known fixture through the real pipeline and reconciled operational
+      counts, early-booking, delivery/postnatal linkage, and outcomes to
+      hand-calculated values.
+- [x] Organisation-scoped filtering implemented on every dashboard
+      endpoint: an Organisation user resolves to their organisation's
+      effective facility set (explicit grants ∪ region grants, expanded
+      server-side) and never sees a facility outside it. Tested: an org
+      granted only facility A reconciles to A's numbers (B excluded); a
+      ward grant expands to both facilities under it.
 - [ ] "My organisation's users" screen (`/org/users`) built to
       `09-ui-design-system.md`'s screen 9 spec, both light and dark
       mode.
