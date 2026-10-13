@@ -21,6 +21,7 @@ export interface CurrentUser {
   organisation_name?: string | null;
   can_manage_org_users: boolean;
   theme_preference: ThemePreference;
+  is_active?: boolean;
 }
 
 export interface GeoState {

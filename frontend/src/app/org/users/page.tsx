@@ -3,16 +3,17 @@
 import { useCallback, useEffect, useState } from "react";
 import { apiGet, apiPost } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
+import { deleteOrgUser } from "@/lib/ops";
 import type { CurrentUser } from "@/lib/types";
 import { AppShell } from "@/components/layout/AppShell";
 import { Button } from "@/components/ui/Button";
-import { Modal } from "@/components/ui/Dialog";
+import { ConfirmDialog, Modal } from "@/components/ui/Dialog";
 import { TextField } from "@/components/ui/Field";
 import { EmptyState, StatusPill, StatTileSkeleton } from "@/components/ui/Feedback";
-import { Table, Td, Th } from "@/components/ui/Table";
+import { RowActionsMenu, Table, Td, Th } from "@/components/ui/Table";
 import { Toggle } from "@/components/ui/Toggle";
 import { useToast } from "@/components/ui/Toast";
-import { PlusIcon, UsersIcon } from "@/components/icons";
+import { PlusIcon, TrashIcon, UsersIcon } from "@/components/icons";
 
 export default function OrgUsersPage() {
   const { user } = useAuth();
@@ -20,6 +21,7 @@ export default function OrgUsersPage() {
   const orgId = user?.organisation;
   const [users, setUsers] = useState<CurrentUser[] | null>(null);
   const [inviting, setInviting] = useState(false);
+  const [deactivateTarget, setDeactivateTarget] = useState<CurrentUser | null>(null);
 
   const load = useCallback(() => {
     if (!orgId) return;
@@ -45,7 +47,7 @@ export default function OrgUsersPage() {
         <EmptyState icon={<UsersIcon size={24} />} heading="No users yet" hint="Invite colleagues into your organisation." />
       ) : (
         <Table>
-          <thead><tr><Th>Name</Th><Th>Email</Th><Th>Role</Th><Th>Manages users</Th><Th>Status</Th></tr></thead>
+          <thead><tr><Th>Name</Th><Th>Email</Th><Th>Role</Th><Th>Manages users</Th><Th>Status</Th><Th style={{ textAlign: "right" }}>Actions</Th></tr></thead>
           <tbody>
             {users.map((u) => (
               <tr key={u.id}>
@@ -53,12 +55,38 @@ export default function OrgUsersPage() {
                 <Td>{u.email}</Td>
                 <Td>Organisation user</Td>
                 <Td>{u.can_manage_org_users ? "Yes" : "—"}</Td>
-                <Td><StatusPill status="success">Active</StatusPill></Td>
+                <Td>{u.is_active ? <StatusPill status="success">Active</StatusPill> : <StatusPill status="neutral">Inactive</StatusPill>}</Td>
+                <Td>
+                  {u.is_active && u.id !== user?.id && (
+                    <RowActionsMenu actions={[
+                      { icon: <TrashIcon size={16} />, label: "Deactivate user", destructive: true, onClick: () => setDeactivateTarget(u) },
+                    ]} />
+                  )}
+                </Td>
               </tr>
             ))}
           </tbody>
         </Table>
       )}
+
+      <ConfirmDialog
+        open={!!deactivateTarget}
+        title={`Deactivate ${deactivateTarget?.name}?`}
+        consequence="They will immediately lose access to your organisation. This is a soft delete — their record is kept, not erased."
+        confirmLabel="Deactivate"
+        onCancel={() => setDeactivateTarget(null)}
+        onConfirm={async () => {
+          if (!deactivateTarget || !orgId) return;
+          try {
+            await deleteOrgUser(orgId, deactivateTarget.id);
+            toast.success(`${deactivateTarget.name} deactivated.`);
+            setDeactivateTarget(null);
+            load();
+          } catch {
+            toast.error("Could not deactivate.");
+          }
+        }}
+      />
 
       {inviting && orgId && (
         <InviteModal

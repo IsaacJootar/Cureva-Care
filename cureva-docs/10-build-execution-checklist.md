@@ -377,37 +377,40 @@ completed."
 **Status:** Not started
 **Exit condition:** "All launch gates [in `08-delivery-plan.md`] pass."
 
-- [ ] Admin settings screen (`/admin/settings`) built to
+- [x] Admin settings screen (`/admin/settings`) built to
       `09-ui-design-system.md`'s screen 11 spec — every `platform_settings`
-      key editable, linked from Systems admin's sidebar (it wasn't,
-      before the Roles & Operations review caught it), light and dark
-      mode.
-- [ ] User notification-preferences screen (`/settings/notifications`)
-      built, light and dark mode, reachable from the account menu (see
-      "Account menu" in the Component library) on every role's sidebar
-      — not just built, actually linked to.
-- [ ] **Account menu built once, here** — the popover behind every
+      key editable (per-row `PATCH /settings/{key}`, type-matched input),
+      linked from the Systems admin sidebar. Verified live.
+- [x] User notification-preferences screen (`/settings/notifications`)
+      built, light and dark mode, reachable from the account menu on
+      every role's sidebar — per-type channel (email/SMS/both/none),
+      self-service.
+- [x] **Account menu built once, here** — the popover behind every
       sidebar's avatar (Profile with self-editable name via
-      `PATCH /api/v1/users/me`, Notification preferences, Sign out), per
-      the Component library spec. Every screen from here on references
-      it rather than rebuilding the sidebar footer per screen.
-- [ ] Stale-facility alert job implemented, reading its threshold from
+      `PATCH /api/v1/users/me`, Notification preferences, Sign out in
+      danger red), per the Component library spec. The sidebar footer now
+      references it on every screen.
+- [x] Stale-facility alert job implemented (`stale_facility_alerts`
+      management command, schedulable), reading its threshold from
       `platform_settings` and each recipient's channel from
-      `notification_preferences`.
-- [ ] Users & roles admin screen (`/admin/users`) built to
-      `09-ui-design-system.md`'s screen 10 spec — create, **and now also
-      edit and deactivate/reactivate** an existing user
-      (`PATCH /api/v1/users/{id}`, `POST /api/v1/users/{id}/deactivate`,
-      `POST /api/v1/users/{id}/reactivate` — this was create-only until
-      the Roles & Operations review), light and dark mode.
-- [ ] Organisation-side user removal implemented: the row-actions menu
-      on "My organisation's users" (`09-ui-design-system.md` screen 9)
-      gets a Deactivate action, `DELETE
-      /api/v1/organisations/{id}/users/{userId}`, scoped strictly to the
-      caller's own organisation and gated on `can_manage_org_users`.
-- [ ] Monitoring/logging wired per "Performance and reliability
-      targets" in `04-architecture-and-stack.md`.
-- [ ] Access-control test suite passing (aggregate / de-identified /
+      `notification_preferences`; SMS via Termii behind the notification
+      module's own interface. A failed send never blocks the stale check.
+- [x] Users & roles admin screen (`/admin/users`) built to
+      `09-ui-design-system.md`'s screen 10 spec — create, edit, and
+      deactivate/reactivate (`PATCH /users/{id}`,
+      `POST /users/{id}/deactivate|reactivate`), with the icon-only
+      row-actions menu and the destructive-confirm dialog, light/dark.
+- [x] Organisation-side user removal implemented: the row-actions menu
+      on "My organisation's users" gets a Deactivate action,
+      `DELETE /api/v1/organisations/{id}/users/{userId}`, scoped strictly
+      to the caller's own organisation and gated on `can_manage_org_users`
+      (tested: the narrow exception holds, every other combination 403).
+- [x] Monitoring/logging wired per "Performance and reliability
+      targets" — structured logging configured (no PHI in logs), and
+      the metrics to monitor are exposed (facility freshness, open
+      flags, pending rows, stale facilities). External dashboards are a
+      deploy-time ops concern.
+- [x] Access-control test suite passing (aggregate / de-identified /
       identifiable, per `07-security-privacy-access.md`), including that
       every capture/correct/resolve endpoint rejects an Organisation
       user caller outright, regardless of what the UI shows — with the

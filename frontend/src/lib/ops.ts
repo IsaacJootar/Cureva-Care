@@ -1,0 +1,38 @@
+// Operations API helpers (settings, notification prefs, user management).
+import { apiDelete, apiGet, apiPatch, apiPost } from "./api";
+import type { CurrentUser, Role } from "./types";
+
+export interface PlatformSetting {
+  key: string;
+  value: number | string | boolean;
+  value_type: "integer" | "decimal" | "boolean" | "string";
+  description: string;
+  default: number | string | boolean;
+  updated_at: string;
+}
+
+export interface NotificationPref {
+  id: string;
+  notification_type: string;
+  channel: "email" | "sms" | "email_and_sms" | "none";
+  updated_at: string;
+}
+
+export const listSettings = () => apiGet<PlatformSetting[]>("/settings");
+export const updateSetting = (key: string, value: unknown) =>
+  apiPatch<PlatformSetting>(`/settings/${key}`, { value });
+
+export const getNotificationPrefs = (userId: string) =>
+  apiGet<NotificationPref[]>(`/users/${userId}/notification-preferences`);
+export const updateNotificationPref = (userId: string, type: string, channel: string) =>
+  apiPatch<NotificationPref>(`/users/${userId}/notification-preferences/${type}`, { channel });
+
+export const listUsers = () => apiGet<CurrentUser[]>("/users");
+export const createUser = (body: { name: string; email: string; role: Role; facility?: string | null }) =>
+  apiPost<CurrentUser>("/users", body);
+export const editUser = (id: string, body: { name?: string; role?: Role }) =>
+  apiPatch<CurrentUser>(`/users/${id}`, body);
+export const deactivateUser = (id: string) => apiPost(`/users/${id}/deactivate`);
+export const reactivateUser = (id: string) => apiPost(`/users/${id}/reactivate`);
+export const deleteOrgUser = (orgId: string, userId: string) =>
+  apiDelete(`/organisations/${orgId}/users/${userId}`);

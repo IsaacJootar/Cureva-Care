@@ -2,17 +2,10 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useAuth } from "@/lib/auth";
 import { navForUser, type NavGroup } from "@/lib/nav";
-import { CheckIcon, LogOutIcon } from "../icons";
+import { CheckIcon } from "../icons";
 import type { CurrentUser } from "@/lib/types";
-
-const ROLE_LABEL: Record<CurrentUser["role"], string> = {
-  systems_admin: "Systems admin",
-  facility_lead: "Facility lead",
-  organisation_user: "Organisation user",
-  data_officer: "Data officer",
-};
+import { AccountMenu } from "./AccountMenu";
 
 function isActive(pathname: string, href: string): boolean {
   const base = href.split("?")[0];
@@ -22,7 +15,6 @@ function isActive(pathname: string, href: string): boolean {
 
 export function Sidebar({ user }: { user: CurrentUser }) {
   const pathname = usePathname();
-  const { signOut } = useAuth();
   const nav = navForUser(user);
 
   return (
@@ -81,58 +73,9 @@ export function Sidebar({ user }: { user: CurrentUser }) {
         ))}
       </nav>
 
-      {/* User footer. Minimal sign-out now; the full Account menu popover
-          (Profile / Notification preferences / Sign out) arrives in Module 6. */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 10,
-          padding: "10px 8px",
-          borderTop: "1px solid rgba(255,255,255,0.08)",
-          marginTop: 6,
-        }}
-      >
-        <span
-          style={{
-            width: 30,
-            height: 30,
-            borderRadius: "50%",
-            background: "rgba(255,255,255,0.1)",
-            color: "var(--cv-text-on-dark)",
-            display: "inline-flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontSize: 12,
-            fontWeight: 600,
-            flexShrink: 0,
-          }}
-        >
-          {user.name.slice(0, 1).toUpperCase()}
-        </span>
-        <span style={{ flex: 1, minWidth: 0 }}>
-          <span style={{ display: "block", color: "var(--cv-text-on-dark)", fontSize: 12, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-            {user.name}
-          </span>
-          <span style={{ display: "block", color: "var(--cv-text-on-dark-muted)", fontSize: 10.5 }}>
-            {ROLE_LABEL[user.role]}
-          </span>
-        </span>
-        <button
-          onClick={signOut}
-          aria-label="Sign out"
-          title="Sign out"
-          style={{
-            background: "none",
-            border: "none",
-            color: "var(--cv-text-on-dark-muted)",
-            cursor: "pointer",
-            padding: 4,
-            display: "inline-flex",
-          }}
-        >
-          <LogOutIcon size={16} />
-        </button>
+      {/* User footer → full Account menu popover (Profile / Notifications / Sign out). */}
+      <div style={{ marginTop: 6 }}>
+        <AccountMenu user={user} />
       </div>
     </aside>
   );
