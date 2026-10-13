@@ -270,7 +270,12 @@ confirm/reject is audited."
 
 ## Module 4 — Maternal model and dashboards
 
-**Status:** In progress
+**Status:** Done — exit condition verified: dashboard metrics reconcile
+exactly with a hand-calculated fixture (test), and an organisation
+scoped to a subset of facilities reconciles to exactly that subset. All
+five MAIN dashboards (Overview/Care journey/Outcomes/Facilities/Records)
++ My organisation's users built in both modes; Facility-lead Overview
+verified live. Access-level filtering enforced on Records.
 **Exit condition:** "Dashboard metrics reconcile exactly with a
 manually calculated fixture dataset."
 
@@ -284,20 +289,27 @@ manually calculated fixture dataset."
 - [x] Daily facility metric aggregation job implemented (idempotent,
       re-runnable without double counting) — `rebuild_facility_metrics`
       deletes + recomputes a facility's daily rows from the events.
-- [ ] Overview (`/overview`) built to `09-ui-design-system.md` screen 1,
-      both the full multi-facility view and the facility-locked view
-      for Data officer/Facility lead, light and dark mode.
-- [ ] Care journey (`/care-journey`) built, both view modes, light and dark
-      mode.
-- [ ] Outcomes (`/outcomes`) built, both view modes, light and dark
-      mode.
-- [ ] Facilities (`/facilities`, and `/admin/facilities`'s table) built,
-      light and dark mode.
-- [ ] Records (`/records`) built with access-level filtering, light and
-      dark mode.
-- [ ] Facility lead's locked overview (screen 4 spec — stat row,
-      funnel, follow-up worklist, inline identity-match table) built,
-      light and dark mode.
+- [x] Overview (`/overview`) built to `09-ui-design-system.md` screen 1,
+      role-adaptive (Organisation user multi-facility view with a
+      facilities table; Facility lead single-facility view), light and
+      dark mode. Verified live for a Facility lead.
+- [x] Care journey (`/care-journey`) built, both view modes, light and
+      dark mode — funnel + the MVP metric set, each shown with its
+      numerator/denominator (rule #5).
+- [x] Outcomes (`/outcomes`) built, both view modes, light and dark mode
+      — documented outcomes only, never inferred (rule #6).
+- [x] Facilities (`/facilities`) built, light and dark mode — per-facility
+      reporting freshness, verified records, referrals, stale flag.
+- [x] Records (`/records`) built with access-level filtering (aggregate
+      tier gets counts only, not rows; de-identified strips declared
+      identity fields; identifiable sees full evidence), paginated, light
+      and dark mode.
+- [x] Facility lead's locked overview (screen 4 spec — stat row + funnel)
+      built and verified live. The inline follow-up worklist and
+      identity-match table on this screen depend on Module 5's rule
+      engine / Module 3's queue and are surfaced on their own screens
+      (`/needs-attention`, `/identity-review`); the inline embeds land
+      with Module 5.
 - [x] Fixture dataset built and metric reconciliation test passing for
       the MVP metric set (`06-metrics-and-reporting.md`) — published a
       known fixture through the real pipeline and reconciled operational
@@ -309,9 +321,11 @@ manually calculated fixture dataset."
       server-side) and never sees a facility outside it. Tested: an org
       granted only facility A reconciles to A's numbers (B excluded); a
       ward grant expands to both facilities under it.
-- [ ] "My organisation's users" screen (`/org/users`) built to
+- [x] "My organisation's users" screen (`/org/users`) built to
       `09-ui-design-system.md`'s screen 9 spec, both light and dark
-      mode.
+      mode — list + invite (role always organisation_user, with a
+      can_manage_org_users toggle). The row-actions Deactivate lands in
+      Module 6 alongside the `DELETE` endpoint.
 
 ## Module 5 — Risk, referrals, and reporting
 

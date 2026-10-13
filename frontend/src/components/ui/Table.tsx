@@ -23,9 +23,10 @@ export function Table({ children }: { children: ReactNode }) {
   );
 }
 
-export function Th({ children, style }: { children?: ReactNode; style?: CSSProperties }) {
+export function Th({ children, style, className }: { children?: ReactNode; style?: CSSProperties; className?: string }) {
   return (
     <th
+      className={className}
       style={{
         textAlign: "left",
         fontSize: 10.5,
@@ -44,9 +45,10 @@ export function Th({ children, style }: { children?: ReactNode; style?: CSSPrope
   );
 }
 
-export function Td({ children, style }: { children?: ReactNode; style?: CSSProperties }) {
+export function Td({ children, style, className }: { children?: ReactNode; style?: CSSProperties; className?: string }) {
   return (
     <td
+      className={className}
       style={{
         fontSize: 12.5,
         color: "var(--cv-text-secondary)",
