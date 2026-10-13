@@ -329,37 +329,48 @@ manually calculated fixture dataset."
 
 ## Module 5 — Risk, referrals, and reporting
 
-**Status:** Not started
+**Status:** Done except clinical sign-off — every section is built and
+tested; the exit condition ("Clinical review of generated reports
+completed") is blocked only on open decision #2 (a NAMED clinical owner),
+which is a stakeholder decision, not a build task. Rules carry
+"UNASSIGNED (pending clinical sign-off)" as the owner until a human is
+named.
 **Exit condition:** "Clinical review of generated reports
 completed."
 
-- [ ] Risk/referral rule engine implemented per
+- [x] Risk/referral rule engine implemented per
       `06-metrics-and-reporting.md`'s "Risk and follow-up rules" (MVP
-      rule set, each versioned with owner/effective-date/severity).
-- [ ] Needs attention (`/needs-attention`) worklist screen built to
+      rule set: abnormal BP, anaemia, danger signs, open referral,
+      missing postnatal — each versioned with owner/effective-date/
+      severity; owner pending open decision #2). Tested.
+- [x] Needs attention (`/needs-attention`) worklist screen built to
       `09-ui-design-system.md`'s screen 12 spec, light and dark mode —
       **Facility lead only**; not on an Organisation user's nav, and
       `GET /api/v1/worklists` rejects an Organisation user caller
-      server-side.
-- [ ] "Open referrals" stat tile on Organisation user's Overview
-      (`09-ui-design-system.md` screen 1) wired to the rolled-up Needs
-      attention count via `GET /api/v1/maternal-summary` — the
-      organisation-facing substitute for worklist access, per screen 12.
-- [ ] `worklist_actions` table migrated (`02-data-model.md`) and
+      server-side (tested: 403 for org user, 200 for facility lead).
+- [x] "Open referrals" stat tile on Organisation user's Overview wired
+      to the rolled-up count via `GET /api/v1/maternal-summary` — the
+      organisation-facing substitute for worklist access (built in the
+      Module 4 Overview; org users never reach the case-level worklist).
+- [x] `worklist_actions` table migrated and
       `POST /api/v1/worklists/{itemId}/action` implemented — an audit
-      overlay only, never a write to the underlying register data or
-      `referral_status`; a worklist item still resurfaces if its rule
-      still evaluates true after a later intake.
-- [ ] All 11 intelligence lenses (`06-metrics-and-reporting.md`)
-      implemented as queries/views against the maternal model.
-- [ ] Evidence explorer / export functionality implemented, access-level
-      enforced.
-- [ ] Healthcare-facing report generator implemented: deterministic
-      charts first, optional aggregate-only LLM narrative pass.
-- [ ] Reports screen (`/reports`) built, light and dark mode.
+      overlay only, never a write to register data or `referral_status`;
+      an actioned item still resurfaces while its rule is true, now
+      showing its action history (tested).
+- [x] All 11 intelligence lenses (`06-metrics-and-reporting.md`)
+      implemented as queries against the maternal model (`lenses.py`),
+      each returning counts with denominators.
+- [x] Evidence explorer / export functionality implemented, access-level
+      enforced — CSV export rejects aggregate tier, de-identifies for the
+      de-identified tier, and writes an `ExportAudit` event.
+- [x] Healthcare-facing report generator implemented: deterministic
+      sections/charts first, optional aggregate-only LLM narrative pass
+      (OpenAI, no identifiable data sent, cannot invent prevalence).
+- [x] Reports screen (`/reports`) built, light and dark mode — generate
+      (with optional narrative), view saved briefs, export CSV.
 - [ ] A generated report reviewed and sign-off recorded by the named
-      clinical owner (open decision #2 in
-      `08-delivery-plan.md`).
+      clinical owner (open decision #2 in `08-delivery-plan.md`) —
+      **blocked on naming a clinical owner (stakeholder decision).**
 
 ## Module 6 — Operations and hardening
 
