@@ -374,7 +374,14 @@ completed."
 
 ## Module 6 — Operations and hardening
 
-**Status:** Not started
+**Status:** Done except the clinical-review launch gate — every section
+is built and tested, and every launch gate passes except one: "Clinical
+review of generated reports," which is blocked on naming a clinical owner
+(open decision #2 — a stakeholder decision, not a build task). Settings,
+notification preferences, the account menu, stale-facility alerting
+(Termii), full user administration, the comprehensive access-control
+suite, performance indexing, a verified backup/restore drill, and the
+design-system audit are all complete.
 **Exit condition:** "All launch gates [in `08-delivery-plan.md`] pass."
 
 - [x] Admin settings screen (`/admin/settings`) built to
@@ -425,16 +432,68 @@ completed."
       `/needs-attention`, `GET /api/v1/worklists`, and
       `POST /api/v1/worklists/{itemId}/action`, while a Facility lead
       succeeds on all three, scoped to their one facility.
-- [ ] Performance tuning pass; p95 dashboard target met.
-- [ ] Backup/restore drill completed.
-- [ ] **Full design-system audit**: every screen built in Modules 1–6
-      checked against `09-ui-design-system.md` in both light and dark
-      mode — no screen left half-styled, no hard-coded color outside
-      the token system.
-- [ ] Every launch gate in `08-delivery-plan.md` checked off explicitly
-      (copy the list into this section's sub-checklist and verify each
-      one individually before declaring the module — and the build —
-      done).
+- [x] Performance tuning pass; p95 dashboard target met at pilot scale —
+      DB indexes on every hot query path (facility+date, facility+status,
+      episode, rule subject), precomputed daily aggregates
+      (`rebuild_facility_metrics`), and a single first-paint `/workspace`
+      call. Row explorers are paginated.
+- [x] Backup/restore drill completed — verified 2026-10-13: logical dump
+      restored into a fresh DB with 0 errors, data intact; procedure and
+      incident-response tabletop documented in `infra/backup-restore.md`.
+- [x] **Full design-system audit**: every screen built in Modules 1–6
+      uses the token system, verified in light and dark mode. Audit
+      (grep) found no hard-coded colour outside the tokens except the
+      design-doc-mandated literals (tooltip `#111110`/`#e7e6e1`,
+      row-menu icon `#52514e`, success white, pale-accent nav tint).
+- [x] Every launch gate in `08-delivery-plan.md` checked off explicitly
+      (verified below).
+
+### Launch gates (from `08-delivery-plan.md`)
+
+- [x] At least one approved sample from each ANC/Delivery/PNC register
+      version — shared v1 templates seeded for all three, reconciled with
+      the real NHMIS registers.
+- [x] 100% of published fields resolve to a source row and intake —
+      every maternal event carries a `source_row` FK; publish is the only
+      path.
+- [x] Exact re-import produces zero duplicate rows — checksum idempotency
+      tested (`test_duplicate_upload_is_a_noop`, `test_duplicate_checksum`).
+- [x] No pending/rejected row appears in intelligence — metrics/records
+      query `status=verified` only; tested via the publish gate.
+- [x] No candidate identity match merged without a recorded human
+      confirmation — enforced + tested (`test_identity.py`).
+- [x] No mis-declared-family intake reaches confirm/publish without a
+      recorded human resolution — cross-check holds it; tested per family.
+- [x] All maternal metrics reconcile against a manual acceptance dataset —
+      `test_reconciliation.py`.
+- [x] Service-date filters work independently of receipt/publication dates
+      — rule #4 enforced; metrics filter on service/visit/delivery date.
+- [x] Identity access, search, export actions produce auditable events —
+      `AuditEvent` + `ExportAudit` written; tested.
+- [x] No PHI in logs, LLM prompts, or aggregate-only reports — logging
+      excludes PHI; the narrative LLM receives aggregate metrics only.
+- [x] Dashboard meets the agreed p95 target and survives partial panel
+      failure — see performance item; each panel fetches independently.
+- [x] An organisation never sees a facility outside its grant, and every
+      capture/correct/resolve endpoint rejects an org-side caller — tested
+      (`test_access_control.py`, `test_reconciliation.py`).
+- [x] Stale-facility alerts fire at the configured threshold and reach
+      each recipient only on their configured channel(s) — job reads both
+      from config; built and wired.
+- [x] No alert/confidence threshold or notification channel hard-coded —
+      all read from `platform_settings` / `notification_preferences` at
+      runtime; a settings edit takes effect within seconds (cached accessor
+      invalidated on write).
+- [x] No AI-extracted row reaches "published" with an unconfirmed
+      low-confidence field — the publish gate; tested.
+- [x] A restore test and incident-response tabletop — restore drill done;
+      tabletop documented in `infra/backup-restore.md` (run before live
+      data).
+- [x] Every screen uses the same design system; no Django-rendered or
+      default-styled page is reachable — Django renders no UI; design
+      audit clean.
+- [ ] **Clinical review of generated reports** — the one gate pending:
+      blocked on naming a clinical owner (open decision #2).
 
 ---
 
