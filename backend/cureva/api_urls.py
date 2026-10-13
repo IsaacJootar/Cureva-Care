@@ -10,5 +10,5 @@ urlpatterns = [
     path("", include("register_intake.urls")),
     path("", include("maternal_projection.urls")),
     path("", include("intelligence.urls")),
-    # reporting routes are added in Module 5.
+    path("", include("reporting.urls")),
 ]
