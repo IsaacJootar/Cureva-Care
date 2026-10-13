@@ -19,6 +19,16 @@ from .views_auth import (
     MagicLinkRequestView,
     SessionExchangeView,
 )
+from .views_ops import (
+    NotificationPreferenceUpdateView,
+    NotificationPreferencesView,
+    OrgUserDeleteView,
+    SettingUpdateView,
+    SettingsListView,
+    UserDeactivateView,
+    UserFacilityView,
+    UserReactivateView,
+)
 
 router = SimpleRouter(trailing_slash=False)
 router.register("facilities", FacilityViewSet, basename="facility")
@@ -46,12 +56,27 @@ urlpatterns = [
         WardListView.as_view(),
         name="lga-wards",
     ),
-    # Organisation-scoped users (list/invite)
+    # Organisation-scoped users (list/invite/deactivate)
     path(
         "organisations/<uuid:pk>/users",
         OrganisationUsersView.as_view(),
         name="organisation-users",
     ),
+    path(
+        "organisations/<uuid:pk>/users/<uuid:user_id>",
+        OrgUserDeleteView.as_view(),
+        name="organisation-user-delete",
+    ),
+    # Platform settings
+    path("settings", SettingsListView.as_view(), name="settings"),
+    path("settings/<str:key>", SettingUpdateView.as_view(), name="setting-update"),
+    # Notification preferences (self-service)
+    path("users/<uuid:user_id>/notification-preferences", NotificationPreferencesView.as_view(), name="notification-prefs"),
+    path("users/<uuid:user_id>/notification-preferences/<str:notification_type>", NotificationPreferenceUpdateView.as_view(), name="notification-pref-update"),
+    # User management
+    path("users/<uuid:user_id>/deactivate", UserDeactivateView.as_view(), name="user-deactivate"),
+    path("users/<uuid:user_id>/reactivate", UserReactivateView.as_view(), name="user-reactivate"),
+    path("users/<uuid:user_id>/facility", UserFacilityView.as_view(), name="user-facility"),
 ]
 
 urlpatterns += router.urls

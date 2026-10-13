@@ -197,7 +197,7 @@ class UserViewSet(viewsets.ModelViewSet):
 
     queryset = User.objects.select_related("facility", "organisation").all()
     permission_classes = [IsSystemsAdmin]
-    http_method_names = ["get", "post", "head", "options"]
+    http_method_names = ["get", "post", "patch", "head", "options"]
 
     def get_serializer_class(self):
         if self.action == "create":
@@ -213,6 +213,23 @@ class UserViewSet(viewsets.ModelViewSet):
             subject_id=user.id,
             metadata={"role": user.role},
         )
+
+    def partial_update(self, request, *args, **kwargs):
+        """PATCH /users/{id} — admin edits name or role only (05-api-routes.md).
+        Facility/organisation reassignment has its own dedicated endpoints."""
+        user = self.get_object()
+        if "name" in request.data:
+            user.name = request.data["name"]
+        if "role" in request.data:
+            if request.data["role"] not in Role.values:
+                return Response({"detail": "Invalid role."}, status=status.HTTP_400_BAD_REQUEST)
+            user.role = request.data["role"]
+        user.save(update_fields=["name", "role"])
+        AuditEvent.objects.create(
+            actor=request.user, event_type="user_edited",
+            subject_type="user", subject_id=user.id, metadata={"role": user.role},
+        )
+        return Response(UserSerializer(user).data)
 
 
 class OrganisationUsersView(APIView):
