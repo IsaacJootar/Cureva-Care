@@ -194,6 +194,12 @@ access grant (above) resolves against.
 
 ## Identity and episode linkage (strict fast path + probabilistic candidate matching)
 
+> **Note:** `IDENTITY_MATCHING_UPDATE.md` extends and, where it conflicts,
+> supersedes this section — the strict path now requires a matching name and a
+> recent sighting on top of the card number, a woman is recognised by any of
+> her identifiers (`woman_identifiers`), and episode boundaries follow explicit
+> rules. See that file and `DECISIONS.md`.
+
 Two linkage paths, both built:
 
 **1. Strict fast path.** A source row is linked into a Woman/Pregnancy

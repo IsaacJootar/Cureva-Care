@@ -497,6 +497,29 @@ design-system audit are all complete.
 
 ---
 
+## Identity-matching update (`IDENTITY_MATCHING_UPDATE.md`)
+
+A later spec that strengthens identity matching; touches Modules 2–4.
+
+- [x] **Section A** — always-confirm identity fields (card/ANC number) gate
+      publish regardless of AI confidence; confirm screen shows the register
+      photo + "IDENTITY" badge. Tested (high-confidence card still blocks).
+- [x] **Section B** — a card match auto-links only with a similar name
+      (`identity_strict_name_floor`) and a recent sighting
+      (`identity_card_reuse_window_days`); otherwise it goes to review with a
+      plain-language reason. Name-matching is its own unit-tested module.
+- [x] **Section C** — `woman_identifiers` table (every card/phone/name a woman
+      used), backfilled from `stable_identifier`; confirming a candidate adds
+      the new identifiers. Tested (new card links on a later strict pass).
+- [x] **Section D** — explicit new-pregnancy-episode rules
+      (`new_episode_gap_days`), GA-regression flagged not guessed. Tested.
+- [x] **Section E** — cross-register linking via `anc_number`; each register's
+      own number stored; Delivery/PNC attach to the right episode. Tested.
+- [x] **Section F** — out-of-scope boundaries documented (no cross-facility,
+      NIN/BVN, or auto-merge) in `DECISIONS.md`.
+- [x] All 13 required tests present and passing (incl. "a one-digit misread
+      never silently links to a different woman").
+
 ## When every module is done
 
 Cureva Care meets its "Definition of done" in `08-delivery-plan.md`. Make a
