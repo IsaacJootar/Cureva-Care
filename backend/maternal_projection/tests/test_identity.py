@@ -64,7 +64,9 @@ def test_strict_path_creates_woman_and_links(facility, officer):
 @pytest.mark.django_db
 def test_strict_path_links_to_existing_woman(facility, officer):
     woman = Woman.objects.create(facility=facility, stable_identifier="ANC/2026/001", name="Amina")
-    row = make_row(facility, officer, {"card_number": "ANC/2026/001"})
+    # The row carries the same card AND a matching name (Section B: a card match
+    # needs a second fact — the name must agree).
+    row = make_row(facility, officer, {"card_number": "ANC/2026/001", "name": "Amina"})
     result = resolve_identity(row)
     assert result["created_woman"] is False
     assert SourceRowLink.objects.get(source_row=row).woman_id == woman.id

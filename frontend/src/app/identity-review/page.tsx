@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { EmptyState, StatusPill } from "@/components/ui/Feedback";
 import { useToast } from "@/components/ui/Toast";
-import { CheckIcon, UsersIcon } from "@/components/icons";
+import { AlertTriangleIcon, CheckIcon, UsersIcon } from "@/components/icons";
 
 export default function IdentityReviewPage() {
   const toast = useToast();
@@ -67,11 +67,15 @@ function CandidateCard({ candidate, onAct }: { candidate: IdentityCandidate; onA
 
   return (
     <Card>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
         <span style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: "0.4px", color: "var(--cv-text-muted)", fontWeight: 600 }}>
           {candidate.new_record.register_family} record · row {candidate.new_record.row_number}
         </span>
         <StatusPill status={confidencePct >= 85 ? "success" : "warning"}>{confidencePct}% match</StatusPill>
+      </div>
+      <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 14, padding: "8px 11px", background: "var(--cv-warning-bg)", border: "1px solid var(--cv-warning-border)", borderRadius: 8 }}>
+        <AlertTriangleIcon size={14} />
+        <span style={{ fontSize: 11.5, color: "var(--cv-warning-text)" }}>{candidate.reason_label}</span>
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18 }}>

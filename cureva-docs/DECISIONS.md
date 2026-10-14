@@ -60,3 +60,43 @@ to this woman." Where it conflicts with the numbered docs, it wins.
   woman a visit attaches to. *How used:* the field-confirmation screen now
   shows the register photo and badges identity fields "IDENTITY"; the publish
   gate blocks until they're confirmed. Per-facility templates can't turn it off.
+
+- **Section B — a card number needs a second fact.** *What:* a row auto-links
+  on a card-number match only if the name is similar enough
+  (`identity_strict_name_floor`, 0.60) AND the match is recent
+  (`identity_card_reuse_window_days`, 365). Otherwise it goes to the review
+  queue with a reason (name conflict / name missing / stale). *Why:* a smudged
+  "1047→1041" could silently attach to the wrong woman; the name has to agree.
+  *How used:* the identity-review screen shows the reason in plain words. Name
+  matching is its own unit-tested module (honorific-stripping, word-order-
+  insensitive, Jaro-Winkler for spelling variants). *Note:* when a register
+  doesn't capture a name at all, the name check is N/A and we rely on card +
+  recency; a strong name match alone (0.55) stays below the 0.75 review
+  threshold on purpose, so two women sharing a common name aren't merged.
+
+- **Section C — remember every identifier.** *What:* a `woman_identifiers`
+  table holds every card number (per register family), phone, and name spelling
+  a woman has used. Confirming a candidate adds the new row's identifiers.
+  *Why:* a second pregnancy gets a new card, and ANC/Delivery/PNC are three
+  books with three numbers; remembering all of them bridges them. *Note:*
+  `stable_identifier` is kept as the woman's primary card (denormalised); the
+  identifier history is what matching reads. Phones are never unique and never
+  link on their own.
+
+- **Section D — when a new pregnancy starts.** *What:* an ANC row opens a new
+  episode if the latest episode already has a recorded outcome before this
+  visit, or it's more than `new_episode_gap_days` (300) past the latest booking
+  with no outcome; otherwise it attaches to the open episode. A gestational age
+  lower than the previous visit is flagged for review, not silently reshuffled.
+
+- **Section E — linking ANC/Delivery/PNC.** *What:* a Delivery/PNC row's ANC
+  number is looked up as the strongest cross-register signal; each register's
+  own number is stored too. A Delivery attaches to and closes the open episode;
+  a PNC attaches to the most recent episode with a delivery on/before its visit.
+  The optional `anc_number` field was added to the Delivery and PNC templates
+  (`always_confirm`); the fallback (name/age/phone + human confirmation) works
+  when a register has no ANC-number column.
+
+- **Section F — out of scope (first release).** No cross-facility matching
+  (a woman at a different clinic is a separate woman), no NIN/BVN matching, no
+  automatic merging of two existing women. To be stated in the admin docs.

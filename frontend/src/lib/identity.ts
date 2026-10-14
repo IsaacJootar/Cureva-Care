@@ -6,6 +6,8 @@ export interface IdentityCandidate {
   confidence: string; // decimal as string
   matched_fields: Record<string, number | boolean>;
   status: string;
+  reason: string | null;
+  reason_label: string;
   created_at: string;
   new_record: {
     source_row_id: string;

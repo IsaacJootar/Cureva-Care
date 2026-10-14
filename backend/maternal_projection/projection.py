@@ -51,15 +51,79 @@ def _create_episode(woman, facility_id, norm):
     )
 
 
-def _resolve_episode(woman, facility_id, norm, family):
-    lmp = _d(norm.get("lmp"))
-    if family == "ANC" and lmp:
-        ep = PregnancyEpisode.objects.filter(woman=woman, lmp=lmp).first()
-        if ep:
-            return ep
+def _episode_has_outcome(episode):
+    return episode.status in (EpisodeStatus.DELIVERED, EpisodeStatus.CLOSED) or BirthEvent.objects.filter(
+        episode=episode
+    ).exists()
+
+
+def _episode_outcome_date(episode):
+    return BirthEvent.objects.filter(episode=episode).values_list("delivery_date", flat=True).first()
+
+
+def _resolve_episode(woman, facility_id, norm, family, service_date):
+    """Attach the row to the right pregnancy episode, opening a new one per the
+    rules in IDENTITY_MATCHING_UPDATE.md Section D (ANC) / Section E (Delivery,
+    PNC)."""
+    from identity_access.services import get_setting
+    from identity_access.settings_registry import NEW_EPISODE_GAP_DAYS
+
+    latest = PregnancyEpisode.objects.filter(woman=woman).order_by("-created_at").first()
+    if latest is None:
         return _create_episode(woman, facility_id, norm)
-    ep = PregnancyEpisode.objects.filter(woman=woman).order_by("-created_at").first()
-    return ep or _create_episode(woman, facility_id, norm)
+
+    if family == "PNC":
+        # Most recent episode with a delivery on or before this visit.
+        for ep in PregnancyEpisode.objects.filter(woman=woman).order_by("-created_at"):
+            od = _episode_outcome_date(ep)
+            if od and service_date and od <= service_date:
+                return ep
+        return latest
+
+    if family == "Delivery":
+        # Prefer an open (not-yet-delivered) episode.
+        open_ep = (
+            PregnancyEpisode.objects.filter(woman=woman)
+            .exclude(status=EpisodeStatus.DELIVERED)
+            .order_by("-created_at")
+            .first()
+        )
+        return open_ep or latest
+
+    # --- ANC (Section D) ---
+    gap = int(get_setting(NEW_EPISODE_GAP_DAYS))
+    # (a) latest episode already has an outcome dated before this row → new episode
+    if _episode_has_outcome(latest):
+        od = _episode_outcome_date(latest)
+        if service_date and od and od < service_date:
+            return _create_episode(woman, facility_id, norm)
+    # (b) too long after the latest booking with no outcome → new episode
+    elif latest.booking_date and service_date and (service_date - latest.booking_date).days > gap:
+        return _create_episode(woman, facility_id, norm)
+
+    return latest
+
+
+def _as_int(value):
+    if value in (None, ""):
+        return None
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def _flag_ga_regression(source_row, this_ga, prev_ga):
+    """Flag, don't guess (IDENTITY_MATCHING_UPDATE.md Section D): a gestational
+    age lower than the previous visit in the same open episode is surfaced for
+    the reviewer rather than silently reshuffled."""
+    flags = dict(source_row.flags or {})
+    flags["gestational_age_weeks"] = {
+        "kind": "implausible",
+        "message": f"Gestational age {this_ga} wks is lower than the previous visit's {prev_ga} wks in the same pregnancy — check the record.",
+    }
+    source_row.flags = flags
+    source_row.save(update_fields=["flags"])
 
 
 def _is_referral(value) -> bool:
@@ -82,15 +146,19 @@ def project_row(source_row) -> dict:
     family = source_row.intake.register_family
     norm = source_row.normalized or {}
     svc = source_row.service_date or source_row.intake.batch_period_from
-    episode = _resolve_episode(woman, facility_id, norm, family)
+    episode = _resolve_episode(woman, facility_id, norm, family, svc)
 
     common = dict(episode=episode, woman=woman, facility_id=facility_id, source_row=source_row, data=norm)
 
     if family == "ANC":
+        this_ga = _as_int(norm.get("gestational_age_weeks"))
+        prev = ANCContact.objects.filter(episode=episode).order_by("-service_date", "-created_at").first()
+        if this_ga is not None and prev and prev.gestational_age_weeks is not None and this_ga < prev.gestational_age_weeks:
+            _flag_ga_regression(source_row, this_ga, prev.gestational_age_weeks)
         contact_number = ANCContact.objects.filter(episode=episode).count() + 1
         ANCContact.objects.create(
             **common, service_date=svc, contact_number=contact_number,
-            gestational_age_weeks=norm.get("gestational_age_weeks"),
+            gestational_age_weeks=this_ga,
         )
     elif family == "Delivery":
         BirthEvent.objects.create(

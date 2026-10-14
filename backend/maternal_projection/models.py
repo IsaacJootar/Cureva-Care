@@ -72,6 +72,33 @@ class Woman(models.Model):
         return f"{self.internal_id} ({self.name or 'unnamed'})"
 
 
+class WomanIdentifier(models.Model):
+    """Every identifier a woman has ever been recognised by — card numbers (per
+    register family), phones, and name spellings. This is how a second
+    pregnancy's new card number, or a different register's number, still resolves
+    to the same woman (IDENTITY_MATCHING_UPDATE.md Section C). Phones can be
+    shared, so they are never unique and never link on their own."""
+
+    class Kind(models.TextChoices):
+        CARD_NUMBER = "card_number", "Card number"
+        PHONE = "phone", "Phone"
+        NAME_VARIANT = "name_variant", "Name variant"
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    woman = models.ForeignKey(Woman, on_delete=models.CASCADE, related_name="identifiers")
+    kind = models.CharField(max_length=16, choices=Kind.choices)
+    value = models.TextField()  # stored normalised
+    facility = models.ForeignKey("identity_access.Facility", on_delete=models.PROTECT, related_name="woman_identifiers")
+    register_family = models.CharField(max_length=16, null=True, blank=True)  # for card numbers
+    first_source_row = models.ForeignKey("register_intake.SourceRow", on_delete=models.PROTECT, null=True, blank=True, related_name="+")
+    last_seen_at = models.DateField(null=True, blank=True)  # service date of the latest row carrying it
+    added_via = models.CharField(max_length=24)  # 'strict' | 'confirmed_candidate' | 'backfill'
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        indexes = [models.Index(fields=["facility", "kind", "value"])]
+
+
 class SourceRowLink(models.Model):
     """The confirmed linkage from a verified source row to a Woman. Only this
     app writes it. A row contributes to per-woman continuity metrics only once
@@ -105,6 +132,10 @@ class IdentityCandidate(models.Model):
     )
     confidence = models.DecimalField(max_digits=4, decimal_places=3)  # 0.000–1.000
     matched_fields = models.JSONField(default=dict)  # which fields contributed, and how
+    # Why this went to review instead of auto-linking (IDENTITY_MATCHING_UPDATE
+    # Section B): card_match_name_conflict | card_match_name_missing |
+    # card_match_stale | probabilistic (no identifier).
+    reason = models.CharField(max_length=32, null=True, blank=True)
     status = models.CharField(
         max_length=16, choices=CandidateStatus.choices, default=CandidateStatus.PENDING
     )
