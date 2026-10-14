@@ -182,7 +182,7 @@ EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="")
 EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=True)
 
 # --- Auth: magic-link + Google SSO (Django owns both) ---------------------
-MAGIC_LINK_TTL_MINUTES = 15  # single-use, short-lived (07-security-privacy-access.md)
+MAGIC_LINK_TTL_MINUTES = env.int("MAGIC_LINK_TTL_MINUTES", default=15)  # single-use, short-lived (07-security-privacy-access.md); prod keeps 15, local dev may widen via .env
 GOOGLE_OAUTH_CLIENT_ID = env("GOOGLE_OAUTH_CLIENT_ID", default="")
 GOOGLE_OAUTH_CLIENT_SECRET = env("GOOGLE_OAUTH_CLIENT_SECRET", default="")
 

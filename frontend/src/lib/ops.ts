@@ -27,7 +27,12 @@ export const getNotificationPrefs = (userId: string) =>
 export const updateNotificationPref = (userId: string, type: string, channel: string) =>
   apiPatch<NotificationPref>(`/users/${userId}/notification-preferences/${type}`, { channel });
 
-export const listUsers = () => apiGet<CurrentUser[]>("/users");
+// /users is a DRF ViewSet and comes back paginated ({ count, results }); other
+// callers (facilities, organisations) unwrap the same way. Always hand back an array.
+export const listUsers = async (): Promise<CurrentUser[]> => {
+  const data = await apiGet<{ results?: CurrentUser[] } | CurrentUser[]>("/users");
+  return Array.isArray(data) ? data : (data.results ?? []);
+};
 export const createUser = (body: { name: string; email: string; role: Role; facility?: string | null }) =>
   apiPost<CurrentUser>("/users", body);
 export const editUser = (id: string, body: { name?: string; role?: Role }) =>
