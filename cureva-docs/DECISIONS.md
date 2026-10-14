@@ -46,3 +46,17 @@ are appended at the bottom.
 - Risk/referral rules carry owner `UNASSIGNED (pending clinical sign-off)`
   until a clinical owner is named. The "clinical review of reports" launch gate
   stays open until then.
+
+## Identity-matching update (`IDENTITY_MATCHING_UPDATE.md`)
+
+A product-owner spec that strengthens how the system decides "this row belongs
+to this woman." Where it conflicts with the numbered docs, it wins.
+
+- **Section A — always-confirm identity fields.** The card/folder number (and
+  ANC number) are marked `always_confirm` in the templates. *What:* a human
+  must confirm these against the photo before a row can publish, **even when
+  the AI is 100% confident**, and they can't be skipped by any bulk action.
+  *Why:* AI confidence doesn't mean correct, and these fields decide which
+  woman a visit attaches to. *How used:* the field-confirmation screen now
+  shows the register photo and badges identity fields "IDENTITY"; the publish
+  gate blocks until they're confirmed. Per-facility templates can't turn it off.

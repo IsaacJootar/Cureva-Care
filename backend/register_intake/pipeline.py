@@ -47,6 +47,17 @@ def _below_threshold_fields(confidence: dict, flags: dict, threshold: float) -> 
     return sorted(need)
 
 
+def always_confirm_fields(template_schema: dict) -> set[str]:
+    """Identity-defining fields that a human must always confirm, regardless of
+    AI confidence (IDENTITY_MATCHING_UPDATE.md Section A). Per-facility templates
+    cannot turn this off — it's read from the template's field definitions."""
+    return {
+        c["canonical_field"]
+        for c in (template_schema or {}).get("columns", [])
+        if c.get("always_confirm")
+    }
+
+
 @transaction.atomic
 def process_intake(intake: Intake, images: list[bytes], extractor: VisionExtractor | None = None) -> dict:
     """Run extraction + validation and (re)build this intake's source rows.
@@ -143,10 +154,21 @@ def process_intake(intake: Intake, images: list[bytes], extractor: VisionExtract
     }
 
 
-def row_needs_confirmation(row: SourceRow, threshold: float) -> list[str]:
-    """Below-threshold/flagged fields on this row not yet confirmed."""
-    pending = _below_threshold_fields(row.extraction_confidence, row.flags, threshold)
-    return [f for f in pending if f not in (row.confirmed_fields or [])]
+def row_needs_confirmation(row: SourceRow, threshold: float, template_schema: dict | None = None) -> list[str]:
+    """Fields on this row still needing human confirmation: those read with low
+    confidence or a type error, PLUS every always-confirm identity field that
+    carries a value (regardless of confidence). A row can't publish until all of
+    these are confirmed or corrected (IDENTITY_MATCHING_UPDATE.md Sections A)."""
+    if template_schema is None and getattr(row, "intake", None) and row.intake.template_id:
+        template_schema = row.intake.template.schema
+
+    pending = set(_below_threshold_fields(row.extraction_confidence, row.flags, threshold))
+    if template_schema:
+        normalized = row.normalized or {}
+        for field in always_confirm_fields(template_schema):
+            if normalized.get(field) not in (None, ""):
+                pending.add(field)
+    return sorted(f for f in pending if f not in (row.confirmed_fields or []))
 
 
 def resolve_register_mismatch(intake: Intake, action: str, user, images: list[bytes], extractor=None) -> dict:

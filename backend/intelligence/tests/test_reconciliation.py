@@ -24,8 +24,10 @@ from identity_access.models import (
 )
 from register_intake.extraction import MockExtractor
 from register_intake.models import Intake
-from register_intake.pipeline import process_intake
-from register_intake.publish import publish_intake
+from register_intake.pipeline import process_intake, row_needs_confirmation
+from register_intake.publish import confirm_field, publish_intake
+from identity_access.services import get_setting
+from identity_access.settings_registry import AI_EXTRACTION_CONFIDENCE_THRESHOLD
 from intelligence.metrics import maternal_summary
 from intelligence.scoping import resolve_org_facility_ids
 from maternal_projection.models import ANCContact, BirthEvent, PNCContact, Woman
@@ -50,6 +52,12 @@ def pub(facility, officer, family, fields):
         batch_period_from=datetime.date(2026, 3, 1), batch_period_to=datetime.date(2026, 3, 31),
     )
     process_intake(intake, [b"x"], MockExtractor([{"fields": fields, "confidence": conf}]))
+    # Confirm every field still needing confirmation (incl. always-confirm
+    # identity fields like card_number), then publish.
+    threshold = float(get_setting(AI_EXTRACTION_CONFIDENCE_THRESHOLD))
+    for row in intake.rows.all():
+        for f in row_needs_confirmation(row, threshold):
+            confirm_field(row, f, None, officer, correct=False)
     publish_intake(intake, officer)
     return intake
 

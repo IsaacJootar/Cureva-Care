@@ -10,6 +10,7 @@ from .pipeline import row_needs_confirmation
 
 class SourceRowSerializer(serializers.ModelSerializer):
     needs_confirmation = serializers.SerializerMethodField()
+    always_confirm = serializers.SerializerMethodField()
 
     class Meta:
         model = SourceRow
@@ -25,11 +26,18 @@ class SourceRowSerializer(serializers.ModelSerializer):
             "confirmed_fields",
             "unmatched_labels",
             "needs_confirmation",
+            "always_confirm",
         ]
 
     def get_needs_confirmation(self, obj):
         threshold = float(get_setting(AI_EXTRACTION_CONFIDENCE_THRESHOLD))
         return row_needs_confirmation(obj, threshold)
+
+    def get_always_confirm(self, obj):
+        from .pipeline import always_confirm_fields
+
+        schema = obj.intake.template.schema if obj.intake.template_id else {}
+        return sorted(always_confirm_fields(schema))
 
 
 class IntakeSerializer(serializers.ModelSerializer):

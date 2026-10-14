@@ -20,6 +20,7 @@ ANC_V1 = {
     "effective_date": "2026-01-01",
     "columns": [
         {"canonical_field": "card_number", "label": "Card/Folder Number", "type": "string", "required": True,
+         "always_confirm": True,
          "aliases": ["Card No", "Folder No", "Unit No", "Card Number", "X-Ray No", "Xray No"]},
         {"canonical_field": "lmp", "label": "Last Menstrual Period", "type": "date", "required": True,
          "aliases": ["LMP", "Last Menstrual Period", "L.M.P", "LMP Date"]},
@@ -75,7 +76,11 @@ DELIVERY_V1 = {
     "effective_date": "2026-01-01",
     "columns": [
         {"canonical_field": "card_number", "label": "Card/Folder Number", "type": "string", "required": True,
+         "always_confirm": True,
          "aliases": ["Card No", "Folder No", "Unit No", "Card Number", "Client Phone", "Phone"]},
+        {"canonical_field": "anc_number", "label": "ANC Number", "type": "string", "required": False,
+         "always_confirm": True,
+         "aliases": ["ANC No", "ANC Number", "Antenatal No", "ANC Card No"]},
         {"canonical_field": "delivery_date", "label": "Date of Delivery", "type": "date", "required": True,
          "aliases": ["Delivery Date", "Date of Delivery", "DOD", "Date Delivered", "DODEL", "Month/Year"]},
         {"canonical_field": "time_of_delivery", "label": "Time of Delivery", "type": "string", "required": False,
@@ -139,7 +144,11 @@ PNC_V1 = {
     "effective_date": "2026-01-01",
     "columns": [
         {"canonical_field": "card_number", "label": "Card/Folder Number", "type": "string", "required": True,
+         "always_confirm": True,
          "aliases": ["Card No", "Folder No", "Unit No", "Card Number", "DIN"]},
+        {"canonical_field": "anc_number", "label": "ANC Number", "type": "string", "required": False,
+         "always_confirm": True,
+         "aliases": ["ANC No", "ANC Number", "Antenatal No"]},
         {"canonical_field": "visit_date", "label": "Visit Date", "type": "date", "required": True,
          "aliases": ["Visit Date", "Date of Visit", "PNC Date"]},
         {"canonical_field": "delivery_date", "label": "Date of Delivery", "type": "date", "required": False,

@@ -81,17 +81,20 @@ def test_full_intake_flow_create_validate_confirm_publish(facility, officer):
 
     rows = c.get(f"/api/v1/intakes/{intake_id}/rows").json()
     assert "gravida" in rows[0]["needs_confirmation"]
+    assert "card_number" in rows[0]["needs_confirmation"]  # always-confirm identity field
     row_id = rows[0]["id"]
+    pending = rows[0]["needs_confirmation"]
 
-    # Publish blocked until the low-confidence field is confirmed.
+    # Publish blocked until every field needing confirmation is confirmed.
     blocked = c.post(f"/api/v1/intakes/{intake_id}/publish")
     assert blocked.status_code == 409
 
-    c.post(
-        f"/api/v1/intakes/{intake_id}/rows/{row_id}/confirm-field",
-        {"field": "gravida", "correct": False},
-        format="json",
-    )
+    for field in pending:
+        c.post(
+            f"/api/v1/intakes/{intake_id}/rows/{row_id}/confirm-field",
+            {"field": field, "correct": False},
+            format="json",
+        )
     published = c.post(f"/api/v1/intakes/{intake_id}/publish")
     assert published.status_code == 200
     assert published.json()["status"] == "published"

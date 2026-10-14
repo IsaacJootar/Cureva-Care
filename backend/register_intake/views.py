@@ -207,6 +207,27 @@ class IntakeRowsView(APIView):
         return None  # organisation users rejected
 
 
+class IntakePagesView(APIView):
+    """GET /intakes/{id}/pages — signed URLs for this intake's register-page
+    images, so the field-confirmation screen can show the photo beside the
+    extracted identity fields (IDENTITY_MATCHING_UPDATE.md Section A)."""
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, intake_id):
+        intake = IntakeRowsView._authorized_intake(request, intake_id)
+        if intake is None or request.user.role == Role.ORGANISATION_USER:
+            return Response(status=404)
+        pages = []
+        for img in intake.images.all():
+            try:
+                url = storage.signed_url(img.object_key)
+            except Exception:
+                url = None
+            pages.append({"page_number": img.page_number, "url": url})
+        return Response(pages)
+
+
 class ConfirmFieldView(APIView):
     """POST /intakes/{id}/rows/{rowId}/confirm-field — confirm or correct one
     field. Blocked while a register-family mismatch is unresolved."""

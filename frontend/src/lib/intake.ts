@@ -32,6 +32,12 @@ export interface SourceRow {
   confirmed_fields: string[];
   unmatched_labels: string[];
   needs_confirmation: string[];
+  always_confirm: string[];
+}
+
+export interface IntakePage {
+  page_number: number;
+  url: string | null;
 }
 
 export type ProgressEvent =
@@ -95,6 +101,7 @@ export async function streamProgress(intakeId: string, onEvent: (e: ProgressEven
 }
 
 export const getRows = (intakeId: string) => apiGet<SourceRow[]>(`/intakes/${intakeId}/rows`);
+export const getPages = (intakeId: string) => apiGet<IntakePage[]>(`/intakes/${intakeId}/pages`);
 export const confirmField = (intakeId: string, rowId: string, field: string, correct: boolean, value?: unknown) =>
   apiPost<SourceRow>(`/intakes/${intakeId}/rows/${rowId}/confirm-field`, { field, correct, value });
 export const publishIntake = (intakeId: string) => apiPost(`/intakes/${intakeId}/publish`);

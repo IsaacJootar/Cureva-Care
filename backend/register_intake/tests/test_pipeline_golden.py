@@ -87,15 +87,18 @@ def test_anc_batch_holds_until_low_confidence_confirmed_then_publishes(facility,
     threshold = float(get_setting(AI_EXTRACTION_CONFIDENCE_THRESHOLD))
     # Gravida was read at 0.60 (< 0.85) — it must block publish.
     assert "gravida" in row_needs_confirmation(row, threshold)
+    # card_number is always-confirm — it must block too, even at 0.99 confidence.
+    assert "card_number" in row_needs_confirmation(row, threshold)
 
     ok, reason = intake_publishable(intake)
-    assert not ok and "gravida" in reason
+    assert not ok
 
     with pytest.raises(PublishError):
         publish_intake(intake, officer)
 
-    # Confirm the low-confidence field, then publish succeeds.
-    confirm_field(row, "gravida", None, officer, correct=False)
+    # Confirm every field still needing confirmation, then publish succeeds.
+    for f in row_needs_confirmation(row, threshold):
+        confirm_field(row, f, None, officer, correct=False)
     out = publish_intake(intake, officer)
     assert out["status"] == "published"
     intake.refresh_from_db()
@@ -104,10 +107,32 @@ def test_anc_batch_holds_until_low_confidence_confirmed_then_publishes(facility,
 
 
 @pytest.mark.django_db
+def test_always_confirm_card_number_blocks_publish_even_at_high_confidence(facility, officer):
+    # Every field read at full confidence — nothing is low-confidence.
+    rows = [{
+        "fields": {"Card No": "A1", "LMP": "2026-01-01", "Gravida": "2", "Parity": "1"},
+        "confidence": {"Card No": 0.99, "LMP": 0.99, "Gravida": 0.99, "Parity": 0.99},
+    }]
+    intake = make_intake(facility, officer, "ANC")
+    process_intake(intake, IMAGES, MockExtractor(rows))
+    row = intake.rows.get()
+    threshold = float(get_setting(AI_EXTRACTION_CONFIDENCE_THRESHOLD))
+    # The ONLY field still needing confirmation is the always-confirm card number.
+    assert row_needs_confirmation(row, threshold) == ["card_number"]
+    with pytest.raises(PublishError):
+        publish_intake(intake, officer)
+    confirm_field(row, "card_number", None, officer, correct=False)
+    assert publish_intake(intake, officer)["status"] == "published"
+
+
+@pytest.mark.django_db
 def test_publish_is_idempotent(facility, officer):
     intake = make_intake(facility, officer, "ANC")
     process_intake(intake, IMAGES, MockExtractor(ANC_ROWS))
-    confirm_field(intake.rows.get(), "gravida", None, officer, correct=False)
+    row = intake.rows.get()
+    threshold = float(get_setting(AI_EXTRACTION_CONFIDENCE_THRESHOLD))
+    for f in row_needs_confirmation(row, threshold):
+        confirm_field(row, f, None, officer, correct=False)
     first = publish_intake(intake, officer)
     second = publish_intake(intake, officer)
     assert first["already"] is False

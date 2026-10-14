@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { confirmField, getRows, publishIntake, type SourceRow } from "@/lib/intake";
+import { confirmField, getPages, getRows, publishIntake, type IntakePage, type SourceRow } from "@/lib/intake";
 import { AppShell } from "@/components/layout/AppShell";
 import { Button } from "@/components/ui/Button";
 import { EmptyState, StatusPill } from "@/components/ui/Feedback";
@@ -15,10 +15,12 @@ export default function ConfirmFieldsPage() {
   const router = useRouter();
   const toast = useToast();
   const [rows, setRows] = useState<SourceRow[] | null>(null);
+  const [pages, setPages] = useState<IntakePage[]>([]);
   const [publishing, setPublishing] = useState(false);
 
   const load = useCallback(() => {
     getRows(intakeId).then(setRows).catch(() => setRows([]));
+    getPages(intakeId).then(setPages).catch(() => setPages([]));
   }, [intakeId]);
 
   useEffect(() => {
@@ -57,6 +59,21 @@ export default function ConfirmFieldsPage() {
         <EmptyState heading="No rows to confirm" hint="This intake has no extracted rows." />
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 16, maxWidth: 820 }}>
+          {pages.some((p) => p.url) && (
+            <div style={{ background: "var(--cv-card-bg)", border: "1px solid var(--cv-card-border)", borderRadius: "var(--cv-radius-card)", padding: 14 }}>
+              <div style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: "0.4px", color: "var(--cv-text-muted)", fontWeight: 600, marginBottom: 8 }}>
+                Register photo — check identity fields against it
+              </div>
+              <div style={{ display: "flex", gap: 10, overflowX: "auto" }}>
+                {pages.filter((p) => p.url).map((p) => (
+                  <a key={p.page_number} href={p.url!} target="_blank" rel="noreferrer" title={`Open page ${p.page_number}`}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={p.url!} alt={`Register page ${p.page_number}`} style={{ height: 150, borderRadius: 8, border: "1px solid var(--cv-card-border)" }} />
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
           {rows.map((row) => (
             <RowCard key={row.id} intakeId={intakeId} row={row} onChanged={load} />
           ))}
@@ -99,6 +116,7 @@ function RowCard({ intakeId, row, onChanged }: { intakeId: string; row: SourceRo
             value={normalized[field]}
             confidence={row.extraction_confidence[field]}
             flagged={pending.has(field)}
+            isIdentity={(row.always_confirm ?? []).includes(field)}
             flagInfo={row.flags?.[field]}
             onChanged={onChanged}
           />
@@ -115,6 +133,7 @@ function FieldCell({
   value,
   confidence,
   flagged,
+  isIdentity,
   flagInfo,
   onChanged,
 }: {
@@ -124,6 +143,7 @@ function FieldCell({
   value: unknown;
   confidence?: number;
   flagged: boolean;
+  isIdentity?: boolean;
   flagInfo?: { kind: string; message: string };
   onChanged: () => void;
 }) {
@@ -154,7 +174,12 @@ function FieldCell({
       }}
     >
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <span style={{ fontSize: 10.5, textTransform: "uppercase", letterSpacing: "0.4px", color: "var(--cv-text-muted)", fontWeight: 600 }}>{label}</span>
+        <span style={{ fontSize: 10.5, textTransform: "uppercase", letterSpacing: "0.4px", color: "var(--cv-text-muted)", fontWeight: 600, display: "inline-flex", alignItems: "center", gap: 6 }}>
+          {label}
+          {isIdentity && (
+            <span style={{ fontSize: 8.5, padding: "1px 5px", borderRadius: 10, background: "var(--cv-neutral-pill-bg)", color: "var(--cv-neutral-pill-text)", letterSpacing: "0.2px" }}>IDENTITY</span>
+          )}
+        </span>
         {confidence != null && (
           <span className="cv-num" style={{ fontSize: 10, color: flagged ? "var(--cv-warning-text)" : "var(--cv-text-muted)" }}>
             {Math.round(confidence * 100)}%
