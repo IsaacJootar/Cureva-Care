@@ -1,9 +1,24 @@
 """Field matching and the register-family cross-check.
 
-These are the exact algorithms from cureva-docs/03-templates-and-intake.md.
-Field matching ("which canonical field is this label?") is separate from
-extraction confidence ("how sure is the model it read the value right?").
+These are the algorithms from cureva-docs/03-templates-and-intake.md. Field
+matching ("which canonical field is this label?") is separate from extraction
+confidence ("how sure is the model it read the value right?").
+
+Matching is forgiving of how a real register prints a header: punctuation,
+parentheses, slashes and word order are ignored (so "Hb (g/dl)" matches the
+"Hb g/dl" alias and "Card/Folder No" matches "Card No"). To stay safe, the
+word-subset fallback only uses aliases of two or more words — a single-letter
+alias like "G" (Gravida) or "P" (Parity) can still only match exactly, so it
+never gets pulled in by an unrelated column that merely contains that letter.
 """
+import re
+
+_SPLIT = re.compile(r"[^a-z0-9]+")
+
+
+def _norm(text: str) -> str:
+    """Lowercase, drop punctuation, collapse whitespace: 'Hb (g/dl)' -> 'hb g dl'."""
+    return " ".join(t for t in _SPLIT.split(text.lower()) if t)
 
 # Signature fields: present on one register family, not the others. Shared
 # fields (card_number, referral_status) carry no discriminating power and are
@@ -16,20 +31,46 @@ REGISTER_SIGNATURE_FIELDS = {
 
 
 def match_extracted_fields(template: dict, extracted_labels: dict) -> dict:
-    """Resolve each extracted label against the template's aliases, exactly like
-    a CSV header lookup — but against text the model read from the image."""
-    alias_lookup = {}
+    """Resolve each extracted label against the template's aliases — like a CSV
+    header lookup, but tolerant of the punctuation/word-order a real register
+    prints (see module docstring)."""
+    exact: dict[str, str] = {}
+    multi: list[tuple[frozenset, str, int]] = []  # (word-set, canonical, n-words)
     for col in template["columns"]:
-        for alias in col["aliases"]:
-            alias_lookup[alias.strip().lower()] = col["canonical_field"]
-        # The canonical label itself is also matchable.
-        alias_lookup[col["label"].strip().lower()] = col["canonical_field"]
+        for name in list(col["aliases"]) + [col["label"]]:
+            norm = _norm(name)
+            if not norm:
+                continue
+            exact.setdefault(norm, col["canonical_field"])
+            words = frozenset(norm.split(" "))
+            if len(words) >= 2:
+                multi.append((words, col["canonical_field"], len(words)))
+    multi.sort(key=lambda m: -m[2])  # most specific (most words) first
 
-    matched, unmatched = {}, []
+    matched: dict[str, object] = {}
+    taken: set[str] = set()
+    unmatched: list[str] = []
+    deferred: list[tuple[str, object, frozenset]] = []
+
+    # Pass 1 — exact normalised match wins outright.
     for label, value in extracted_labels.items():
-        key = label.strip().lower()
-        if key in alias_lookup:
-            matched[alias_lookup[key]] = value
+        norm = _norm(label)
+        canonical = exact.get(norm)
+        if canonical is not None:
+            matched[canonical] = value
+            taken.add(canonical)
+        else:
+            deferred.append((label, value, frozenset(norm.split(" ")) if norm else frozenset()))
+
+    # Pass 2 — a multi-word alias whose words are all present in the label.
+    for label, value, label_words in deferred:
+        canonical = next(
+            (c for words, c, _ in multi if c not in taken and words <= label_words),
+            None,
+        )
+        if canonical is not None:
+            matched[canonical] = value
+            taken.add(canonical)
         else:
             unmatched.append(label)
 

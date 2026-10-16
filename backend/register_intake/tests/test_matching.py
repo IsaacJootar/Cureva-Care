@@ -18,6 +18,29 @@ def test_match_resolves_aliases_and_collects_unmatched():
     assert result["unmatched"] == ["Mystery Column"]
 
 
+def test_match_is_forgiving_of_punctuation_and_word_order():
+    # Headers a real register actually prints: a slash, parentheses, extra words.
+    extracted = {
+        "Card/Folder No": "GPHC/2026/0101",  # -> card_number (was dropped before)
+        "Hb (g/dl)": "11.2",                  # -> haemoglobin
+        "Date of Booking": "2026-02-10",      # -> booking_date
+        "S/N": "1",                           # genuinely unknown -> unmatched
+    }
+    result = match_extracted_fields(ANC_V1, extracted)
+    assert result["matched"]["card_number"] == "GPHC/2026/0101"
+    assert result["matched"]["haemoglobin"] == "11.2"
+    assert result["matched"]["booking_date"] == "2026-02-10"
+    assert result["unmatched"] == ["S/N"]
+
+
+def test_single_letter_alias_does_not_false_match():
+    # "G" is a Gravida alias; it must NOT be pulled in by "Hb (g/dl)" merely
+    # containing a standalone "g" word.
+    result = match_extracted_fields(ANC_V1, {"Hb (g/dl)": "11.2"})
+    assert "gravida" not in result["matched"]
+    assert result["matched"].get("haemoglobin") == "11.2"
+
+
 def test_detect_family_scores_anc_highest_for_anc_page():
     extracted = {"LMP": "x", "EDD": "y", "Gravida": "2", "Parity": "1", "GA Weeks": "12"}
     scores = detect_register_family(extracted, FAMILY_TEMPLATES)

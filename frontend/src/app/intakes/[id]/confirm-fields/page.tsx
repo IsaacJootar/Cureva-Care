@@ -7,7 +7,7 @@ import { AppShell } from "@/components/layout/AppShell";
 import { Button } from "@/components/ui/Button";
 import { EmptyState, StatusPill } from "@/components/ui/Feedback";
 import { useToast } from "@/components/ui/Toast";
-import { AlertTriangleIcon, CheckIcon } from "@/components/icons";
+import { AlertTriangleIcon, CheckIcon, ChevronLeftIcon } from "@/components/icons";
 
 export default function ConfirmFieldsPage() {
   const params = useParams<{ id: string }>();
@@ -29,6 +29,19 @@ export default function ConfirmFieldsPage() {
 
   const totalPending = (rows ?? []).reduce((n, r) => n + r.needs_confirmation.length, 0);
   const canPublish = rows !== null && rows.length > 0 && totalPending === 0;
+
+  // Columns the AI read off the page but that don't match this register's
+  // template. They are NOT part of the per-row confirmation (there is no
+  // canonical field to confirm them against), so they never appear as "to
+  // confirm" — but the officer should still know they weren't captured.
+  const unmatched = Array.from(new Set((rows ?? []).flatMap((r) => r.unmatched_labels ?? []))).sort();
+  const sampleValue = (label: string): string | null => {
+    for (const r of rows ?? []) {
+      const v = (r.raw_payload as Record<string, unknown> | null)?.[label];
+      if (v !== undefined && v !== null && String(v).trim() !== "") return String(v);
+    }
+    return null;
+  };
 
   async function doPublish() {
     setPublishing(true);
@@ -53,6 +66,40 @@ export default function ConfirmFieldsPage() {
         </Button>
       }
     >
+      <button
+        onClick={() => router.push("/intakes")}
+        style={{
+          display: "inline-flex", alignItems: "center", gap: 4,
+          background: "none", border: "none", cursor: "pointer",
+          color: "var(--cv-text-secondary)", fontSize: 12.5, padding: 0, marginBottom: 14,
+        }}
+      >
+        <ChevronLeftIcon size={15} /> Back to intakes
+      </button>
+
+      {unmatched.length > 0 && (
+        <div style={{ background: "var(--cv-warning-bg)", border: "1px solid var(--cv-warning-border)", borderRadius: "var(--cv-radius-card)", padding: 14, marginBottom: 16, maxWidth: 820 }}>
+          <div style={{ display: "flex", gap: 9, alignItems: "flex-start" }}>
+            <span style={{ color: "var(--cv-warning-icon)", flexShrink: 0 }}><AlertTriangleIcon size={17} /></span>
+            <div>
+              <div style={{ fontSize: 12.5, fontWeight: 600, color: "var(--cv-text-primary)", marginBottom: 4 }}>
+                {unmatched.length} column{unmatched.length === 1 ? "" : "s"} couldn&apos;t be matched to this register&apos;s template
+              </div>
+              <p style={{ fontSize: 11.5, color: "var(--cv-text-secondary)", margin: "0 0 8px" }}>
+                These were read from the page but aren&apos;t known fields, so they <strong>won&apos;t be saved</strong> for this
+                batch. The matched fields below are unaffected. Ask a systems admin to map these so future imports capture them.
+              </p>
+              <ul style={{ margin: 0, paddingLeft: 16, fontSize: 11.5, color: "var(--cv-text-primary)" }}>
+                {unmatched.map((label) => {
+                  const s = sampleValue(label);
+                  return <li key={label}><strong>{label}</strong>{s ? ` — e.g. “${s}”` : ""}</li>;
+                })}
+              </ul>
+            </div>
+          </div>
+        </div>
+      )}
+
       {rows === null ? (
         <p style={{ color: "var(--cv-text-muted)", fontSize: 12.5 }}>Loading rows…</p>
       ) : rows.length === 0 ? (
