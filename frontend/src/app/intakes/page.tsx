@@ -125,7 +125,9 @@ function FacilityIndex({ onSelect }: { onSelect: (f: Facility) => void }) {
         borderRadius: "var(--cv-radius-card)",
         boxShadow: "var(--cv-card-shadow)",
         padding: 18,
-        maxWidth: 640,
+        width: "100%",
+        maxWidth: 760,
+        margin: "0 auto",
       }}
     >
       <div style={{ position: "relative", marginBottom: 12 }}>
@@ -222,8 +224,8 @@ function ActiveWorkspace({ facility }: { facility: Facility }) {
   const lastIntake = history[0];
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14, maxWidth: 760 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 18, width: "100%", maxWidth: 880, margin: "0 auto" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14 }}>
         <StatTile status="neutral" icon={<FileTextIcon size={14} />} label="Intakes submitted" value={history.length} />
         <StatTile
           status={lastIntake ? "success" : "warning"}
@@ -510,7 +512,6 @@ function IntakeCard({ facility, onChanged }: { facility: Facility; onChanged: ()
         borderRadius: "var(--cv-radius-card)",
         boxShadow: "var(--cv-card-shadow)",
         padding: 20,
-        maxWidth: 760,
       }}
     >
       {/* The active register is stated boldly and stays visible through every

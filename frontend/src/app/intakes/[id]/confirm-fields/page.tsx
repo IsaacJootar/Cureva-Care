@@ -78,7 +78,7 @@ export default function ConfirmFieldsPage() {
       </button>
 
       {unmatched.length > 0 && (
-        <div style={{ background: "var(--cv-warning-bg)", border: "1px solid var(--cv-warning-border)", borderRadius: "var(--cv-radius-card)", padding: 14, marginBottom: 16, maxWidth: 820 }}>
+        <div style={{ background: "var(--cv-warning-bg)", border: "1px solid var(--cv-warning-border)", borderRadius: "var(--cv-radius-card)", padding: 14, marginBottom: 16 }}>
           <div style={{ display: "flex", gap: 9, alignItems: "flex-start" }}>
             <span style={{ color: "var(--cv-warning-icon)", flexShrink: 0 }}><AlertTriangleIcon size={17} /></span>
             <div>
@@ -105,7 +105,7 @@ export default function ConfirmFieldsPage() {
       ) : rows.length === 0 ? (
         <EmptyState heading="No rows to confirm" hint="This intake has no extracted rows." />
       ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 16, maxWidth: 820 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           {pages.some((p) => p.url) && (
             <div style={{ background: "var(--cv-card-bg)", border: "1px solid var(--cv-card-border)", borderRadius: "var(--cv-radius-card)", padding: 14 }}>
               <div style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: "0.4px", color: "var(--cv-text-muted)", fontWeight: 600, marginBottom: 8 }}>

@@ -66,8 +66,17 @@ export function AppShell({
       <Sidebar user={user} />
       <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column" }}>
         <TopBar title={title} subtitle={subtitle} chips={chips} action={action} />
-        <main style={{ padding: 24, flex: 1 }}>{children}</main>
+        {/* One centered content column for every page: content stays a
+            comfortable width and sits balanced in the viewport instead of
+            hugging the sidebar with empty space on the right. */}
+        <main style={{ padding: 24, flex: 1 }}>
+          <div style={{ width: "100%", maxWidth: CONTENT_MAX_WIDTH, margin: "0 auto" }}>{children}</div>
+        </main>
       </div>
     </div>
   );
 }
+
+// Max width of the centered content column on desktop. Tuned so dashboards and
+// tables use the space well while forms never stretch uncomfortably wide.
+const CONTENT_MAX_WIDTH = 1180;
