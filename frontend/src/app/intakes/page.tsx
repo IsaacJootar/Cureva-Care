@@ -15,7 +15,7 @@ import {
 } from "@/lib/intake";
 import { AppShell } from "@/components/layout/AppShell";
 import { Button } from "@/components/ui/Button";
-import { TextField } from "@/components/ui/Field";
+import { SelectField, TextField } from "@/components/ui/Field";
 import { EmptyState, StatusPill } from "@/components/ui/Feedback";
 import { StatTile } from "@/components/ui/StatTile";
 import { Table, Td, Th } from "@/components/ui/Table";
@@ -33,6 +33,16 @@ import {
 } from "@/components/icons";
 
 const FAMILIES: RegisterFamily[] = ["ANC", "Delivery", "PNC"];
+const FAMILY_LABEL: Record<RegisterFamily, string> = {
+  ANC: "Antenatal (ANC)",
+  Delivery: "Delivery",
+  PNC: "Postnatal (PNC)",
+};
+const FAMILY_DESC: Record<RegisterFamily, string> = {
+  ANC: "Antenatal care — pregnancy booking and check-up visits",
+  Delivery: "Delivery / labour ward — birth outcomes",
+  PNC: "Postnatal care — mother and baby after birth",
+};
 const STORAGE_KEY = "cv-do-facility";
 
 type CardState = "idle" | "staged" | "extracting" | "done" | "mismatch";
@@ -259,7 +269,10 @@ function IntakeCard({ facility, onChanged }: { facility: Facility; onChanged: ()
   const toast = useToast();
   const router = useRouter();
   const [state, setState] = useState<CardState>("idle");
-  const [family, setFamily] = useState<RegisterFamily>("ANC");
+  // No silent default — the officer must deliberately choose which register
+  // they are entering before capture/upload unlocks (prevents uploading a
+  // Delivery book while the form still says Antenatal).
+  const [family, setFamily] = useState<RegisterFamily | "">("");
   const [files, setFiles] = useState<File[]>([]);
   const [sourceLabel, setSourceLabel] = useState<"upload" | "camera">("upload");
   const [periodFrom, setPeriodFrom] = useState("");
@@ -273,6 +286,7 @@ function IntakeCard({ facility, onChanged }: { facility: Facility; onChanged: ()
 
   const reset = () => {
     setState("idle");
+    setFamily(""); // force a deliberate register choice for every new intake
     setFiles([]);
     setFieldStates([]);
     setSummary(null);
@@ -288,6 +302,10 @@ function IntakeCard({ facility, onChanged }: { facility: Facility; onChanged: ()
   }
 
   async function extract() {
+    if (!family) {
+      toast.warning("Select which register you're entering first.");
+      return;
+    }
     if (!periodFrom || !periodTo) {
       toast.warning("Set the batch service-date range first.");
       return;
@@ -369,28 +387,35 @@ function IntakeCard({ facility, onChanged }: { facility: Facility; onChanged: ()
         maxWidth: 760,
       }}
     >
+      {/* The active register is stated boldly and stays visible through every
+          step, so an officer can never lose track of which book they are
+          entering (they must pick one before capture/upload unlocks). */}
+      {family && <ActiveRegisterBanner family={family} locked={state !== "idle" && state !== "staged"} />}
+
       {/* Register family + period (declared at the start of the intake). */}
       {(state === "idle" || state === "staged") && (
         <div style={{ marginBottom: 16 }}>
-          <div style={{ display: "inline-flex", background: "var(--cv-bg)", borderRadius: "var(--cv-radius-pill)", padding: 3, border: "1px solid var(--cv-hairline)", marginBottom: 12 }}>
-            {FAMILIES.map((f) => (
-              <button
-                key={f}
-                onClick={() => setFamily(f)}
-                style={{
-                  padding: "6px 14px",
-                  borderRadius: "var(--cv-radius-pill)",
-                  border: "none",
-                  cursor: "pointer",
-                  fontSize: 12.5,
-                  fontWeight: 600,
-                  background: family === f ? "var(--cv-accent-solid)" : "transparent",
-                  color: family === f ? "#fff" : "var(--cv-text-secondary)",
-                }}
-              >
-                {f === "ANC" ? "Antenatal" : f === "PNC" ? "Postnatal" : "Delivery"}
-              </button>
-            ))}
+          <div style={{ marginBottom: 12 }}>
+            <SelectField
+              id="register-family"
+              label="Which register are you entering? (required)"
+              value={family}
+              onChange={(e) => setFamily(e.target.value as RegisterFamily | "")}
+            >
+              <option value="" disabled>
+                Select a register…
+              </option>
+              {FAMILIES.map((f) => (
+                <option key={f} value={f}>
+                  {FAMILY_LABEL[f]}
+                </option>
+              ))}
+            </SelectField>
+            {family && (
+              <p style={{ fontSize: 11, color: "var(--cv-text-muted)", margin: "6px 2px 0" }}>
+                {FAMILY_DESC[family]}
+              </p>
+            )}
           </div>
           <div style={{ display: "flex", gap: 12 }}>
             <div style={{ flex: 1 }}>
@@ -404,12 +429,19 @@ function IntakeCard({ facility, onChanged }: { facility: Facility; onChanged: ()
       )}
 
       {state === "idle" && (
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
-          <input ref={captureRef} type="file" accept="image/*" capture="environment" multiple hidden onChange={(e) => onPick(e.target.files, "camera")} />
-          <input ref={uploadRef} type="file" accept="image/*" multiple hidden onChange={(e) => onPick(e.target.files, "upload")} />
-          <StageTile icon={<CameraIcon size={22} />} title="Capture Register" desc="Photograph the register page with this device's camera." onClick={() => captureRef.current?.click()} />
-          <StageTile icon={<UploadIcon size={22} />} title="Upload Register" desc="Upload an existing photo of the register page." onClick={() => uploadRef.current?.click()} />
-        </div>
+        <>
+          {!family && (
+            <p style={{ fontSize: 12, color: "var(--cv-text-muted)", textAlign: "center", margin: "0 0 12px" }}>
+              Select the register above to unlock capture &amp; upload.
+            </p>
+          )}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+            <input ref={captureRef} type="file" accept="image/*" capture="environment" multiple hidden onChange={(e) => onPick(e.target.files, "camera")} />
+            <input ref={uploadRef} type="file" accept="image/*" multiple hidden onChange={(e) => onPick(e.target.files, "upload")} />
+            <StageTile icon={<CameraIcon size={22} />} title="Capture Register" desc="Photograph the register page with this device's camera." disabled={!family} onClick={() => captureRef.current?.click()} />
+            <StageTile icon={<UploadIcon size={22} />} title="Upload Register" desc="Upload an existing photo of the register page." disabled={!family} onClick={() => uploadRef.current?.click()} />
+          </div>
+        </>
       )}
 
       {state === "staged" && (
@@ -422,7 +454,7 @@ function IntakeCard({ facility, onChanged }: { facility: Facility; onChanged: ()
             {files.map((f, i) => (
               <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 11px", border: "1px solid var(--cv-card-border)", borderRadius: 8 }}>
                 <FileTextIcon size={16} />
-                <span style={{ flex: 1, fontSize: 12.5, color: "var(--cv-text-primary)" }}>{family} register — page {i + 1}</span>
+                <span style={{ flex: 1, fontSize: 12.5, color: "var(--cv-text-primary)" }}>{family ? FAMILY_LABEL[family] : ""} register — page {i + 1}</span>
                 <span style={{ fontSize: 11, color: "var(--cv-success-text)" }}>Ready for extraction</span>
                 <button onClick={() => setFiles((prev) => prev.filter((_, j) => j !== i))} style={{ background: "none", border: "none", color: "var(--cv-button-danger-bg)", cursor: "pointer", fontSize: 11.5 }}>Remove</button>
               </div>
@@ -481,10 +513,11 @@ function IntakeCard({ facility, onChanged }: { facility: Facility; onChanged: ()
   );
 }
 
-function StageTile({ icon, title, desc, onClick }: { icon: React.ReactNode; title: string; desc: string; onClick: () => void }) {
+function StageTile({ icon, title, desc, onClick, disabled }: { icon: React.ReactNode; title: string; desc: string; onClick: () => void; disabled?: boolean }) {
   return (
     <button
       onClick={onClick}
+      disabled={disabled}
       style={{
         display: "flex",
         flexDirection: "column",
@@ -494,14 +527,45 @@ function StageTile({ icon, title, desc, onClick }: { icon: React.ReactNode; titl
         border: "1.5px dashed var(--cv-empty-border)",
         borderRadius: "var(--cv-radius-card)",
         background: "transparent",
-        cursor: "pointer",
+        cursor: disabled ? "not-allowed" : "pointer",
         textAlign: "center",
+        opacity: disabled ? 0.45 : 1,
       }}
     >
       <span style={{ color: "var(--cv-accent-solid)" }}>{icon}</span>
       <span style={{ fontSize: 13, fontWeight: 600, color: "var(--cv-text-primary)" }}>{title}</span>
       <span style={{ fontSize: 11, color: "var(--cv-text-muted)" }}>{desc}</span>
     </button>
+  );
+}
+
+function ActiveRegisterBanner({ family, locked }: { family: RegisterFamily; locked: boolean }) {
+  return (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 11,
+        padding: "11px 14px",
+        marginBottom: 16,
+        borderRadius: 10,
+        background: "var(--cv-accent-soft)",
+        border: "1px solid var(--cv-accent-solid)",
+      }}
+    >
+      <span style={{ color: "var(--cv-accent-solid)" }}><FileTextIcon size={18} /></span>
+      <div style={{ flex: 1 }}>
+        <span style={{ display: "block", fontSize: 10.5, fontWeight: 600, letterSpacing: 0.4, textTransform: "uppercase", color: "var(--cv-text-muted)" }}>
+          You are entering
+        </span>
+        <span style={{ display: "block", fontSize: 14, fontWeight: 700, color: "var(--cv-text-primary)" }}>
+          {FAMILY_LABEL[family]} register
+        </span>
+      </div>
+      {locked && (
+        <span style={{ fontSize: 10.5, fontWeight: 600, color: "var(--cv-text-muted)" }}>locked for this batch</span>
+      )}
+    </div>
   );
 }
 
