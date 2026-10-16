@@ -22,6 +22,7 @@ from . import storage
 from .models import (
     Intake,
     IntakeImage,
+    IntakeStatus,
     RegisterMismatchStatus,
     SourceRow,
     Template,
@@ -70,11 +71,18 @@ class IntakeCreateView(APIView):
             facility_id=facility_id, register_family=register_family, source_hash=source_hash
         ).first()
         if existing:
-            # Idempotent: duplicate file upload is a no-op, not a re-import.
-            return Response(
-                {"detail": "Duplicate batch — already submitted.", **IntakeSerializer(existing).data},
-                status=status.HTTP_200_OK,
-            )
+            # A previous attempt that never produced usable data (extraction
+            # failed, or it was rejected) must not permanently block re-uploading
+            # the same image — replace it so the officer can retry.
+            if existing.status in (IntakeStatus.EXTRACTION_FAILED, IntakeStatus.REJECTED):
+                existing.delete()
+            else:
+                # Idempotent: a live (awaiting) or published batch is a no-op,
+                # not a re-import.
+                return Response(
+                    {"detail": "Duplicate batch — already submitted.", **IntakeSerializer(existing).data},
+                    status=status.HTTP_200_OK,
+                )
 
         intake = Intake.objects.create(
             facility_id=facility_id,

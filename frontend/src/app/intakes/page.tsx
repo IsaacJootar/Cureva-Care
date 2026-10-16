@@ -187,6 +187,7 @@ function FacilityIndex({ onSelect }: { onSelect: (f: Facility) => void }) {
 }
 
 function ActiveWorkspace({ facility }: { facility: Facility }) {
+  const router = useRouter();
   const [history, setHistory] = useState<Intake[]>([]);
 
   const loadHistory = useCallback(() => {
@@ -234,18 +235,38 @@ function ActiveWorkspace({ facility }: { facility: Facility }) {
                 <Th>Rows</Th>
                 <Th>Pages</Th>
                 <Th>Status</Th>
+                <Th style={{ textAlign: "right" }}>Action</Th>
               </tr>
             </thead>
             <tbody>
-              {history.map((i) => (
-                <tr key={i.id}>
-                  <Td style={{ color: "var(--cv-text-primary)", fontWeight: 600 }}>{i.register_family}</Td>
-                  <Td>{new Date(i.received_at).toLocaleString()}</Td>
-                  <Td><span className="cv-num">{i.row_count}</span></Td>
-                  <Td><span className="cv-num">{i.page_count}</span></Td>
-                  <Td><IntakeStatusPill status={i.status} /></Td>
-                </tr>
-              ))}
+              {history.map((i) => {
+                const resumable = i.status === "awaiting_confirmation";
+                const open = () => router.push(`/intakes/${i.id}/confirm-fields`);
+                return (
+                  <tr
+                    key={i.id}
+                    onClick={resumable ? open : undefined}
+                    style={resumable ? { cursor: "pointer" } : undefined}
+                  >
+                    <Td style={{ color: "var(--cv-text-primary)", fontWeight: 600 }}>{i.register_family}</Td>
+                    <Td>{new Date(i.received_at).toLocaleString()}</Td>
+                    <Td><span className="cv-num">{i.row_count}</span></Td>
+                    <Td><span className="cv-num">{i.page_count}</span></Td>
+                    <Td><IntakeStatusPill status={i.status} /></Td>
+                    <Td style={{ textAlign: "right" }}>
+                      {resumable ? (
+                        <Button variant="secondary" onClick={(e) => { e.stopPropagation(); open(); }}>
+                          Review &amp; confirm →
+                        </Button>
+                      ) : i.status === "extraction_failed" ? (
+                        <span style={{ fontSize: 11, color: "var(--cv-text-muted)" }}>Re-upload to retry</span>
+                      ) : (
+                        <span style={{ color: "var(--cv-text-muted)" }}>—</span>
+                      )}
+                    </Td>
+                  </tr>
+                );
+              })}
             </tbody>
           </Table>
         )}

@@ -117,6 +117,29 @@ def test_duplicate_upload_is_a_noop(facility, officer):
 
 
 @pytest.mark.django_db
+def test_failed_attempt_can_be_reuploaded(facility, officer):
+    """A prior attempt that never produced usable data (extraction failed) must
+    not permanently block re-uploading the same image."""
+    from register_intake.models import Intake, IntakeStatus
+
+    c = client_for(officer)
+    payload = {
+        "facility": str(facility.id),
+        "register_family": "ANC",
+        "batch_period_from": "2026-01-01",
+        "batch_period_to": "2026-01-31",
+    }
+    first = c.post("/api/v1/intakes", {**payload, "images": _img(content=b"same")}, format="multipart")
+    assert first.status_code == 201
+    Intake.objects.filter(id=first.json()["id"]).update(status=IntakeStatus.EXTRACTION_FAILED)
+
+    retry = c.post("/api/v1/intakes", {**payload, "images": _img(content=b"same")}, format="multipart")
+    assert retry.status_code == 201  # allowed — the failed attempt is replaced
+    assert "Duplicate" not in (retry.json().get("detail") or "")
+    assert Intake.objects.filter(facility=facility, register_family="ANC").count() == 1
+
+
+@pytest.mark.django_db
 def test_organisation_user_cannot_create_intake(facility):
     from identity_access.models import Organisation
 
