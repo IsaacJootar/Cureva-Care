@@ -8,6 +8,7 @@ import {
 import { AppShell } from "@/components/layout/AppShell";
 import { SelectField } from "@/components/ui/Field";
 import { ChartCard, LeagueTable, MetricMeter, type LeagueRow } from "@/components/ui/Charts";
+import { NigeriaMap, type MapDatum } from "@/components/dashboard/NigeriaMap";
 
 const NOTE = "Recorded register activity, not population rates. Rates on a small denominator are flagged — a 1/1 can't outrank a 180/200.";
 
@@ -21,11 +22,13 @@ export default function BenchmarkingPage() {
   const [level, setLevel] = useState<"state" | "lga">("state");
   const [bench, setBench] = useState<Benchmarking | null>(null);
   const [geo, setGeo] = useState<GeoRollup | null>(null);
+  const [stateGeo, setStateGeo] = useState<GeoRollup | null>(null);
   const [equity, setEquity] = useState<Equity | null>(null);
 
   const load = useCallback(() => {
     getBenchmarking(metric).then(setBench).catch(() => setBench(null));
     getGeo(metric, level).then(setGeo).catch(() => setGeo(null));
+    getGeo(metric, "state").then(setStateGeo).catch(() => setStateGeo(null));
   }, [metric, level]);
 
   useEffect(() => { load(); }, [load]);
@@ -45,6 +48,11 @@ export default function BenchmarkingPage() {
     value: a.value ?? 0,
     display: isRate ? fmtRate(a.rate, a.numerator, a.denominator) : String(a.value ?? 0),
     sublabel: a.low_confidence ? "small sample" : undefined,
+  }));
+  const mapData: MapDatum[] = (stateGeo?.areas ?? []).map((a) => ({
+    name: a.name,
+    value: a.value,
+    display: isRate ? fmtRate(a.rate, a.numerator, a.denominator) : String(a.value ?? 0),
   }));
 
   return (
@@ -73,6 +81,21 @@ export default function BenchmarkingPage() {
           }}
         >
           <LeagueTable rows={leagueRows} maxRows={20} />
+        </ChartCard>
+
+        <ChartCard
+          title={`Map — ${stateGeo?.label ?? bench?.label ?? ""} by State`}
+          subtitle="Shaded by value; states with no data stay grey"
+          note={NOTE}
+          exportCsv={{
+            name: `map-state-${metric}`,
+            header: ["State", "Value", "Numerator", "Denominator"],
+            rows: (stateGeo?.areas ?? []).map((a) => [a.name, a.value, a.numerator, a.denominator]),
+          }}
+        >
+          <div style={{ maxWidth: 620, margin: "0 auto" }}>
+            <NigeriaMap data={mapData} />
+          </div>
         </ChartCard>
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
