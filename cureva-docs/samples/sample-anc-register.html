@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Sample ANC Register — Gama PHC</title>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: #e9edf1;
+    color: #111;
+    font-family: "Segoe UI", Arial, sans-serif;
+    padding: 24px;
+    display: flex;
+    justify-content: center;
+  }
+  .sheet {
+    background: #fff;
+    width: 1480px;
+    padding: 26px 30px 34px;
+    box-shadow: 0 2px 14px rgba(0,0,0,.18);
+    border: 1px solid #c7ced6;
+  }
+  .masthead { text-align: center; border-bottom: 2px solid #111; padding-bottom: 10px; margin-bottom: 4px; }
+  .masthead .country { font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: #444; }
+  .masthead .title { font-size: 21px; font-weight: 800; letter-spacing: 1px; margin: 3px 0 2px; }
+  .masthead .sub { font-size: 12px; color: #555; }
+  .meta { display: flex; justify-content: space-between; font-size: 12.5px; margin: 10px 2px 14px; }
+  .meta span b { color: #000; }
+  table { border-collapse: collapse; width: 100%; font-size: 11px; }
+  th, td { border: 1px solid #333; padding: 4px 5px; text-align: center; vertical-align: middle; }
+  thead th { background: #f0f2f5; font-weight: 700; font-size: 10px; line-height: 1.15; }
+  td.card { font-weight: 700; white-space: nowrap; font-family: "Consolas", monospace; font-size: 10.5px; }
+  tbody tr:nth-child(even) { background: #fafbfc; }
+  .ink { font-family: "Comic Sans MS", "Segoe Print", cursive; }
+  td.ref { color: #a11; font-weight: 600; font-size: 10px; }
+  .foot { font-size: 10.5px; color: #666; margin-top: 12px; display: flex; justify-content: space-between; }
+  .legend { font-size: 10px; color: #777; margin-top: 6px; }
+  @media print { body { background: #fff; padding: 0; } .sheet { box-shadow: none; border: none; } }
+</style>
+</head>
+<body>
+  <div class="sheet">
+    <div class="masthead">
+      <div class="country">Federal Republic of Nigeria &middot; National Health Management Information System</div>
+      <div class="title">ANTENATAL CARE (ANC) REGISTER</div>
+      <div class="sub">Booking &amp; Follow-up Register — Register No. NHMIS/ANC/004</div>
+    </div>
+    <div class="meta">
+      <span><b>Facility:</b> Gama Primary Health Centre</span>
+      <span><b>Ward:</b> Gama</span>
+      <span><b>LGA:</b> Nassarawa</span>
+      <span><b>State:</b> Kano</span>
+      <span><b>Month/Year:</b> February 2026</span>
+      <span><b>Page:</b> 1 of 1</span>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>S/N</th>
+          <th>Card/Folder&nbsp;No</th>
+          <th>Date of<br>Booking</th>
+          <th>LMP</th>
+          <th>EDD</th>
+          <th>G</th>
+          <th>P</th>
+          <th>GA<br>(wks)</th>
+          <th>Height<br>(cm)</th>
+          <th>BP</th>
+          <th>Weight<br>(kg)</th>
+          <th>Hb<br>(g/dl)</th>
+          <th>Geno</th>
+          <th>BG/Rh</th>
+          <th>HIV</th>
+          <th>VDRL</th>
+          <th>Urine</th>
+          <th>Oedema</th>
+          <th>Iron/<br>Folate</th>
+          <th>TT</th>
+          <th>IPTp</th>
+          <th>Next<br>Appt</th>
+          <th>Referral</th>
+        </tr>
+      </thead>
+      <tbody class="ink">
+        <tr>
+          <td>1</td><td class="card">GPHC/2026/0101</td><td>10/02/2026</td><td>05/01/2026</td><td>12/10/2026</td>
+          <td>2</td><td>1</td><td>7</td><td>162</td><td>110/70</td><td>64</td><td>11.2</td><td>AA</td><td>O+</td>
+          <td>NR</td><td>NR</td><td>Nil</td><td>No</td><td>Yes</td><td>Yes</td><td>Yes</td><td>10/03/2026</td><td></td>
+        </tr>
+        <tr>
+          <td>2</td><td class="card">GPHC/2026/0102</td><td>12/02/2026</td><td>20/12/2025</td><td>26/09/2026</td>
+          <td>1</td><td>0</td><td>9</td><td>158</td><td>118/76</td><td>58</td><td>10.8</td><td>AS</td><td>B+</td>
+          <td>NR</td><td>NR</td><td>Nil</td><td>No</td><td>Yes</td><td>Yes</td><td>Yes</td><td>12/03/2026</td><td></td>
+        </tr>
+        <tr>
+          <td>3</td><td class="card">GPHC/2026/0103</td><td>14/02/2026</td><td>30/11/2025</td><td>06/09/2026</td>
+          <td>4</td><td>3</td><td>12</td><td>165</td><td>140/90</td><td>72</td><td>9.6</td><td>AA</td><td>A+</td>
+          <td>NR</td><td>NR</td><td>Prot+</td><td>Yes</td><td>Yes</td><td>Yes</td><td>Yes</td><td>01/03/2026</td><td class="ref">Referred &mdash; high BP</td>
+        </tr>
+        <tr>
+          <td>4</td><td class="card">GPHC/2026/0104</td><td>15/02/2026</td><td>18/01/2026</td><td>25/10/2026</td>
+          <td>3</td><td>2</td><td>5</td><td>160</td><td>112/74</td><td>61</td><td>11.5</td><td>AA</td><td>O-</td>
+          <td>NR</td><td>NR</td><td>Nil</td><td>No</td><td>Yes</td><td>No</td><td>Yes</td><td>15/03/2026</td><td></td>
+        </tr>
+        <tr>
+          <td>5</td><td class="card">GPHC/2026/0105</td><td>16/02/2026</td><td>15/10/2025</td><td>22/07/2026</td>
+          <td>2</td><td>1</td><td>18</td><td>170</td><td>120/80</td><td>68</td><td>7.4</td><td>AA</td><td>AB+</td>
+          <td>NR</td><td>NR</td><td>Nil</td><td>No</td><td>Yes</td><td>Yes</td><td>Yes</td><td>02/03/2026</td><td class="ref">Anaemia &mdash; Fe</td>
+        </tr>
+        <tr>
+          <td>6</td><td class="card">GPHC/2026/0106</td><td>18/02/2026</td><td>01/02/2026</td><td>08/11/2026</td>
+          <td>1</td><td>0</td><td>3</td><td>155</td><td>108/68</td><td>54</td><td>12.1</td><td>AS</td><td>B+</td>
+          <td>NR</td><td>NR</td><td>Nil</td><td>No</td><td>No</td><td>Yes</td><td>Yes</td><td>18/03/2026</td><td></td>
+        </tr>
+        <tr>
+          <td>7</td><td class="card">GPHC/2026/0107</td><td>19/02/2026</td><td>28/09/2025</td><td>05/07/2026</td>
+          <td>5</td><td>4</td><td>20</td><td>168</td><td>130/85</td><td>75</td><td>10.2</td><td>AA</td><td>O+</td>
+          <td>NR</td><td>NR</td><td>Gluc+</td><td>No</td><td>Yes</td><td>Yes</td><td>Yes</td><td>05/03/2026</td><td></td>
+        </tr>
+        <tr>
+          <td>8</td><td class="card">GPHC/2026/0108</td><td>20/02/2026</td><td>10/01/2026</td><td>17/10/2026</td>
+          <td>2</td><td>1</td><td>6</td><td>159</td><td>115/75</td><td>60</td><td>11.0</td><td>AA</td><td>A+</td>
+          <td>NR</td><td>NR</td><td>Nil</td><td>No</td><td>Yes</td><td>Yes</td><td>Yes</td><td>20/03/2026</td><td></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="legend">
+      Key: G = Gravida, P = Parity, GA = Gestational Age, BP = Blood Pressure, Hb = Haemoglobin, Geno = Genotype,
+      BG/Rh = Blood Group/Rhesus, NR = Non-Reactive, Prot+ = Protein, Gluc+ = Glucose, TT = Tetanus Toxoid,
+      IPTp = Malaria Prevention (SP). Dates in DD/MM/YYYY.
+    </div>
+    <div class="foot">
+      <span>Recorded by: __________________________</span>
+      <span>Reviewed by (Officer-in-charge): __________________________</span>
+      <span>Sample data for Cureva Care testing only.</span>
+    </div>
+  </div>
+</body>
+</html>
