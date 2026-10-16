@@ -107,10 +107,10 @@ WS8's chart kit is built first within Phase 1 (WS1/WS2 depend on it).
 A section is signed off only when: built, tested (backend tests green; frontend
 type-checks), verified, committed **and pushed**. Date on completion.
 
-### Phase 1
-- [~] **WS8** — Chart kit: line, stacked bar, league table, delta badge, export (CSV/PNG) done; **choropleth lands with WS2's geo data**.
+### Phase 1 — COMPLETE
+- [x] **WS8** — Chart kit (line, stacked bar, league table, delta badge, choropleth; themeable; CSV/PNG export) — 2026-10-16
 - [x] **WS1** — Time & Trends (bucketed aggregation + /trends endpoint + trend charts + deltas + export) — 2026-10-16
-- [ ] **WS2** — Benchmarking & Equity (league tables + equity slicing + choropleth maps)
+- [x] **WS2** — Benchmarking & Equity (facility league tables + geo rollup + parity equity + Nigeria choropleth) — 2026-10-16
 
 ### Phase 2
 - [ ] **WS3** — Continuum & Cohort (funnel drop-offs + scoped line-lists + cohort retention)
@@ -144,3 +144,19 @@ deltas + CSV/PNG export) on the Overview dashboard. Tests: `test_trends.py`
 
 _Note: a pre-existing React duplicate-key warning in the shared nav/layout was
 found during WS1 and spun off as a separate task (unrelated to intelligence)._
+
+**WS2 (Benchmarking & Equity) — signed off 2026-10-16.**
+`backend/intelligence/benchmarking.py`: per-facility metric accumulation,
+facility league tables (ranked, small-sample flagged), geo rollup to State/LGA,
+and ANC coverage sliced by parity band (unknown shown separately). Endpoints
+`/benchmarking`, `/geo`, `/equity` (scoped) in `views.py`/`urls.py`. Frontend:
+`/benchmarking` dashboard with metric selector, facility league, state/LGA
+rollup, parity-equity panel, and a **Nigeria state choropleth**
+(`components/dashboard/NigeriaMap.tsx`) with projected SVG + name matching.
+Boundaries: geoBoundaries gbOpen NGA ADM1 (CC-BY), simplified to
+`frontend/public/geo/nigeria-states.geojson` (283 KB static asset). Tests:
+`test_benchmarking.py` (3); intelligence suite 12 passed; `tsc` clean; verified
+live (Kano correctly shaded on the map, real parity equity data). Commits
+`3e14ea6`, `8cdaecf`.
+
+**WS8 (chart kit) — fully signed off 2026-10-16** with the choropleth added in WS2b.
