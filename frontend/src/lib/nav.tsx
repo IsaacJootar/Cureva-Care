@@ -72,6 +72,7 @@ export function navForUser(user: CurrentUser): RoleNav {
             links: [
               { label: "Overview", href: "/overview", icon: <BarChartIcon size={16} /> },
               { label: "Care journey", href: "/care-journey", icon: <ActivityIcon size={16} /> },
+              { label: "Benchmarking", href: "/benchmarking", icon: <LayersIcon size={16} /> },
               { label: "Needs attention", href: "/needs-attention", icon: <HeartPulseIcon size={16} /> },
               { label: "Outcomes", href: "/outcomes", icon: <HeartPulseIcon size={16} /> },
               { label: "Records", href: "/records", icon: <FileTextIcon size={16} /> },
@@ -99,6 +100,7 @@ export function navForUser(user: CurrentUser): RoleNav {
           links: [
             { label: "Overview", href: "/overview", icon: <BarChartIcon size={16} /> },
             { label: "Care journey", href: "/care-journey", icon: <ActivityIcon size={16} /> },
+            { label: "Benchmarking", href: "/benchmarking", icon: <LayersIcon size={16} /> },
             { label: "Outcomes", href: "/outcomes", icon: <HeartPulseIcon size={16} /> },
             { label: "Facilities", href: "/facilities", icon: <BuildingIcon size={16} /> },
             { label: "Records", href: "/records", icon: <FileTextIcon size={16} /> },

@@ -17,6 +17,7 @@ from identity_access.settings_registry import STALE_FACILITY_ALERT_DAYS
 from identity_access.models import AuditEvent
 from identity_access.permissions import IsFacilityLead
 
+from .benchmarking import METRICS, equity_by_parity, facility_league, geo_rollup
 from .metrics import maternal_summary
 from .models import WorklistAction
 from .rules import evaluate_worklist
@@ -73,6 +74,52 @@ class TrendsView(APIView):
         date_to = _parse_date(request.query_params.get("to"))
         bucket = request.query_params.get("bucket", "month")
         data = compute_trends(scope["facility_ids"], date_from, date_to, bucket)
+        data["access_level"] = scope["access_level"]
+        return Response(data)
+
+
+class BenchmarkingView(APIView):
+    """GET /benchmarking — facility league table on a chosen metric (WS2)."""
+
+    permission_classes = [IsDashboardViewer]
+
+    def get(self, request):
+        scope = caller_scope(request.user)
+        metric = request.query_params.get("metric", "deliveries")
+        date_from = _parse_date(request.query_params.get("from"))
+        date_to = _parse_date(request.query_params.get("to"))
+        data = facility_league(scope["facility_ids"], metric, date_from, date_to)
+        data["available_metrics"] = [{"key": k, **v} for k, v in METRICS.items()]
+        data["access_level"] = scope["access_level"]
+        return Response(data)
+
+
+class GeoRollupView(APIView):
+    """GET /geo — a metric aggregated to State or LGA for the geographic view."""
+
+    permission_classes = [IsDashboardViewer]
+
+    def get(self, request):
+        scope = caller_scope(request.user)
+        metric = request.query_params.get("metric", "deliveries")
+        level = request.query_params.get("level", "state")
+        date_from = _parse_date(request.query_params.get("from"))
+        date_to = _parse_date(request.query_params.get("to"))
+        data = geo_rollup(scope["facility_ids"], metric, level, date_from, date_to)
+        data["access_level"] = scope["access_level"]
+        return Response(data)
+
+
+class EquityView(APIView):
+    """GET /equity — ANC coverage sliced by recorded parity band (WS2)."""
+
+    permission_classes = [IsDashboardViewer]
+
+    def get(self, request):
+        scope = caller_scope(request.user)
+        date_from = _parse_date(request.query_params.get("from"))
+        date_to = _parse_date(request.query_params.get("to"))
+        data = equity_by_parity(scope["facility_ids"], date_from, date_to)
         data["access_level"] = scope["access_level"]
         return Response(data)
 

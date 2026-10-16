@@ -77,6 +77,28 @@ export interface Trends {
 export const getTrends = (bucket: "month" | "week" = "month", from?: string, to?: string) =>
   apiGet<Trends>(`/trends?bucket=${bucket}${from ? `&from=${from}` : ""}${to ? `&to=${to}` : ""}`);
 
+// --- WS2: Benchmarking & Equity ---
+export interface MetricDef { key: string; kind: "count" | "rate"; label: string; invert?: boolean }
+export interface LeagueRowData {
+  facility_id: string; name: string; region: string;
+  value: number | null; numerator: number; denominator: number | null; rate: number | null; low_confidence: boolean;
+}
+export interface Benchmarking {
+  metric: string; kind: "count" | "rate"; label: string;
+  rows: LeagueRowData[]; available_metrics: MetricDef[]; access_level: string;
+}
+export interface GeoArea {
+  area_id: string; name: string; value: number | null; numerator: number; denominator: number | null; rate: number | null; low_confidence: boolean;
+}
+export interface GeoRollup { metric: string; level: "state" | "lga"; kind: "count" | "rate"; label: string; areas: GeoArea[] }
+export interface EquityBand { band: string; contacts: number; screening_coverage: Ratio; intervention_coverage: Ratio }
+export interface Equity { dimension: string; bands: EquityBand[] }
+
+export const getBenchmarking = (metric = "deliveries") => apiGet<Benchmarking>(`/benchmarking?metric=${metric}`);
+export const getGeo = (metric = "deliveries", level: "state" | "lga" = "state") =>
+  apiGet<GeoRollup>(`/geo?metric=${metric}&level=${level}`);
+export const getEquity = () => apiGet<Equity>("/equity");
+
 export const getWorkspace = () => apiGet<Workspace>("/workspace");
 export const getSummary = (from?: string, to?: string) =>
   apiGet<Summary>(`/maternal-summary${from || to ? `?from=${from ?? ""}&to=${to ?? ""}` : ""}`);
