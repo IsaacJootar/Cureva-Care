@@ -108,8 +108,8 @@ A section is signed off only when: built, tested (backend tests green; frontend
 type-checks), verified, committed **and pushed**. Date on completion.
 
 ### Phase 1
-- [ ] **WS8** — Chart kit (line, bar, stacked bar, funnel, distribution, table, choropleth; themeable; export)
-- [ ] **WS1** — Time & Trends (bucketed aggregation + endpoints + trend charts + delta tiles)
+- [~] **WS8** — Chart kit: line, stacked bar, league table, delta badge, export (CSV/PNG) done; **choropleth lands with WS2's geo data**.
+- [x] **WS1** — Time & Trends (bucketed aggregation + /trends endpoint + trend charts + deltas + export) — 2026-10-16
 - [ ] **WS2** — Benchmarking & Equity (league tables + equity slicing + choropleth maps)
 
 ### Phase 2
@@ -126,3 +126,21 @@ type-checks), verified, committed **and pushed**. Date on completion.
 ## Module sign-offs (filled in as completed)
 
 _(Each entry: what was built, where it lives, test/verify status, commit.)_
+
+**WS8 (chart kit) — partial, signed off 2026-10-16.** SVG `LineChart`, `StackedBars`,
+`LeagueTable`, `DeltaBadge`, export-capable `ChartCard` (CSV + PNG with CSS-var
+inlining) in `frontend/src/components/ui/Charts.tsx`; export utils in
+`frontend/src/lib/chartExport.ts`. Themeable via design-system tokens; verified
+rendering live on Overview. Choropleth map deferred to WS2 (needs geo data).
+Commit `ffdabbf`.
+
+**WS1 (Time & Trends) — signed off 2026-10-16.** `backend/intelligence/trends.py`
+buckets every datable event by month/ISO-week on its service date, each metric
+with numerator/denominator + period deltas; `GET /trends` (scoped) in
+`views.py`/`urls.py`; `TrendsPanel` (month/week toggle, 3 trend-line cards with
+deltas + CSV/PNG export) on the Overview dashboard. Tests: `test_trends.py`
+(3, green); full intelligence suite 9 passed; frontend `tsc` clean; verified live
+(two-bucket trend rendering correctly). Commit `65e64e0`.
+
+_Note: a pre-existing React duplicate-key warning in the shared nav/layout was
+found during WS1 and spun off as a separate task (unrelated to intelligence)._
