@@ -183,6 +183,10 @@ EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=True)
 
 # --- Auth: magic-link + Google SSO (Django owns both) ---------------------
 MAGIC_LINK_TTL_MINUTES = env.int("MAGIC_LINK_TTL_MINUTES", default=15)  # single-use, short-lived (07-security-privacy-access.md); prod keeps 15, local dev may widen via .env
+# Links are single-use in production. Local dev MAY set this False in .env to
+# make a sign-in link reusable until it expires (convenient for repeated manual
+# testing). Never ship False — it removes a security property.
+MAGIC_LINK_SINGLE_USE = env.bool("MAGIC_LINK_SINGLE_USE", default=True)
 GOOGLE_OAUTH_CLIENT_ID = env("GOOGLE_OAUTH_CLIENT_ID", default="")
 GOOGLE_OAUTH_CLIENT_SECRET = env("GOOGLE_OAUTH_CLIENT_SECRET", default="")
 

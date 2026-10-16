@@ -46,17 +46,25 @@ def mint_signin_ticket(user: User) -> str:
 
 def consume_signin_ticket(raw_token: str) -> User | None:
     """Consume a ticket. Returns the user on success, None if the ticket is
-    missing, expired, or already used. Single-use is enforced here."""
-    row = (
-        MagicLinkToken.objects.select_related("user")
-        .filter(token_hash=_hash(raw_token), used_at__isnull=True)
-        .order_by("-created_at")
-        .first()
-    )
-    if row is None or not row.is_consumable:
+    missing or expired. Single-use is enforced here in production; local dev may
+    disable it (settings.MAGIC_LINK_SINGLE_USE=False) to reuse a link while
+    testing — never do that in production."""
+    single_use = getattr(settings, "MAGIC_LINK_SINGLE_USE", True)
+
+    qs = MagicLinkToken.objects.select_related("user").filter(token_hash=_hash(raw_token))
+    if single_use:
+        qs = qs.filter(used_at__isnull=True)
+    row = qs.order_by("-created_at").first()
+
+    # In reusable mode a used row is fine; only expiry matters.
+    if row is None or row.expires_at <= timezone.now():
         return None
-    row.used_at = timezone.now()
-    row.save(update_fields=["used_at"])
+    if single_use and row.used_at is not None:
+        return None
+
+    if single_use:
+        row.used_at = timezone.now()
+        row.save(update_fields=["used_at"])
     if not row.user.is_active:
         return None
     return row.user

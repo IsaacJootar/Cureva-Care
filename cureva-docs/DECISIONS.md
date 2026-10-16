@@ -26,6 +26,14 @@ are appended at the bottom.
   *Used by:* every user; the magic link (dev) prints to the backend console.
 - **Google SSO** built but **deferred** pending real Google client credentials
   (product-owner decision). Magic-link is fully working.
+- **Magic-link lifetime/reuse are env-configurable** (`MAGIC_LINK_TTL_MINUTES`,
+  `MAGIC_LINK_SINGLE_USE`). *Why:* during hands-on testing a 15-minute,
+  single-use link is painful — it expires on the shelf and dies after one
+  click. *How used:* **production keeps the secure defaults** (15 min,
+  single-use); the local `.env` currently sets a long TTL and
+  `SINGLE_USE=False` so one link per role keeps working while we test. These
+  must be reset to the defaults before any real deployment — the code defaults
+  are already safe; only the local `.env` relaxes them.
 
 ## Vision / OCR provider (open decision #8, resolved)
 
