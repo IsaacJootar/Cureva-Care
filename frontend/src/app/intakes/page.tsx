@@ -281,14 +281,44 @@ function IntakeCard({ facility, onChanged }: { facility: Facility; onChanged: ()
   const [summary, setSummary] = useState<{ matched: number; needs_mapping: string[]; row_count: number } | null>(null);
   const [mismatch, setMismatch] = useState<{ declared: string; suspected: string } | null>(null);
   const [intakeId, setIntakeId] = useState<string | null>(null);
+  const [totalFields, setTotalFields] = useState(0);
   const captureRef = useRef<HTMLInputElement>(null);
   const uploadRef = useRef<HTMLInputElement>(null);
 
+  // --- Front-end-paced "labour illusion" scan cascade -----------------------
+  // The server does all the vision work up front and can fire every field
+  // verdict in a burst. To keep the scan feeling live — reading one field at a
+  // time, ticking each as it resolves — the stream only *feeds a queue*, and a
+  // local pump reveals fields on a steady cadence no matter how fast they land.
+  // The result summary is held back until the whole cascade has played out.
+  const CADENCE_MS = 150; // gap between each field appearing
+  const READ_MS = 460; // how long a field shows "reading…" before it ticks
+  const queueRef = useRef<{ field: string; label: string; state: "matched" | "pending" }[]>([]);
+  const finalRef = useRef<ProgressEvent | null>(null);
+  const pumpRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const revealedRef = useRef(0);
+  const flippedRef = useRef(0);
+
+  const stopPump = useCallback(() => {
+    if (pumpRef.current) {
+      clearInterval(pumpRef.current);
+      pumpRef.current = null;
+    }
+  }, []);
+
+  useEffect(() => stopPump, [stopPump]);
+
   const reset = () => {
+    stopPump();
+    queueRef.current = [];
+    finalRef.current = null;
+    revealedRef.current = 0;
+    flippedRef.current = 0;
     setState("idle");
     setFamily(""); // force a deliberate register choice for every new intake
     setFiles([]);
     setFieldStates([]);
+    setTotalFields(0);
     setSummary(null);
     setMismatch(null);
     setIntakeId(null);
@@ -303,7 +333,7 @@ function IntakeCard({ facility, onChanged }: { facility: Facility; onChanged: ()
 
   async function extract() {
     if (!family) {
-      toast.warning("Select which register you're entering first.");
+      toast.warning("Select which register you're importing first.");
       return;
     }
     if (!periodFrom || !periodTo) {
@@ -336,24 +366,58 @@ function IntakeCard({ facility, onChanged }: { facility: Facility; onChanged: ()
     }
   }
 
-  function handleEvent(e: ProgressEvent) {
-    if (e.type === "field") {
-      setFieldStates((prev) => {
-        const idx = prev.findIndex((f) => f.field === e.field);
-        if (idx >= 0) {
-          const copy = [...prev];
-          copy[idx] = { field: e.field, label: e.label, state: e.state };
-          return copy;
-        }
-        return [...prev, { field: e.field, label: e.label, state: e.state }];
-      });
-    } else if (e.type === "mismatch") {
+  const applyFinal = useCallback((e: ProgressEvent) => {
+    if (e.type === "mismatch") {
       setMismatch({ declared: e.declared, suspected: e.suspected });
       setState("mismatch");
     } else if (e.type === "done") {
       setSummary({ matched: e.matched, needs_mapping: e.needs_mapping, row_count: e.row_count });
       setState("done");
+    }
+  }, []);
+
+  const startPump = useCallback(() => {
+    stopPump();
+    pumpRef.current = setInterval(() => {
+      // Reveal the next queued field in "reading…", then tick it to its verdict.
+      const next = queueRef.current.shift();
+      if (next) {
+        revealedRef.current += 1;
+        setFieldStates((prev) => [...prev, { field: next.field, label: next.label, state: "reading" }]);
+        setTimeout(() => {
+          setFieldStates((prev) => prev.map((f) => (f.field === next.field ? { ...f, state: next.state } : f)));
+          flippedRef.current += 1;
+        }, READ_MS);
+        return;
+      }
+      // Queue drained: once every revealed field has ticked, play the summary.
+      if (finalRef.current && revealedRef.current > 0 && flippedRef.current >= revealedRef.current) {
+        const fin = finalRef.current;
+        finalRef.current = null;
+        stopPump();
+        applyFinal(fin);
+      }
+    }, CADENCE_MS);
+  }, [applyFinal, stopPump]);
+
+  function handleEvent(e: ProgressEvent) {
+    if (e.type === "start") {
+      setTotalFields(e.total_fields);
+      setFieldStates([]);
+      queueRef.current = [];
+      finalRef.current = null;
+      revealedRef.current = 0;
+      flippedRef.current = 0;
+      startPump();
+    } else if (e.type === "field") {
+      // Only queue resolved verdicts; the pump drives the reading→tick rhythm.
+      if (e.state === "matched" || e.state === "pending") {
+        queueRef.current.push({ field: e.field, label: e.label, state: e.state });
+      }
+    } else if (e.type === "mismatch" || e.type === "done") {
+      finalRef.current = e; // held until the cascade finishes
     } else if (e.type === "extraction_failed") {
+      stopPump();
       toast.error("Extraction failed. You can retry from your intake history.");
       setState("idle");
     }
@@ -398,7 +462,7 @@ function IntakeCard({ facility, onChanged }: { facility: Facility; onChanged: ()
           <div style={{ marginBottom: 12 }}>
             <SelectField
               id="register-family"
-              label="Which register are you entering? (required)"
+              label="Which register are you importing? (required)"
               value={family}
               onChange={(e) => setFamily(e.target.value as RegisterFamily | "")}
             >
@@ -467,12 +531,31 @@ function IntakeCard({ facility, onChanged }: { facility: Facility; onChanged: ()
         </div>
       )}
 
-      {state === "extracting" && (
-        <div>
-          <h3 style={{ fontSize: 13.5, color: "var(--cv-text-primary)", margin: "0 0 12px" }}>Scanning and matching…</h3>
-          <FieldChecklist fields={fieldStates} />
-        </div>
-      )}
+      {state === "extracting" && (() => {
+        const read = fieldStates.filter((f) => f.state !== "reading").length;
+        const scanningImage = fieldStates.length === 0;
+        return (
+          <div>
+            <div style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: 10 }}>
+              <span className="cv-spin" style={{ width: 14, height: 14, borderRadius: "50%", border: "2px solid var(--cv-accent-soft)", borderTopColor: "var(--cv-accent-solid)", display: "inline-block" }} />
+              <h3 style={{ fontSize: 13.5, color: "var(--cv-text-primary)", margin: 0 }}>
+                {scanningImage ? "Reading the register image…" : "Scanning & matching fields…"}
+              </h3>
+              {!scanningImage && totalFields > 0 && (
+                <span className="cv-num" style={{ marginLeft: "auto", fontSize: 11.5, color: "var(--cv-text-muted)" }}>
+                  {read} of {totalFields} fields read
+                </span>
+              )}
+            </div>
+            {!scanningImage && totalFields > 0 && (
+              <div style={{ height: 4, borderRadius: 4, background: "var(--cv-accent-soft)", overflow: "hidden", marginBottom: 12 }}>
+                <div style={{ height: "100%", width: `${Math.round((read / totalFields) * 100)}%`, background: "var(--cv-accent-solid)", transition: "width .3s ease" }} />
+              </div>
+            )}
+            <FieldChecklist fields={fieldStates} />
+          </div>
+        );
+      })()}
 
       {state === "mismatch" && mismatch && (
         <div style={{ background: "var(--cv-warning-bg)", border: "1px solid var(--cv-warning-border)", borderRadius: 10, padding: 16 }}>
@@ -556,7 +639,7 @@ function ActiveRegisterBanner({ family, locked }: { family: RegisterFamily; lock
       <span style={{ color: "var(--cv-accent-solid)" }}><FileTextIcon size={18} /></span>
       <div style={{ flex: 1 }}>
         <span style={{ display: "block", fontSize: 10.5, fontWeight: 600, letterSpacing: 0.4, textTransform: "uppercase", color: "var(--cv-text-muted)" }}>
-          You are entering
+          You are importing
         </span>
         <span style={{ display: "block", fontSize: 14, fontWeight: 700, color: "var(--cv-text-primary)" }}>
           {FAMILY_LABEL[family]} register
