@@ -18,6 +18,7 @@ from identity_access.models import AuditEvent
 from identity_access.permissions import IsFacilityLead
 
 from .benchmarking import METRICS, equity_by_parity, facility_league, geo_rollup
+from .continuum import DROPOFFS, care_funnel, cohort_retention, dropoff_lines
 from .metrics import maternal_summary
 from .models import WorklistAction
 from .rules import evaluate_worklist
@@ -120,6 +121,50 @@ class EquityView(APIView):
         date_from = _parse_date(request.query_params.get("from"))
         date_to = _parse_date(request.query_params.get("to"))
         data = equity_by_parity(scope["facility_ids"], date_from, date_to)
+        data["access_level"] = scope["access_level"]
+        return Response(data)
+
+
+class ContinuumFunnelView(APIView):
+    """GET /continuum/funnel — care-journey funnel with drop-offs (WS3)."""
+
+    permission_classes = [IsDashboardViewer]
+
+    def get(self, request):
+        scope = caller_scope(request.user)
+        date_from = _parse_date(request.query_params.get("from"))
+        date_to = _parse_date(request.query_params.get("to"))
+        data = care_funnel(scope["facility_ids"], date_from, date_to)
+        data["access_level"] = scope["access_level"]
+        return Response(data)
+
+
+class DropoffView(APIView):
+    """GET /continuum/dropoff?kind= — access-scoped line-list of women who fell
+    out at a step. Aggregate tier gets counts only (never the women)."""
+
+    permission_classes = [IsDashboardViewer]
+
+    def get(self, request):
+        scope = caller_scope(request.user)
+        kind = request.query_params.get("kind", "delivered_no_pnc")
+        date_from = _parse_date(request.query_params.get("from"))
+        date_to = _parse_date(request.query_params.get("to"))
+        data = dropoff_lines(scope["facility_ids"], kind, scope["access_level"], date_from, date_to)
+        data["available_kinds"] = [{"key": k, "label": v} for k, v in DROPOFFS.items()]
+        return Response(data)
+
+
+class CohortView(APIView):
+    """GET /continuum/cohorts — booking-month cohort retention (WS3)."""
+
+    permission_classes = [IsDashboardViewer]
+
+    def get(self, request):
+        scope = caller_scope(request.user)
+        date_from = _parse_date(request.query_params.get("from"))
+        date_to = _parse_date(request.query_params.get("to"))
+        data = cohort_retention(scope["facility_ids"], date_from, date_to)
         data["access_level"] = scope["access_level"]
         return Response(data)
 

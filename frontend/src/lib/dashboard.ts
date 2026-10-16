@@ -99,6 +99,21 @@ export const getGeo = (metric = "deliveries", level: "state" | "lga" = "state") 
   apiGet<GeoRollup>(`/geo?metric=${metric}&level=${level}`);
 export const getEquity = () => apiGet<Equity>("/equity");
 
+// --- WS3: Continuum & cohorts ---
+export interface FunnelStep { label: string; value: number; drop_from_previous: number; share_of_booked: number | null }
+export interface CareFunnel { steps: FunnelStep[]; total: number; access_level: string }
+export interface DropoffRow {
+  episode_id: string; woman: { internal_id: string; name: string } | null; woman_internal_id: string;
+  booking_date: string | null; anc_contacts: number; delivered_on: string | null; days_since: number | null;
+}
+export interface Dropoff { kind: string; label: string; count: number; rows: DropoffRow[]; available_kinds: { key: string; label: string }[]; access_level: string }
+export interface CohortSeries { label: string; points: TrendRatePoint[] }
+export interface Cohorts { cohorts: string[]; series: Record<string, CohortSeries>; access_level: string }
+
+export const getContinuumFunnel = () => apiGet<CareFunnel>("/continuum/funnel");
+export const getDropoff = (kind: string) => apiGet<Dropoff>(`/continuum/dropoff?kind=${kind}`);
+export const getCohorts = () => apiGet<Cohorts>("/continuum/cohorts");
+
 export const getWorkspace = () => apiGet<Workspace>("/workspace");
 export const getSummary = (from?: string, to?: string) =>
   apiGet<Summary>(`/maternal-summary${from || to ? `?from=${from ?? ""}&to=${to ?? ""}` : ""}`);

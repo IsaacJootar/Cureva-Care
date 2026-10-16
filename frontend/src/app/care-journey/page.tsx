@@ -3,8 +3,9 @@
 import { useEffect, useState } from "react";
 import { getSummary, type Summary } from "@/lib/dashboard";
 import { AppShell } from "@/components/layout/AppShell";
-import { ChartPanel, Funnel, MetricMeter } from "@/components/ui/Charts";
+import { ChartPanel, MetricMeter } from "@/components/ui/Charts";
 import { StatTileSkeleton } from "@/components/ui/Feedback";
+import { ContinuumSection } from "@/components/dashboard/ContinuumSection";
 
 export default function CareJourneyPage() {
   const [s, setS] = useState<Summary | null>(null);
@@ -17,15 +18,7 @@ export default function CareJourneyPage() {
       {!s ? (
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18 }}><StatTileSkeleton /><StatTileSkeleton /></div>
       ) : (
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18, maxWidth: 900 }}>
-          <ChartPanel title="Care-journey funnel">
-            <Funnel stages={[
-              { label: "Booked episodes", value: s.care_journey.booked_episodes },
-              { label: "ANC contacts", value: s.care_journey.anc_contacts },
-              { label: "Deliveries", value: s.care_journey.deliveries },
-              { label: "PNC contacts", value: s.care_journey.pnc_contacts },
-            ]} />
-          </ChartPanel>
+        <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
           <ChartPanel title="Continuity & coverage">
             <MetricMeter label="Early ANC booking" ratio={s.metrics.early_anc_booking} tooltip="Episodes booked in the first trimester (≤12 weeks), of episodes with a recorded booking gestational age." />
             <MetricMeter label="4+ ANC contacts" ratio={s.metrics.four_contact_completion} />
@@ -36,6 +29,8 @@ export default function CareJourneyPage() {
             <MetricMeter label="Intervention coverage" ratio={s.metrics.intervention_coverage} tooltip="ANC contacts with iron/folate, tetanus, or IPTp recorded." />
             <MetricMeter label="Referral closure" ratio={s.metrics.referral_closure} />
           </ChartPanel>
+
+          <ContinuumSection />
         </div>
       )}
     </AppShell>
