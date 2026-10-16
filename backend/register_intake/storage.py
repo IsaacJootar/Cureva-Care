@@ -43,6 +43,15 @@ def fetch_page(object_key: str) -> bytes:
     return resp["Body"].read()
 
 
+def delete_page(object_key: str) -> None:
+    """Best-effort removal of one stored page (used when an intake is deleted)."""
+    try:
+        _client().delete_object(Bucket=settings.S3_BUCKET, Key=object_key)
+    except Exception:
+        # The DB record is the source of truth; an orphaned blob is harmless.
+        pass
+
+
 def signed_url(object_key: str, expires: int = 300) -> str:
     return _client().generate_presigned_url(
         "get_object",

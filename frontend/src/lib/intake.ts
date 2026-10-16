@@ -1,5 +1,5 @@
 // Intake API helpers for the Data officer screens (cureva-docs/03, 05).
-import { API_BASE, apiGet, apiPost, tokenStore } from "./api";
+import { API_BASE, apiDelete, apiGet, apiPost, tokenStore } from "./api";
 import type { Facility } from "./types";
 
 export type RegisterFamily = "ANC" | "Delivery" | "PNC";
@@ -109,3 +109,4 @@ export const resolveMismatch = (intakeId: string, action: "confirm_declared" | "
   apiPost(`/intakes/${intakeId}/resolve-register-mismatch`, { action });
 export const flagIntake = (intakeId: string, note: string) => apiPost(`/intakes/${intakeId}/flag`, { note });
 export const myIntakes = (facilityId: string) => apiGet<Intake[]>(`/my-intakes?facility=${facilityId}`);
+export const deleteIntake = (intakeId: string) => apiDelete(`/intakes/${intakeId}`);

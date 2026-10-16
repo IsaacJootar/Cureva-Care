@@ -140,6 +140,66 @@ def test_failed_attempt_can_be_reuploaded(facility, officer):
 
 
 @pytest.mark.django_db
+def test_officer_can_delete_unpublished_intake(facility, officer):
+    from register_intake.models import Intake
+
+    c = client_for(officer)
+    payload = {
+        "facility": str(facility.id),
+        "register_family": "ANC",
+        "batch_period_from": "2026-01-01",
+        "batch_period_to": "2026-01-31",
+    }
+    created = c.post("/api/v1/intakes", {**payload, "images": _img(content=b"del")}, format="multipart")
+    intake_id = created.json()["id"]
+    deleted = c.delete(f"/api/v1/intakes/{intake_id}")
+    assert deleted.status_code == 204
+    assert not Intake.objects.filter(id=intake_id).exists()
+
+
+@pytest.mark.django_db
+def test_published_intake_cannot_be_deleted(facility, officer):
+    from register_intake.models import Intake, IntakeStatus
+
+    c = client_for(officer)
+    payload = {
+        "facility": str(facility.id),
+        "register_family": "ANC",
+        "batch_period_from": "2026-01-01",
+        "batch_period_to": "2026-01-31",
+    }
+    created = c.post("/api/v1/intakes", {**payload, "images": _img(content=b"pub")}, format="multipart")
+    intake_id = created.json()["id"]
+    Intake.objects.filter(id=intake_id).update(status=IntakeStatus.PUBLISHED)
+    blocked = c.delete(f"/api/v1/intakes/{intake_id}")
+    assert blocked.status_code == 409
+    assert Intake.objects.filter(id=intake_id).exists()  # still there
+
+
+@pytest.mark.django_db
+def test_officer_cannot_delete_another_officers_intake(facility, officer):
+    from register_intake.models import Intake
+
+    other = User.objects.create_user(email="other-do@x.com", name="Other DO", role=Role.DATA_OFFICER)
+    c_owner = client_for(officer)
+    created = c_owner.post(
+        "/api/v1/intakes",
+        {
+            "facility": str(facility.id),
+            "register_family": "ANC",
+            "batch_period_from": "2026-01-01",
+            "batch_period_to": "2026-01-31",
+            "images": _img(content=b"mine"),
+        },
+        format="multipart",
+    )
+    intake_id = created.json()["id"]
+    denied = client_for(other).delete(f"/api/v1/intakes/{intake_id}")
+    assert denied.status_code == 404  # not visible to a different officer
+    assert Intake.objects.filter(id=intake_id).exists()
+
+
+@pytest.mark.django_db
 def test_organisation_user_cannot_create_intake(facility):
     from identity_access.models import Organisation
 

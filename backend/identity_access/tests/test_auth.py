@@ -1,5 +1,6 @@
 """Auth + session tests: magic-link, single-use tickets, JWT, invite-only."""
 import pytest
+from django.test import override_settings
 from rest_framework.test import APIClient
 
 from identity_access import auth_service
@@ -36,6 +37,7 @@ def test_session_exchange_with_valid_ticket_returns_jwt(api, admin):
 
 
 @pytest.mark.django_db
+@override_settings(MAGIC_LINK_SINGLE_USE=True)  # prod default; local dev may relax it via .env
 def test_signin_ticket_is_single_use(api, admin):
     raw = auth_service.mint_signin_ticket(admin)
     first = api.post("/api/v1/auth/session", {"token": raw}, format="json")

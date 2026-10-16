@@ -111,6 +111,36 @@ class IntakeCreateView(APIView):
         return Response(IntakeSerializer(intake).data, status=status.HTTP_201_CREATED)
 
 
+class IntakeDeleteView(APIView):
+    """DELETE /intakes/{id} — the data officer removes one of their own intakes.
+
+    Allowed while the batch is still unpublished (awaiting confirmation, failed,
+    or rejected) so mistakes and bad scans can be cleared. A published batch has
+    already been projected into the maternal record, so it can't be deleted from
+    here — that would need an admin-level un-projection (out of scope)."""
+
+    permission_classes = [IsDataOfficer]
+
+    def delete(self, request, intake_id):
+        intake = _get_intake_for_officer(request, intake_id)
+        if intake is None:
+            return Response(status=404)
+        if intake.status == IntakeStatus.PUBLISHED:
+            return Response(
+                {"detail": "Published batches can't be deleted — they're already in the records. Ask an admin."},
+                status=status.HTTP_409_CONFLICT,
+            )
+        for img in intake.images.all():
+            storage.delete_page(img.object_key)
+        AuditEvent.objects.create(
+            actor=request.user, event_type="intake_deleted",
+            subject_type="intake", subject_id=intake.id, facility_id=intake.facility_id,
+            metadata={"register_family": intake.register_family, "status": intake.status},
+        )
+        intake.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
 class IntakeValidateView(APIView):
     """POST /intakes/{id}/validate — run AI/OCR extraction + validation."""
 

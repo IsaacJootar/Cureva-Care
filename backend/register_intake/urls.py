@@ -5,6 +5,7 @@ from .views import (
     ConfirmFieldView,
     FlagView,
     IntakeCreateView,
+    IntakeDeleteView,
     IntakePagesView,
     IntakeRowsView,
     IntakeValidateView,
@@ -20,6 +21,7 @@ from .views import (
 
 urlpatterns = [
     path("intakes", IntakeCreateView.as_view(), name="intake-create"),
+    path("intakes/<uuid:intake_id>", IntakeDeleteView.as_view(), name="intake-delete"),
     path("intakes/<uuid:intake_id>/validate", IntakeValidateView.as_view(), name="intake-validate"),
     path("intakes/<uuid:intake_id>/progress", ProgressView.as_view(), name="intake-progress"),
     path("intakes/<uuid:intake_id>/rows", IntakeRowsView.as_view(), name="intake-rows"),

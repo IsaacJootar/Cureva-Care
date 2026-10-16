@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import type { Facility } from "@/lib/types";
 import {
   createIntake,
+  deleteIntake,
   listFacilities,
   myIntakes,
   resolveMismatch,
@@ -15,6 +16,7 @@ import {
 } from "@/lib/intake";
 import { AppShell } from "@/components/layout/AppShell";
 import { Button } from "@/components/ui/Button";
+import { ConfirmDialog } from "@/components/ui/Dialog";
 import { SelectField, TextField } from "@/components/ui/Field";
 import { EmptyState, StatusPill } from "@/components/ui/Feedback";
 import { StatTile } from "@/components/ui/StatTile";
@@ -29,6 +31,7 @@ import {
   FileTextIcon,
   SearchIcon,
   SwapIcon,
+  TrashIcon,
   UploadIcon,
 } from "@/components/icons";
 
@@ -188,7 +191,10 @@ function FacilityIndex({ onSelect }: { onSelect: (f: Facility) => void }) {
 
 function ActiveWorkspace({ facility }: { facility: Facility }) {
   const router = useRouter();
+  const toast = useToast();
   const [history, setHistory] = useState<Intake[]>([]);
+  const [deleteTarget, setDeleteTarget] = useState<Intake | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const loadHistory = useCallback(() => {
     myIntakes(facility.id).then(setHistory).catch(() => setHistory([]));
@@ -197,6 +203,21 @@ function ActiveWorkspace({ facility }: { facility: Facility }) {
   useEffect(() => {
     loadHistory();
   }, [loadHistory]);
+
+  async function doDelete() {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    try {
+      await deleteIntake(deleteTarget.id);
+      toast.success("Intake deleted.");
+      setDeleteTarget(null);
+      loadHistory();
+    } catch {
+      toast.error("Could not delete this intake.");
+    } finally {
+      setDeleting(false);
+    }
+  }
 
   const lastIntake = history[0];
 
@@ -254,15 +275,25 @@ function ActiveWorkspace({ facility }: { facility: Facility }) {
                     <Td><span className="cv-num">{i.page_count}</span></Td>
                     <Td><IntakeStatusPill status={i.status} /></Td>
                     <Td style={{ textAlign: "right" }}>
-                      {resumable ? (
-                        <Button variant="secondary" onClick={(e) => { e.stopPropagation(); open(); }}>
-                          Review &amp; confirm →
-                        </Button>
-                      ) : i.status === "extraction_failed" ? (
-                        <span style={{ fontSize: 11, color: "var(--cv-text-muted)" }}>Re-upload to retry</span>
-                      ) : (
-                        <span style={{ color: "var(--cv-text-muted)" }}>—</span>
-                      )}
+                      <span style={{ display: "inline-flex", alignItems: "center", gap: 8, justifyContent: "flex-end" }}>
+                        {resumable ? (
+                          <Button variant="secondary" onClick={(e) => { e.stopPropagation(); open(); }}>
+                            Review &amp; confirm →
+                          </Button>
+                        ) : i.status === "extraction_failed" ? (
+                          <span style={{ fontSize: 11, color: "var(--cv-text-muted)" }}>Re-upload to retry</span>
+                        ) : null}
+                        {i.status !== "published" && (
+                          <button
+                            title="Delete this intake"
+                            aria-label="Delete this intake"
+                            onClick={(e) => { e.stopPropagation(); setDeleteTarget(i); }}
+                            style={{ background: "none", border: "none", cursor: "pointer", color: "var(--cv-button-danger-bg)", display: "inline-flex", padding: 4 }}
+                          >
+                            <TrashIcon size={16} />
+                          </button>
+                        )}
+                      </span>
                     </Td>
                   </tr>
                 );
@@ -271,6 +302,16 @@ function ActiveWorkspace({ facility }: { facility: Facility }) {
           </Table>
         )}
       </div>
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        title={`Delete this ${deleteTarget?.register_family ?? ""} intake?`}
+        consequence="This removes the imported pages and any extracted rows for this batch. This can't be undone. Published batches can't be deleted here."
+        confirmLabel="Delete intake"
+        onCancel={() => setDeleteTarget(null)}
+        onConfirm={doDelete}
+        loading={deleting}
+      />
     </div>
   );
 }
