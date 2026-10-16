@@ -21,6 +21,7 @@ from .metrics import maternal_summary
 from .models import WorklistAction
 from .rules import evaluate_worklist
 from .scoping import caller_scope
+from .trends import compute_trends
 
 IDENTITY_FIELDS = {"card_number", "name", "woman_name", "phone", "cl_phone"}
 
@@ -58,6 +59,22 @@ class CareJourneyView(APIView):
         date_to = _parse_date(request.query_params.get("to"))
         summary = maternal_summary(scope["facility_ids"], date_from, date_to)
         return Response({"care_journey": summary["care_journey"], "metrics": summary["metrics"]})
+
+
+class TrendsView(APIView):
+    """GET /trends — time-bucketed metric series (WS1), scoped to the caller.
+    Query: from, to (service dates), bucket=month|week."""
+
+    permission_classes = [IsDashboardViewer]
+
+    def get(self, request):
+        scope = caller_scope(request.user)
+        date_from = _parse_date(request.query_params.get("from"))
+        date_to = _parse_date(request.query_params.get("to"))
+        bucket = request.query_params.get("bucket", "month")
+        data = compute_trends(scope["facility_ids"], date_from, date_to, bucket)
+        data["access_level"] = scope["access_level"]
+        return Response(data)
 
 
 class WorkspaceView(APIView):

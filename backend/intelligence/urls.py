@@ -6,6 +6,7 @@ from .views import (
     FacilitiesOverviewView,
     MaternalSummaryView,
     RecordsView,
+    TrendsView,
     WorklistActionView,
     WorklistView,
     WorkspaceView,
@@ -14,6 +15,7 @@ from .views import (
 urlpatterns = [
     path("workspace", WorkspaceView.as_view(), name="workspace"),
     path("maternal-summary", MaternalSummaryView.as_view(), name="maternal-summary"),
+    path("trends", TrendsView.as_view(), name="trends"),
     path("care-journey", CareJourneyView.as_view(), name="care-journey"),
     path("facilities-overview", FacilitiesOverviewView.as_view(), name="facilities-overview"),
     path("records", RecordsView.as_view(), name="records"),

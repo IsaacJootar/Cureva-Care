@@ -5,6 +5,7 @@ import Link from "next/link";
 import { getWorkspace, type Workspace } from "@/lib/dashboard";
 import { AppShell } from "@/components/layout/AppShell";
 import { Funnel, ChartPanel } from "@/components/ui/Charts";
+import { TrendsPanel } from "@/components/dashboard/TrendsPanel";
 import { StatTile } from "@/components/ui/StatTile";
 import { StatTileSkeleton, StatusPill } from "@/components/ui/Feedback";
 import { Table, Td, Th } from "@/components/ui/Table";
@@ -68,6 +69,8 @@ export default function OverviewPage() {
               </div>
             </ChartPanel>
           </div>
+
+          <TrendsPanel />
 
           {ws.facilities.length > 1 && (
             <div>

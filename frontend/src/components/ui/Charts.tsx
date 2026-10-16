@@ -164,7 +164,7 @@ export function LineChart({
   const px = (i: number) => (n <= 1 ? (x0 + x1) / 2 : x0 + (i / (n - 1)) * plotW);
   const py = (v: number) => y1 - (v / yMax) * plotH;
 
-  const gridVals = [0, 0.25, 0.5, 0.75, 1].map((f) => Math.round(yMax * f));
+  const gridVals = Array.from(new Set([0, 0.25, 0.5, 0.75, 1].map((f) => Math.round(yMax * f))));
   const labelEvery = n <= 8 ? 1 : Math.ceil(n / 7);
 
   function pathFor(pts: LinePoint[]): string {
@@ -185,21 +185,21 @@ export function LineChart({
   return (
     <div>
       <svg viewBox={`0 0 ${W} ${H}`} style={{ width: "100%", height: "auto", display: "block" }} role="img">
-        {gridVals.map((v) => (
-          <g key={v}>
+        {gridVals.map((v, gi) => (
+          <g key={`g${gi}`}>
             <line x1={x0} x2={x1} y1={py(v)} y2={py(v)} stroke="var(--cv-hairline)" strokeWidth={1} />
             <text x={x0 - 6} y={py(v) + 3} textAnchor="end" fontSize={10} fill="var(--cv-text-muted)">{fmt(v)}</text>
           </g>
         ))}
         {xs.map((x, i) =>
           i % labelEvery === 0 ? (
-            <text key={x + i} x={px(i)} y={H - 10} textAnchor="middle" fontSize={10} fill="var(--cv-text-muted)">{x}</text>
+            <text key={`x${i}`} x={px(i)} y={H - 10} textAnchor="middle" fontSize={10} fill="var(--cv-text-muted)">{x}</text>
           ) : null,
         )}
         {series.map((s, si) => {
           const color = SERIES[si % SERIES.length];
           return (
-            <g key={s.name}>
+            <g key={`s${si}`}>
               {single && (
                 <path
                   d={`${pathFor(s.points)} L${px(lastIdx(s.points))},${y1} L${px(firstIdx(s.points))},${y1} Z`}
@@ -210,7 +210,7 @@ export function LineChart({
               <path d={pathFor(s.points)} fill="none" stroke={color} strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />
               {s.points.map((p, i) =>
                 p.y == null ? null : (
-                  <circle key={i} cx={px(i)} cy={py(p.y)} r={2.6} fill={color}>
+                  <circle key={`c${i}`} cx={px(i)} cy={py(p.y)} r={2.6} fill={color}>
                     <title>{`${p.x}: ${fmt(p.y)}`}</title>
                   </circle>
                 ),
