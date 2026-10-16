@@ -1,10 +1,9 @@
 """Field confirmation and the publish/hold gate.
 
 A row only reaches `published` after: the register-family mismatch (if any) is
-resolved, and every below-confidence-threshold / type-error field has been
-confirmed or corrected by a human. Implausible values are flagged but do not
-block — they publish once the row is verified, visibly flagged (cureva-docs/03,
-06). Publish is idempotent (rule: safe to call twice).
+resolved, and every field that is below the confidence threshold, has a type
+error, or holds an out-of-range (implausible) value has been confirmed or
+corrected by a human. Publish is idempotent (rule: safe to call twice).
 """
 from django.db import transaction
 from django.utils import timezone
@@ -48,8 +47,8 @@ def confirm_field(row: SourceRow, field: str, corrected_value, user, correct: bo
         )
         normalized[field] = corrected_value
         row.normalized = normalized
-        # A correction clears a type-error flag on that field.
-        if row.flags and field in row.flags and row.flags[field].get("kind") == "type_error":
+        # A correction clears a type-error or implausible-value flag on that field.
+        if row.flags and field in row.flags and row.flags[field].get("kind") in ("type_error", "implausible"):
             flags = dict(row.flags)
             del flags[field]
             row.flags = flags or None

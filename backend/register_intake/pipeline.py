@@ -41,9 +41,10 @@ def _alias_to_canonical(template: dict) -> dict:
 
 def _below_threshold_fields(confidence: dict, flags: dict, threshold: float) -> list[str]:
     """Canonical fields that must be human-confirmed before publish: those read
-    with low confidence, plus any with a type error."""
+    with low confidence, plus any with a type error or an out-of-range
+    (implausible) value — a reviewer must explicitly confirm or correct those."""
     need = {f for f, score in confidence.items() if score is not None and score < threshold}
-    need |= {f for f, info in (flags or {}).items() if info.get("kind") == "type_error"}
+    need |= {f for f, info in (flags or {}).items() if info.get("kind") in ("type_error", "implausible")}
     return sorted(need)
 
 

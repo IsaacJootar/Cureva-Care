@@ -1,6 +1,23 @@
 """Type/structure + plausibility validation (cureva-docs/03, 06)."""
 from register_intake.default_templates import ANC_V1, DELIVERY_V1
+from register_intake.models import SourceRow
+from register_intake.pipeline import row_needs_confirmation
 from register_intake.validation import validate_and_normalize
+
+
+def test_implausible_value_requires_confirmation_before_publish():
+    """An out-of-range value is flagged AND must be explicitly confirmed/corrected
+    by a reviewer before the row can publish (not advisory-only)."""
+    row = SourceRow(
+        extraction_confidence={"gestational_age_weeks": 0.97},  # high confidence
+        flags={"gestational_age_weeks": {"kind": "implausible", "message": "GA 3 outside 4-45"}},
+        normalized={"gestational_age_weeks": "3"},
+        confirmed_fields=[],
+    )
+    assert row_needs_confirmation(row, threshold=0.75, template_schema={}) == ["gestational_age_weeks"]
+    # Once the reviewer confirms (or corrects) it, the gate clears.
+    row.confirmed_fields = ["gestational_age_weeks"]
+    assert row_needs_confirmation(row, threshold=0.75, template_schema={}) == []
 
 
 def test_coerces_types():
