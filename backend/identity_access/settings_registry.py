@@ -17,6 +17,11 @@ REGISTER_MISMATCH_MIN_SIGNAL = "register_mismatch_min_signal"
 IDENTITY_STRICT_NAME_FLOOR = "identity_strict_name_floor"
 IDENTITY_CARD_REUSE_WINDOW_DAYS = "identity_card_reuse_window_days"
 NEW_EPISODE_GAP_DAYS = "new_episode_gap_days"
+# Intelligence early-warning thresholds (11-intelligence-module.md WS5).
+COVERAGE_ALERT_FLOOR = "coverage_alert_floor"
+REFERRAL_BACKLOG_DAYS = "referral_backlog_days"
+SEVERE_CLUSTER_RATE = "severe_cluster_rate"
+HIGH_RISK_CONTACT_GAP_DAYS = "high_risk_contact_gap_days"
 
 # value_type matches identity_access.models.PlatformSetting.ValueType.
 SETTING_DEFINITIONS = [
@@ -86,6 +91,43 @@ SETTING_DEFINITIONS = [
             "If an ANC row's service date is more than this many days after a "
             "woman's latest episode booking (with no recorded outcome), it is "
             "treated as a new pregnancy episode."
+        ),
+    },
+    {
+        "key": COVERAGE_ALERT_FLOOR,
+        "value": 0.50,
+        "value_type": "decimal",
+        "description": (
+            "Screening/intervention coverage (0-1) below which a facility raises "
+            "a low-coverage early-warning alert."
+        ),
+    },
+    {
+        "key": REFERRAL_BACKLOG_DAYS,
+        "value": 21,
+        "value_type": "integer",
+        "description": (
+            "An open referral older than this many days counts toward a "
+            "referral-backlog early-warning alert."
+        ),
+    },
+    {
+        "key": SEVERE_CLUSTER_RATE,
+        "value": 0.05,
+        "value_type": "decimal",
+        "description": (
+            "Severe-outcome rate (severe outcomes / deliveries, 0-1) at or above "
+            "which a facility raises a severe-outcome cluster alert. Pending "
+            "clinical sign-off."
+        ),
+    },
+    {
+        "key": HIGH_RISK_CONTACT_GAP_DAYS,
+        "value": 30,
+        "value_type": "integer",
+        "description": (
+            "Days without a recorded ANC contact after which an undelivered "
+            "high-risk pregnancy is flagged as overdue for follow-up."
         ),
     },
 ]

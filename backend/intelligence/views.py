@@ -18,8 +18,10 @@ from identity_access.models import AuditEvent
 from identity_access.permissions import IsFacilityLead
 
 from .benchmarking import METRICS, equity_by_parity, facility_league, geo_rollup
+from .alerts import evaluate_alerts
 from .continuum import DROPOFFS, care_funnel, cohort_retention, dropoff_lines
 from .metrics import maternal_summary
+from .risk import risk_pyramid, risk_registry
 from .surveillance import case_timeline, facility_clusters, severe_cases, severe_trend
 from .models import WorklistAction
 from .rules import evaluate_worklist
@@ -218,6 +220,37 @@ class ClustersView(APIView):
         date_from = _parse_date(request.query_params.get("from"))
         date_to = _parse_date(request.query_params.get("to"))
         return Response(facility_clusters(scope["facility_ids"], date_from, date_to))
+
+
+class RiskPyramidView(APIView):
+    """GET /risk/pyramid — active-pregnancy risk-tier distribution (WS5)."""
+
+    permission_classes = [IsDashboardViewer]
+
+    def get(self, request):
+        scope = caller_scope(request.user)
+        return Response(risk_pyramid(scope["facility_ids"]))
+
+
+class RiskRegistryView(APIView):
+    """GET /risk/registry — active high/moderate-risk pregnancies, access-scoped."""
+
+    permission_classes = [IsDashboardViewer]
+
+    def get(self, request):
+        scope = caller_scope(request.user)
+        tier = request.query_params.get("tier")
+        return Response(risk_registry(scope["facility_ids"], scope["access_level"], tier))
+
+
+class AlertsView(APIView):
+    """GET /alerts — early-warning alerts for the caller's scope (WS5)."""
+
+    permission_classes = [IsDashboardViewer]
+
+    def get(self, request):
+        scope = caller_scope(request.user)
+        return Response({"alerts": evaluate_alerts(scope["facility_ids"])})
 
 
 class WorkspaceView(APIView):

@@ -132,6 +132,20 @@ export const getCaseTimeline = (episodeId: string) => apiGet<CaseTimeline>(`/sur
 export const getSevereTrend = () => apiGet<SevereTrend>("/surveillance/trend");
 export const getClusters = () => apiGet<Clusters>("/surveillance/clusters");
 
+// --- WS5: Risk intelligence & early-warning ---
+export interface RiskPyramid { tiers: Record<string, number>; total: number; ruleset_version?: number; clinical_owner?: string }
+export interface RiskRow {
+  episode_id: string; tier: string; markers: string[]; woman: { internal_id: string; name: string } | null;
+  woman_internal_id: string; booking_date: string | null; last_anc: string | null; days_since_anc: number | null;
+}
+export interface RiskRegistry { rows: RiskRow[]; count: number; access_level: string; ruleset_version?: number; clinical_owner?: string }
+export interface AlertItem { kind: string; severity: "high" | "medium" | "low"; title: string; detail: string; facility_id: string | null; threshold: number }
+export interface Alerts { alerts: AlertItem[] }
+
+export const getRiskPyramid = () => apiGet<RiskPyramid>("/risk/pyramid");
+export const getRiskRegistry = (tier?: string) => apiGet<RiskRegistry>(`/risk/registry${tier ? `?tier=${tier}` : ""}`);
+export const getAlerts = () => apiGet<Alerts>("/alerts");
+
 export const getWorkspace = () => apiGet<Workspace>("/workspace");
 export const getSummary = (from?: string, to?: string) =>
   apiGet<Summary>(`/maternal-summary${from || to ? `?from=${from ?? ""}&to=${to ?? ""}` : ""}`);

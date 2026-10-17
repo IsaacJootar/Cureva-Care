@@ -1,0 +1,120 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { getAlerts, getRiskPyramid, getRiskRegistry, type Alerts, type RiskPyramid, type RiskRegistry } from "@/lib/dashboard";
+import { AppShell } from "@/components/layout/AppShell";
+import { ChartCard, StackedBars } from "@/components/ui/Charts";
+import { AlertTriangleIcon } from "@/components/icons";
+
+const TIER_COLOR: Record<string, string> = {
+  High: "var(--cv-danger-icon)",
+  Moderate: "var(--cv-warning-icon)",
+  "None recorded": "var(--cv-button-disabled-bg)",
+};
+const SEV_COLOR: Record<string, string> = { high: "var(--cv-danger-text)", medium: "var(--cv-warning-text)", low: "var(--cv-text-muted)" };
+
+export default function RiskPage() {
+  const [pyr, setPyr] = useState<RiskPyramid | null>(null);
+  const [reg, setReg] = useState<RiskRegistry | null>(null);
+  const [alerts, setAlerts] = useState<Alerts | null>(null);
+
+  useEffect(() => {
+    getRiskPyramid().then(setPyr).catch(() => setPyr(null));
+    getRiskRegistry().then(setReg).catch(() => setReg(null));
+    getAlerts().then(setAlerts).catch(() => setAlerts(null));
+  }, []);
+
+  const aggregate = reg?.access_level === "aggregate";
+  const tiers = pyr?.tiers ?? {};
+
+  return (
+    <AppShell
+      title="Risk & early warning"
+      subtitle="Risk-stratified pregnancies and proactive alerts"
+      allowedRoles={["facility_lead", "organisation_user"]}
+    >
+      <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+        <div style={{ background: "var(--cv-warning-bg)", border: "1px solid var(--cv-warning-border)", borderRadius: "var(--cv-radius-card)", padding: "10px 14px", fontSize: 11.5, color: "var(--cv-text-secondary)" }}>
+          Risk tiers are a transparent function of <strong>recorded</strong> ANC markers — not a diagnosis. Thresholds are
+          WHO-aligned defaults <strong>pending clinical sign-off</strong>. &quot;None recorded&quot; means no marker was recorded, not that a pregnancy is low-risk.
+        </div>
+
+        <ChartCard title="Early-warning alerts" subtitle="Proactive signals for your scope">
+          {!alerts ? (
+            <p style={{ fontSize: 12, color: "var(--cv-text-muted)" }}>Loading…</p>
+          ) : alerts.alerts.length === 0 ? (
+            <p style={{ fontSize: 12, color: "var(--cv-text-muted)" }}>No active alerts. 🎉</p>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {alerts.alerts.map((a, i) => (
+                <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start", padding: "10px 12px", border: "1px solid var(--cv-card-border)", borderRadius: 8 }}>
+                  <span style={{ color: SEV_COLOR[a.severity], flexShrink: 0, marginTop: 1 }}><AlertTriangleIcon size={16} /></span>
+                  <div>
+                    <div style={{ fontSize: 12.5, fontWeight: 600, color: "var(--cv-text-primary)" }}>{a.title}</div>
+                    <div style={{ fontSize: 11.5, color: "var(--cv-text-secondary)", marginTop: 2 }}>{a.detail}</div>
+                  </div>
+                  <span style={{ marginLeft: "auto", fontSize: 10, textTransform: "uppercase", fontWeight: 700, color: SEV_COLOR[a.severity] }}>{a.severity}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </ChartCard>
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1.4fr", gap: 16 }}>
+          <ChartCard title="Risk pyramid" subtitle="Active (undelivered) pregnancies by recorded risk tier">
+            {!pyr || pyr.total === 0 ? (
+              <p style={{ fontSize: 12, color: "var(--cv-text-muted)" }}>No active pregnancies in scope.</p>
+            ) : (
+              <StackedBars rows={(["High", "Moderate", "None recorded"]).map((t) => ({
+                label: t,
+                segments: [{ label: t, value: tiers[t] ?? 0, color: TIER_COLOR[t] }],
+              }))} />
+            )}
+          </ChartCard>
+
+          <ChartCard
+            title="Risk registry"
+            subtitle="Active pregnancies with a recorded risk marker — highest first"
+            note="Access-scoped; aggregate viewers see counts only."
+            exportCsv={reg && !aggregate ? {
+              name: "risk-registry",
+              header: ["Woman", "Tier", "Markers", "Booking", "Last ANC", "Days since ANC"],
+              rows: reg.rows.map((r) => [r.woman?.name ?? "(hidden)", r.tier, r.markers.join("; "), r.booking_date, r.last_anc, r.days_since_anc]),
+            } : undefined}
+          >
+            {!reg ? (
+              <p style={{ fontSize: 12, color: "var(--cv-text-muted)" }}>Loading…</p>
+            ) : aggregate ? (
+              <p style={{ fontSize: 11.5, color: "var(--cv-text-muted)" }}><strong className="cv-num">{reg.count}</strong> at-risk pregnancies. Your access level shows counts only.</p>
+            ) : reg.rows.length === 0 ? (
+              <p style={{ fontSize: 12, color: "var(--cv-text-muted)" }}>No pregnancies with a recorded risk marker. 🎉</p>
+            ) : (
+              <div style={{ overflowX: "auto" }}>
+                <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 11.5 }}>
+                  <thead>
+                    <tr style={{ textAlign: "left", color: "var(--cv-text-muted)" }}>
+                      <th style={{ padding: "6px 8px" }}>Woman</th>
+                      <th style={{ padding: "6px 8px" }}>Tier</th>
+                      <th style={{ padding: "6px 8px" }}>Recorded markers</th>
+                      <th style={{ padding: "6px 8px" }}>Days since ANC</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {reg.rows.slice(0, 60).map((r) => (
+                      <tr key={r.episode_id} style={{ borderTop: "1px solid var(--cv-hairline)" }}>
+                        <td style={{ padding: "6px 8px", color: "var(--cv-text-primary)", fontWeight: 600 }}>{r.woman?.name ?? "—"}</td>
+                        <td style={{ padding: "6px 8px" }}><span style={{ color: TIER_COLOR[r.tier], fontWeight: 600 }}>{r.tier}</span></td>
+                        <td style={{ padding: "6px 8px", color: "var(--cv-text-secondary)" }}>{r.markers.join(", ")}</td>
+                        <td className="cv-num" style={{ padding: "6px 8px" }}>{r.days_since_anc ?? "—"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </ChartCard>
+        </div>
+      </div>
+    </AppShell>
+  );
+}
