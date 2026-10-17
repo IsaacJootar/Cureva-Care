@@ -116,10 +116,13 @@ type-checks), verified, committed **and pushed**. Date on completion.
 - [x] **WS3** — Continuum & Cohort (funnel drop-offs + scoped line-lists + cohort retention) — 2026-10-17
 - [x] **WS4** — MPDSR surveillance (case register + antenatal risk + linked timeline + trend + clustering) — 2026-10-17
 
-### Phase 3
-- [ ] **WS5** — Risk intelligence & early-warning (risk tiers + alert rules + notification center)
-- [ ] **WS6** — RDQA-as-a-service (scorecard + ranking + report)
-- [ ] **WS7** — Report products (buyer templates + scheduling + PDF/Excel export + shareable snapshots)
+### Phase 3 — COMPLETE
+- [x] **WS5** — Risk intelligence & early-warning (risk tiers + registry/pyramid + alert rules + in-app alerts feed) — 2026-10-17
+- [x] **WS6** — RDQA-as-a-service (scorecard + composite score + confidence trend + downloadable report) — 2026-10-17
+- [x] **WS7** — Report products (3 buyer templates + type-aware rendering + Print/Save-as-PDF + scheduled-generation command + access-scoped snapshots) — 2026-10-17
+
+**ALL 8 WORKSTREAMS COMPLETE — 2026-10-17.** 110 backend tests passing; frontend
+type-checks clean; every page verified live with real pilot data.
 
 ---
 
@@ -170,6 +173,38 @@ counts only, de-identified hides names; booking-cohort retention. Endpoints
 (funnel with drop badges, follow-up list with kind selector + CSV, cohort
 retention line chart). Tests `test_continuum.py` (5, incl. access gating).
 Verified live. Commit `a585c57`.
+
+**WS5 (Risk & early-warning) — signed off 2026-10-17.**
+`backend/intelligence/risk.py`: transparent rule-based risk tiers (High/Moderate/
+None recorded) from recorded ANC markers, versioned + pending clinical sign-off;
+risk pyramid + access-scoped registry. `alerts.py`: early-warning rules (low
+coverage, referral backlog, severe cluster, high-risk overdue) with thresholds in
+`platform_settings` (migration `0004_seed_alert_settings`). Endpoints
+`/risk/pyramid`, `/risk/registry`, `/alerts`. Frontend `/risk` dashboard with
+sign-off banner, in-app alerts feed (= notification center), risk pyramid +
+registry. Tests `test_risk_alerts.py` (3). Verified live (real stratification:
+High 1 / Moderate 4 / None 3). Commit `2a12d65`. _Scheduled email/SMS alert
+digests reuse the existing per-recipient notification channel infra; in-app feed
+is delivered now._
+
+**WS6 (RDQA-as-a-service) — signed off 2026-10-17.**
+`backend/intelligence/rdqa.py`: per-facility data-quality scorecard (extraction
+confidence, completeness, implausible rate, open flags, timeliness + composite
+0–100 score), mean-confidence trend. Endpoints `/rdqa/scorecard`, `/rdqa/trend`.
+Frontend `/rdqa` dashboard with overall tiles, trend, downloadable scorecard.
+Tests `test_rdqa.py` (2). Verified live (Gama score 87). Commit `7e08717`.
+
+**WS7 (Report products) — signed off 2026-10-17.**
+`backend/reporting/generator.py` `build_report()` assembles three aggregate-safe
+buyer products (facility operational, NGO/donor grant, government/LGA
+surveillance) from every intelligence module; `report_type` added to
+`SavedReport` (migration `0002`). Frontend `/reports` with product selector,
+type-aware rendering, Print/Save-as-PDF (print CSS hides app chrome), CSV record
+export, access-scoped saved snapshots. Scheduled generation via
+`manage.py generate_scheduled_reports` (runnable by django-q/cron). Tests
+`test_reports.py` (3). Verified live (government surveillance report rendered).
+Commit `5fa81df`. _Boundaries: data packs are CSV (not .xlsx); snapshots are
+access-scoped revisitable reports (not public links)._
 
 **WS4 (MPDSR surveillance) — signed off 2026-10-17.**
 `backend/intelligence/surveillance.py`: severe-outcome case register (stillbirth /
