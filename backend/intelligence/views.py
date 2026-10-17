@@ -21,6 +21,7 @@ from .benchmarking import METRICS, equity_by_parity, facility_league, geo_rollup
 from .alerts import evaluate_alerts
 from .continuum import DROPOFFS, care_funnel, cohort_retention, dropoff_lines
 from .metrics import maternal_summary
+from .rdqa import rdqa_scorecard, rdqa_trend
 from .risk import risk_pyramid, risk_registry
 from .surveillance import case_timeline, facility_clusters, severe_cases, severe_trend
 from .models import WorklistAction
@@ -251,6 +252,28 @@ class AlertsView(APIView):
     def get(self, request):
         scope = caller_scope(request.user)
         return Response({"alerts": evaluate_alerts(scope["facility_ids"])})
+
+
+class RDQAScorecardView(APIView):
+    """GET /rdqa/scorecard — continuous data-quality assessment per facility (WS6)."""
+
+    permission_classes = [IsDashboardViewer]
+
+    def get(self, request):
+        scope = caller_scope(request.user)
+        date_from = _parse_date(request.query_params.get("from"))
+        date_to = _parse_date(request.query_params.get("to"))
+        return Response(rdqa_scorecard(scope["facility_ids"], date_from, date_to))
+
+
+class RDQATrendView(APIView):
+    """GET /rdqa/trend — mean extraction confidence over time (WS6)."""
+
+    permission_classes = [IsDashboardViewer]
+
+    def get(self, request):
+        scope = caller_scope(request.user)
+        return Response(rdqa_trend(scope["facility_ids"]))
 
 
 class WorkspaceView(APIView):

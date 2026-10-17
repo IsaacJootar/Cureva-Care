@@ -146,6 +146,21 @@ export const getRiskPyramid = () => apiGet<RiskPyramid>("/risk/pyramid");
 export const getRiskRegistry = (tier?: string) => apiGet<RiskRegistry>(`/risk/registry${tier ? `?tier=${tier}` : ""}`);
 export const getAlerts = () => apiGet<Alerts>("/alerts");
 
+// --- WS6: RDQA-as-a-service ---
+export interface RdqaCard {
+  facility_id: string; name: string; region: string; rows: number;
+  avg_extraction_confidence: number | null; completeness: number | null; implausible_rate: number | null;
+  open_template_flags: number; avg_days_to_publish: number | null; score: number | null;
+}
+export interface RdqaScorecard {
+  facilities: RdqaCard[];
+  overall: { facilities_assessed?: number; mean_score?: number | null; mean_confidence?: number | null; total_open_flags?: number };
+}
+export interface RdqaTrend { points: TrendRatePoint[] }
+
+export const getRdqaScorecard = () => apiGet<RdqaScorecard>("/rdqa/scorecard");
+export const getRdqaTrend = () => apiGet<RdqaTrend>("/rdqa/trend");
+
 export const getWorkspace = () => apiGet<Workspace>("/workspace");
 export const getSummary = (from?: string, to?: string) =>
   apiGet<Summary>(`/maternal-summary${from || to ? `?from=${from ?? ""}&to=${to ?? ""}` : ""}`);
