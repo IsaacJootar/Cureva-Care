@@ -263,3 +263,27 @@ h2,
 * {
   box-sizing: border-box;
 }
+
+/* Report section heading (WS7). */
+.cv-h3 {
+  font-size: 13.5px;
+  color: var(--cv-text-primary);
+  margin: 0 0 10px;
+}
+
+/* Print / Save-as-PDF: hide the app chrome, print only the report area. */
+@media print {
+  aside,
+  .cv-no-print {
+    display: none !important;
+  }
+  .cv-reports-grid {
+    display: block !important;
+  }
+  .cv-print-area {
+    max-width: 100% !important;
+  }
+  body {
+    background: #fff !important;
+  }
+}

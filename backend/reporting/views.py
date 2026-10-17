@@ -10,7 +10,7 @@ from identity_access.permissions import IsDashboardViewer
 from intelligence.scoping import caller_scope
 from intelligence.views import IDENTITY_FIELDS
 
-from .generator import build_sections, generate_narrative
+from .generator import REPORT_TYPES, build_report, generate_narrative
 from .models import ExportAudit, SavedReport
 
 
@@ -26,26 +26,32 @@ class ReportsView(APIView):
             r for r in reports
             if set(map(str, r.facility_ids)).issubset({str(x) for x in scope}) or r.generated_by_id == request.user.id
         ]
-        return Response([
-            {
-                "id": str(r.id), "title": r.title, "period_from": r.period_from, "period_to": r.period_to,
-                "has_narrative": bool(r.narrative), "created_at": r.created_at,
-            }
-            for r in visible
-        ])
+        return Response({
+            "report_types": [{"key": k, "label": v} for k, v in REPORT_TYPES.items()],
+            "reports": [
+                {
+                    "id": str(r.id), "title": r.title, "report_type": r.report_type,
+                    "period_from": r.period_from, "period_to": r.period_to,
+                    "has_narrative": bool(r.narrative), "created_at": r.created_at,
+                }
+                for r in visible
+            ],
+        })
 
     def post(self, request):
         scope = caller_scope(request.user)
         facility_ids = list(scope["facility_ids"] or [])
         date_from = request.data.get("from") or None
         date_to = request.data.get("to") or None
+        report_type = request.data.get("report_type") or "facility_operational"
         with_narrative = bool(request.data.get("with_narrative", False))
 
-        sections = build_sections(facility_ids, date_from, date_to)
+        sections = build_report(report_type, facility_ids, date_from, date_to)
         narrative = generate_narrative(sections) if with_narrative else None
 
         report = SavedReport.objects.create(
-            title=request.data.get("title") or "Maternal care brief",
+            title=request.data.get("title") or REPORT_TYPES.get(report_type, "Maternal care brief"),
+            report_type=report_type if report_type in REPORT_TYPES else "facility_operational",
             facility_ids=[str(f) for f in facility_ids],
             period_from=date_from, period_to=date_to,
             sections=sections, narrative=narrative, generated_by=request.user,
@@ -72,7 +78,7 @@ class ReportDetailView(APIView):
 
 def _report_detail(report):
     return {
-        "id": str(report.id), "title": report.title,
+        "id": str(report.id), "title": report.title, "report_type": report.report_type,
         "period_from": report.period_from, "period_to": report.period_to,
         "sections": report.sections, "narrative": report.narrative,
         "created_at": report.created_at,

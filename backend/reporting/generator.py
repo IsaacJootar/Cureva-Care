@@ -7,8 +7,60 @@ row-level/identifiable value, and cannot invent causes, impact, or prevalence.
 """
 from django.conf import settings
 
+from identity_access.models import AccessLevel
+from intelligence.benchmarking import equity_by_parity, geo_rollup
+from intelligence.continuum import care_funnel
 from intelligence.lenses import compute_lenses
 from intelligence.metrics import maternal_summary
+from intelligence.rdqa import rdqa_scorecard
+from intelligence.surveillance import facility_clusters, severe_cases, severe_trend
+
+# Buyer-specific report products (WS7). Each assembles an aggregate-safe section
+# set from the intelligence modules; no case-level identifiers reach a stored or
+# shared report.
+REPORT_TYPES = {
+    "facility_operational": "Facility operational report",
+    "ngo_grant": "NGO / donor grant report",
+    "government_surveillance": "Government / LGA surveillance report",
+}
+
+
+def build_report(report_type, facility_ids, date_from=None, date_to=None) -> dict:
+    report_type = report_type if report_type in REPORT_TYPES else "facility_operational"
+    if report_type == "ngo_grant":
+        summary = maternal_summary(facility_ids, date_from, date_to)
+        lenses = compute_lenses(facility_ids)
+        rdqa = rdqa_scorecard(facility_ids, date_from, date_to)
+        sections = {
+            "report_type": report_type,
+            "coverage_summary": {
+                "screening_coverage": summary["metrics"]["screening_coverage"],
+                "intervention_coverage": summary["metrics"]["intervention_coverage"],
+                "early_booking": summary["metrics"]["early_anc_booking"],
+                "preventive": lenses.get("preventive_coverage"),
+            },
+            "equity_by_parity": equity_by_parity(facility_ids, date_from, date_to),
+            "geographic": geo_rollup(facility_ids, "screening_coverage", "state", date_from, date_to),
+            "data_quality_rdqa": rdqa["overall"],
+            "outcomes": summary["outcomes"],
+            "ranked_actions": _ranked_actions(summary, lenses),
+        }
+    elif report_type == "government_surveillance":
+        summary = maternal_summary(facility_ids, date_from, date_to)
+        lenses = compute_lenses(facility_ids)
+        sections = {
+            "report_type": report_type,
+            "severe_outcomes": {k: v for k, v in severe_cases(facility_ids, AccessLevel.AGGREGATE, date_from, date_to).items() if k != "cases"},
+            "severe_trend": severe_trend(facility_ids, date_from, date_to),
+            "facility_clusters": facility_clusters(facility_ids, date_from, date_to),
+            "continuum_funnel": care_funnel(facility_ids, date_from, date_to),
+            "outcomes": summary["outcomes"],
+            "ranked_actions": _ranked_actions(summary, lenses),
+        }
+    else:
+        sections = build_sections(facility_ids, date_from, date_to)
+        sections["report_type"] = "facility_operational"
+    return sections
 
 
 def _rate_pct(ratio):

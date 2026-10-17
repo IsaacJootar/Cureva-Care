@@ -4,6 +4,7 @@ import { API_BASE, apiGet, apiPost, tokenStore } from "./api";
 export interface ReportSummary {
   id: string;
   title: string;
+  report_type: string;
   period_from: string | null;
   period_to: string | null;
   has_narrative: boolean;
@@ -15,8 +16,11 @@ export interface ReportDetail extends ReportSummary {
   narrative: string | null;
 }
 
-export const listReports = () => apiGet<ReportSummary[]>("/reports");
-export const generateReport = (body: { title?: string; with_narrative?: boolean }) =>
+export interface ReportTypeDef { key: string; label: string }
+export interface ReportsList { report_types: ReportTypeDef[]; reports: ReportSummary[] }
+
+export const listReports = () => apiGet<ReportsList>("/reports");
+export const generateReport = (body: { title?: string; report_type?: string; with_narrative?: boolean }) =>
   apiPost<ReportDetail>("/reports", body);
 export const getReport = (id: string) => apiGet<ReportDetail>(`/reports/${id}`);
 

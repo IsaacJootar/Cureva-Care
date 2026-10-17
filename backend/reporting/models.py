@@ -10,6 +10,7 @@ from django.db import models
 class SavedReport(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     title = models.TextField()
+    report_type = models.CharField(max_length=32, default="facility_operational")  # WS7 buyer product
     facility_ids = models.JSONField(default=list)  # the scope this brief was generated for
     period_from = models.DateField(null=True, blank=True)
     period_to = models.DateField(null=True, blank=True)
