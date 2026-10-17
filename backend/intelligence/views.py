@@ -20,6 +20,7 @@ from identity_access.permissions import IsFacilityLead
 from .benchmarking import METRICS, equity_by_parity, facility_league, geo_rollup
 from .continuum import DROPOFFS, care_funnel, cohort_retention, dropoff_lines
 from .metrics import maternal_summary
+from .surveillance import case_timeline, facility_clusters, severe_cases, severe_trend
 from .models import WorklistAction
 from .rules import evaluate_worklist
 from .scoping import caller_scope
@@ -167,6 +168,56 @@ class CohortView(APIView):
         data = cohort_retention(scope["facility_ids"], date_from, date_to)
         data["access_level"] = scope["access_level"]
         return Response(data)
+
+
+class SurveillanceCasesView(APIView):
+    """GET /surveillance/cases — MPDSR severe-outcome case register (WS4),
+    access-scoped (aggregate tier gets counts only)."""
+
+    permission_classes = [IsDashboardViewer]
+
+    def get(self, request):
+        scope = caller_scope(request.user)
+        date_from = _parse_date(request.query_params.get("from"))
+        date_to = _parse_date(request.query_params.get("to"))
+        return Response(severe_cases(scope["facility_ids"], scope["access_level"], date_from, date_to))
+
+
+class CaseTimelineView(APIView):
+    """GET /surveillance/cases/{episode_id} — one woman's linked ANC→Delivery→PNC
+    story. Blocked for aggregate-tier callers (case-level data)."""
+
+    permission_classes = [IsDashboardViewer]
+
+    def get(self, request, episode_id):
+        scope = caller_scope(request.user)
+        if scope["access_level"] == AccessLevel.AGGREGATE:
+            return Response({"detail": "Aggregate access does not include case-level timelines."}, status=403)
+        return Response(case_timeline(episode_id, scope["facility_ids"], scope["access_level"]))
+
+
+class SevereTrendView(APIView):
+    """GET /surveillance/trend — severe outcomes over time by type (WS4)."""
+
+    permission_classes = [IsDashboardViewer]
+
+    def get(self, request):
+        scope = caller_scope(request.user)
+        date_from = _parse_date(request.query_params.get("from"))
+        date_to = _parse_date(request.query_params.get("to"))
+        return Response(severe_trend(scope["facility_ids"], date_from, date_to))
+
+
+class ClustersView(APIView):
+    """GET /surveillance/clusters — per-facility severe-outcome rate, ranked."""
+
+    permission_classes = [IsDashboardViewer]
+
+    def get(self, request):
+        scope = caller_scope(request.user)
+        date_from = _parse_date(request.query_params.get("from"))
+        date_to = _parse_date(request.query_params.get("to"))
+        return Response(facility_clusters(scope["facility_ids"], date_from, date_to))
 
 
 class WorkspaceView(APIView):

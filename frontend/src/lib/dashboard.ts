@@ -114,6 +114,24 @@ export const getContinuumFunnel = () => apiGet<CareFunnel>("/continuum/funnel");
 export const getDropoff = (kind: string) => apiGet<Dropoff>(`/continuum/dropoff?kind=${kind}`);
 export const getCohorts = () => apiGet<Cohorts>("/continuum/cohorts");
 
+// --- WS4: MPDSR severe-outcome surveillance ---
+export interface SevereCase {
+  episode_id: string | null; birth_event_id: string; woman: { internal_id: string; name: string } | null;
+  woman_internal_id: string; facility: string; region: string; delivery_date: string | null;
+  outcomes: string[]; antenatal_risk: string[]; mode_of_delivery: string | null; attendant: string | null;
+}
+export interface SevereCases { count: number; by_type: Record<string, number>; cases: SevereCase[]; access_level: string }
+export interface TimelineEvent { date: string | null; type: string; summary: string; severe?: string[] }
+export interface CaseTimeline { episode_id: string; events: TimelineEvent[] }
+export interface SevereTrend { buckets: string[]; series: Record<string, TrendCountPoint[]> }
+export interface ClusterRow { facility_id: string; name: string; region: string; severe: number; deliveries: number; rate: number | null }
+export interface Clusters { facilities: ClusterRow[] }
+
+export const getSevereCases = () => apiGet<SevereCases>("/surveillance/cases");
+export const getCaseTimeline = (episodeId: string) => apiGet<CaseTimeline>(`/surveillance/cases/${episodeId}`);
+export const getSevereTrend = () => apiGet<SevereTrend>("/surveillance/trend");
+export const getClusters = () => apiGet<Clusters>("/surveillance/clusters");
+
 export const getWorkspace = () => apiGet<Workspace>("/workspace");
 export const getSummary = (from?: string, to?: string) =>
   apiGet<Summary>(`/maternal-summary${from || to ? `?from=${from ?? ""}&to=${to ?? ""}` : ""}`);
