@@ -112,9 +112,9 @@ type-checks), verified, committed **and pushed**. Date on completion.
 - [x] **WS1** — Time & Trends (bucketed aggregation + /trends endpoint + trend charts + deltas + export) — 2026-10-16
 - [x] **WS2** — Benchmarking & Equity (facility league tables + geo rollup + parity equity + Nigeria choropleth) — 2026-10-16
 
-### Phase 2
-- [ ] **WS3** — Continuum & Cohort (funnel drop-offs + scoped line-lists + cohort retention)
-- [ ] **WS4** — MPDSR surveillance (case register + timeline + clustering)
+### Phase 2 — COMPLETE
+- [x] **WS3** — Continuum & Cohort (funnel drop-offs + scoped line-lists + cohort retention) — 2026-10-17
+- [x] **WS4** — MPDSR surveillance (case register + antenatal risk + linked timeline + trend + clustering) — 2026-10-17
 
 ### Phase 3
 - [ ] **WS5** — Risk intelligence & early-warning (risk tiers + alert rules + notification center)
@@ -160,3 +160,24 @@ live (Kano correctly shaded on the map, real parity equity data). Commits
 `3e14ea6`, `8cdaecf`.
 
 **WS8 (chart kit) — fully signed off 2026-10-16** with the choropleth added in WS2b.
+
+**WS3 (Continuum & Cohort) — signed off 2026-10-17.**
+`backend/intelligence/continuum.py`: care funnel (Booked → 4+ ANC → 8+ ANC →
+Delivered → PNC) with per-step drop-offs; access-scoped drop-off line-lists
+(`anc_under_4`, `booked_no_delivery`, `delivered_no_pnc`) — aggregate tier gets
+counts only, de-identified hides names; booking-cohort retention. Endpoints
+`/continuum/funnel|dropoff|cohorts`. Frontend: `ContinuumSection` on Care journey
+(funnel with drop badges, follow-up list with kind selector + CSV, cohort
+retention line chart). Tests `test_continuum.py` (5, incl. access gating).
+Verified live. Commit `a585c57`.
+
+**WS4 (MPDSR surveillance) — signed off 2026-10-17.**
+`backend/intelligence/surveillance.py`: severe-outcome case register (stillbirth /
+early neonatal death / maternal death) each carrying its recorded antenatal risk
+markers; linked ANC→Delivery→PNC case timeline; severe-outcome trend by type;
+per-facility clustering (severe/deliveries). Endpoints `/surveillance/cases`,
+`/surveillance/cases/{episode}`, `/surveillance/trend`, `/surveillance/clusters`
+(case-level blocked for aggregate tier). Frontend: `/surveillance` dashboard with
+summary tiles, trend, clickable case register → timeline modal, clustering table.
+Tests `test_surveillance.py` (4, incl. aggregate gating + timeline order).
+Intelligence suite 21 passed; `tsc` clean; verified live. Commit `121cdc1`.
