@@ -23,9 +23,9 @@ def _severe_types(b) -> list[str]:
     if b.still_birth or (b.baby_outcome or "").lower() == "stillbirth":
         types.append("Stillbirth")
     if (b.baby_outcome or "").lower() == "early neonatal death":
-        types.append("Early neonatal death")
+        types.append("Newborn death (first 7 days)")
     if (b.maternal_outcome or "").lower() == "died":
-        types.append("Maternal death")
+        types.append("Mother died")
     return types
 
 
@@ -143,7 +143,7 @@ def severe_trend(facility_ids, date_from=None, date_to=None, bucket="month") -> 
         for t in _severe_types(b):
             by[k][t] += 1
     buckets = sorted(by)
-    types = ["Stillbirth", "Early neonatal death", "Maternal death"]
+    types = ["Stillbirth", "Newborn death (first 7 days)", "Mother died"]
     series = {t: [{"x": bkt, "value": by[bkt].get(t, 0)} for bkt in buckets] for t in types}
     return {"buckets": buckets, "series": series}
 

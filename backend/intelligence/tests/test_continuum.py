@@ -65,10 +65,10 @@ def test_funnel_counts(facility, officer):
     _build(facility, officer)
     f = care_funnel([facility.id])
     steps = {s["label"]: s["value"] for s in f["steps"]}
-    assert steps["Booked"] == 3
-    assert steps["4+ ANC contacts"] == 1  # only Amina
-    assert steps["Delivered"] == 2        # Amina + Chiamaka
-    assert steps["Postnatal contact"] == 1  # only Amina
+    assert steps["Registered pregnancy"] == 3
+    assert steps["Had 4+ check-ups"] == 1  # only Amina
+    assert steps["Gave birth"] == 2        # Amina + Chiamaka
+    assert steps["Came back after birth"] == 1  # only Amina
 
 
 @pytest.mark.django_db

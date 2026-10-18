@@ -35,8 +35,7 @@ export default function RiskPage() {
     >
       <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
         <div style={{ background: "var(--cv-warning-bg)", border: "1px solid var(--cv-warning-border)", borderRadius: "var(--cv-radius-card)", padding: "10px 14px", fontSize: 11.5, color: "var(--cv-text-secondary)" }}>
-          Risk tiers are a transparent function of <strong>recorded</strong> ANC markers — a follow-up prioritisation, <strong>not a diagnosis</strong>. Thresholds are
-          standard <strong>WHO-aligned defaults</strong>. &quot;None recorded&quot; means no marker was recorded, not that a pregnancy is low-risk.
+          Risk levels come only from <strong>what was recorded</strong> at check-ups — a way to decide who to follow up first, <strong>not a diagnosis</strong>. The cut-offs are standard <strong>World Health Organization</strong> values. &quot;None recorded&quot; means no warning sign was written down, not that a pregnancy is safe.
         </div>
 
         <ChartCard title="Early-warning alerts" subtitle="Proactive signals for your scope">
@@ -61,7 +60,7 @@ export default function RiskPage() {
         </ChartCard>
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1.4fr", gap: 16 }}>
-          <ChartCard title="Risk pyramid" subtitle="Active (undelivered) pregnancies by recorded risk tier">
+          <ChartCard title="Risk levels" subtitle="Current (not yet delivered) pregnancies, grouped by risk">
             {!pyr || pyr.total === 0 ? (
               <p style={{ fontSize: 12, color: "var(--cv-text-muted)" }}>No active pregnancies in scope.</p>
             ) : (
@@ -73,12 +72,12 @@ export default function RiskPage() {
           </ChartCard>
 
           <ChartCard
-            title="Risk registry"
-            subtitle="Active pregnancies with a recorded risk marker — highest first"
-            note="Access-scoped; aggregate viewers see counts only."
+            title="Pregnancies to watch"
+            subtitle="Current pregnancies with a warning sign — highest risk first"
+            note="Aggregate viewers see counts only; names are hidden for de-identified access."
             exportCsv={reg && !aggregate ? {
               name: "risk-registry",
-              header: ["Woman", "Tier", "Markers", "Booking", "Last ANC", "Days since ANC"],
+              header: ["Woman", "Risk level", "Warning signs", "Registered", "Last check-up", "Days since last check-up"],
               rows: reg.rows.map((r) => [r.woman?.name ?? "(hidden)", r.tier, r.markers.join("; "), r.booking_date, r.last_anc, r.days_since_anc]),
             } : undefined}
           >
@@ -94,9 +93,9 @@ export default function RiskPage() {
                   <thead>
                     <tr style={{ textAlign: "left", color: "var(--cv-text-muted)" }}>
                       <th style={{ padding: "6px 8px" }}>Woman</th>
-                      <th style={{ padding: "6px 8px" }}>Tier</th>
-                      <th style={{ padding: "6px 8px" }}>Recorded markers</th>
-                      <th style={{ padding: "6px 8px" }}>Days since ANC</th>
+                      <th style={{ padding: "6px 8px" }}>Risk level</th>
+                      <th style={{ padding: "6px 8px" }}>Warning signs recorded</th>
+                      <th style={{ padding: "6px 8px" }}>Days since last check-up</th>
                     </tr>
                   </thead>
                   <tbody>

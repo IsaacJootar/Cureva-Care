@@ -93,7 +93,7 @@ export function TrendsPanel() {
 
       <ChartCard
         title="Activity over time"
-        subtitle="ANC contacts, deliveries & PNC contacts per period"
+        subtitle="Pregnancy check-ups, births & after-birth check-ups per period"
         note={NOTE}
         action={<DeltaBadge delta={data!.deltas.deliveries ?? null} unit="" />}
         exportCsv={{ name: "activity-trend", ...csvFor(data!, ["anc_contacts", "deliveries", "pnc_contacts"]) }}
@@ -102,8 +102,8 @@ export function TrendsPanel() {
       </ChartCard>
 
       <ChartCard
-        title="Coverage & continuity over time"
-        subtitle="Early booking, screening, intervention & referral closure (%)"
+        title="Quality of care over time"
+        subtitle="Early registration, testing, preventives & referral follow-up (%)"
         note={NOTE}
         exportCsv={{ name: "coverage-trend", ...csvFor(data!, ["early_anc_booking", "screening_coverage", "intervention_coverage", "referral_closure"]) }}
       >
@@ -112,7 +112,7 @@ export function TrendsPanel() {
 
       <ChartCard
         title="Outcomes over time"
-        subtitle="Live births, stillbirths & maternal deaths per period"
+        subtitle="Live births, stillbirths & mothers who died per period"
         note={NOTE}
         action={<DeltaBadge delta={data!.deltas.maternal_deaths ?? null} unit="" invert />}
         exportCsv={{ name: "outcomes-trend", ...csvFor(data!, ["live_births", "still_births", "maternal_deaths", "low_birth_weight"]) }}

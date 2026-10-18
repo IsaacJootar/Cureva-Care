@@ -147,17 +147,17 @@ def compute_trends(facility_ids, date_from=None, date_to=None, bucket="month") -
             refc_num[b] += 1
 
     metrics = {
-        "anc_contacts": {"kind": "count", "label": "ANC contacts", "points": _count_points(buckets, anc_by)},
-        "deliveries": {"kind": "count", "label": "Deliveries", "points": _count_points(buckets, deliv_by)},
-        "pnc_contacts": {"kind": "count", "label": "PNC contacts", "points": _count_points(buckets, pnc_by)},
+        "anc_contacts": {"kind": "count", "label": "Pregnancy check-ups", "points": _count_points(buckets, anc_by)},
+        "deliveries": {"kind": "count", "label": "Births", "points": _count_points(buckets, deliv_by)},
+        "pnc_contacts": {"kind": "count", "label": "After-birth check-ups", "points": _count_points(buckets, pnc_by)},
         "live_births": {"kind": "count", "label": "Live births", "points": _count_points(buckets, live_by)},
         "still_births": {"kind": "count", "label": "Stillbirths", "points": _count_points(buckets, still_by), "invert": True},
-        "maternal_deaths": {"kind": "count", "label": "Maternal deaths", "points": _count_points(buckets, mdeath_by), "invert": True},
-        "early_anc_booking": {"kind": "rate", "label": "Early ANC booking", "points": _rate_points(buckets, early_num, early_den)},
-        "screening_coverage": {"kind": "rate", "label": "Screening coverage", "points": _rate_points(buckets, screen_num, screen_den)},
-        "intervention_coverage": {"kind": "rate", "label": "Intervention coverage", "points": _rate_points(buckets, interv_num, interv_den)},
-        "referral_closure": {"kind": "rate", "label": "Referral closure", "points": _rate_points(buckets, refc_num, refc_den)},
-        "low_birth_weight": {"kind": "rate", "label": "Low birth weight", "points": _rate_points(buckets, lbw_num, lbw_den), "invert": True},
+        "maternal_deaths": {"kind": "count", "label": "Mothers who died", "points": _count_points(buckets, mdeath_by), "invert": True},
+        "early_anc_booking": {"kind": "rate", "label": "Registered early", "points": _rate_points(buckets, early_num, early_den)},
+        "screening_coverage": {"kind": "rate", "label": "Tested (HIV/syphilis/anaemia)", "points": _rate_points(buckets, screen_num, screen_den)},
+        "intervention_coverage": {"kind": "rate", "label": "Got preventives", "points": _rate_points(buckets, interv_num, interv_den)},
+        "referral_closure": {"kind": "rate", "label": "Referrals followed up", "points": _rate_points(buckets, refc_num, refc_den)},
+        "low_birth_weight": {"kind": "rate", "label": "Underweight newborns", "points": _rate_points(buckets, lbw_num, lbw_den), "invert": True},
     }
 
     deltas = {}

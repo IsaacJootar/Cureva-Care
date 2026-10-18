@@ -51,10 +51,10 @@ def _markers_for_episode(episode_id) -> tuple[str, list[str]]:
         if str(d.get("syphilis_result") or "").lower() in ("positive", "reactive", "pos"):
             high.add("Syphilis positive")
         if str(d.get("blood_group_rhesus") or "").strip().endswith("-"):
-            moderate.add("Rhesus negative")
+            moderate.add("Rhesus-negative blood")
         try:
             if d.get("parity") is not None and int(d["parity"]) >= 5:
-                moderate.add("Grand multiparity (≥5)")
+                moderate.add("Many previous births (5+)")
         except (TypeError, ValueError):
             pass
     markers = sorted(high) + sorted(moderate)

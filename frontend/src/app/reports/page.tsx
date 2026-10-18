@@ -138,18 +138,18 @@ function FacilityReport({ s }: { s: Record<string, Record<string, unknown>> }) {
   return (
     <>
       <Card>
-        <h3 className="cv-h3">ANC access & continuity</h3>
-        <MetricMeter label="Early ANC booking" ratio={anc.early_booking} />
-        <MetricMeter label="4+ ANC contacts" ratio={anc.four_contact} />
-        <MetricMeter label="8+ ANC contacts" ratio={anc.eight_contact} />
-        <MetricMeter label="Delivery linkage" ratio={anc.delivery_linkage} />
-        <MetricMeter label="Postnatal linkage" ratio={anc.postnatal_linkage} />
+        <h3 className="cv-h3">Pregnancy care & staying in care</h3>
+        <MetricMeter label="Registered early (first 3 months)" ratio={anc.early_booking} />
+        <MetricMeter label="Had 4+ pregnancy check-ups" ratio={anc.four_contact} />
+        <MetricMeter label="Completed 8+ check-ups (WHO standard)" ratio={anc.eight_contact} />
+        <MetricMeter label="Pregnancy care → gave birth here" ratio={anc.delivery_linkage} />
+        <MetricMeter label="Came back after birth" ratio={anc.postnatal_linkage} />
       </Card>
       <Card>
-        <h3 className="cv-h3">Screening, intervention & referral</h3>
-        <MetricMeter label="Screening coverage" ratio={sir.screening_coverage} />
-        <MetricMeter label="Intervention coverage" ratio={sir.intervention_coverage} />
-        <MetricMeter label="Referral closure" ratio={sir.referral_closure} />
+        <h3 className="cv-h3">Tests, preventives & referrals</h3>
+        <MetricMeter label="Tested (HIV, syphilis, anaemia)" ratio={sir.screening_coverage} />
+        <MetricMeter label="Got preventives (iron, tetanus, malaria)" ratio={sir.intervention_coverage} />
+        <MetricMeter label="Referrals followed up" ratio={sir.referral_closure} />
       </Card>
       <OutcomesCard outcomes={outcomes} />
       <ActionsCard actions={actions} />
@@ -167,22 +167,22 @@ function NgoReport({ s }: { s: Record<string, Record<string, unknown>> }) {
   return (
     <>
       <Card>
-        <h3 className="cv-h3">Coverage summary</h3>
-        <MetricMeter label="Early ANC booking" ratio={cov.early_booking} />
-        <MetricMeter label="Screening coverage" ratio={cov.screening_coverage} />
-        <MetricMeter label="Intervention coverage" ratio={cov.intervention_coverage} />
+        <h3 className="cv-h3">Care coverage</h3>
+        <MetricMeter label="Registered early (first 3 months)" ratio={cov.early_booking} />
+        <MetricMeter label="Tested (HIV, syphilis, anaemia)" ratio={cov.screening_coverage} />
+        <MetricMeter label="Got preventives (iron, tetanus, malaria)" ratio={cov.intervention_coverage} />
       </Card>
       <Card>
-        <h3 className="cv-h3">Equity — ANC coverage by parity</h3>
+        <h3 className="cv-h3">Fairness — by number of past births</h3>
         {(equity.bands ?? []).map((b) => (
           <div key={b.band} style={{ marginBottom: 4 }}>
-            <div style={{ fontSize: 11.5, fontWeight: 600, color: "var(--cv-text-primary)", marginTop: 6 }}>{b.band} · {b.contacts} contacts</div>
-            <MetricMeter label="Screening" ratio={b.screening_coverage} />
+            <div style={{ fontSize: 11.5, fontWeight: 600, color: "var(--cv-text-primary)", marginTop: 6 }}>{b.band} · {b.contacts} check-ups</div>
+            <MetricMeter label="Tested" ratio={b.screening_coverage} />
           </div>
         ))}
       </Card>
       <Card>
-        <h3 className="cv-h3">Geographic — screening coverage by State</h3>
+        <h3 className="cv-h3">Testing coverage by State</h3>
         <LeagueTable rows={geoRows} maxRows={12} />
       </Card>
       <Card>
@@ -209,20 +209,20 @@ function GovReport({ s }: { s: Record<string, Record<string, unknown>> }) {
   return (
     <>
       <Card>
-        <h3 className="cv-h3">Severe-outcome surveillance (MPDSR)</h3>
+        <h3 className="cv-h3">Deaths &amp; stillbirths (surveillance / MPDSR)</h3>
         <div style={{ display: "flex", gap: 24, flexWrap: "wrap" }}>
-          <Stat label="Severe outcomes" value={severe.count ?? 0} />
+          <Stat label="Deaths & stillbirths" value={severe.count ?? 0} />
           <Stat label="Stillbirths" value={severe.by_type?.["Stillbirth"] ?? 0} />
-          <Stat label="Early neonatal deaths" value={severe.by_type?.["Early neonatal death"] ?? 0} />
-          <Stat label="Maternal deaths" value={severe.by_type?.["Maternal death"] ?? 0} />
+          <Stat label="Newborn deaths (first week)" value={severe.by_type?.["Newborn death (first 7 days)"] ?? 0} />
+          <Stat label="Mothers who died" value={severe.by_type?.["Mother died"] ?? 0} />
         </div>
       </Card>
       <Card>
-        <h3 className="cv-h3">Facility clustering</h3>
+        <h3 className="cv-h3">Which facilities to look at</h3>
         <LeagueTable rows={clusterRows} maxRows={12} />
       </Card>
       <Card>
-        <h3 className="cv-h3">Care-journey continuum</h3>
+        <h3 className="cv-h3">The care journey</h3>
         {(funnel.steps ?? []).map((st) => (
           <MetricMeter key={st.label} label={st.label} ratio={{ numerator: st.value, denominator: funnel.steps?.[0]?.value ?? st.value, rate: st.share_of_booked }} />
         ))}
@@ -233,13 +233,19 @@ function GovReport({ s }: { s: Record<string, Record<string, unknown>> }) {
   );
 }
 
+const OUTCOME_LABEL: Record<string, string> = {
+  live_births: "Live births",
+  still_births: "Stillbirths",
+  maternal_deaths: "Mothers who died",
+  low_birth_weight: "Underweight newborns",
+};
 function OutcomesCard({ outcomes }: { outcomes: Record<string, number> }) {
   return (
     <Card>
-      <h3 className="cv-h3">Documented outcomes</h3>
+      <h3 className="cv-h3">Recorded outcomes</h3>
       <div style={{ display: "flex", gap: 18, flexWrap: "wrap" }}>
         {["live_births", "still_births", "maternal_deaths", "low_birth_weight"].map((k) => (
-          <Stat key={k} label={k.replace(/_/g, " ")} value={outcomes[k] ?? 0} />
+          <Stat key={k} label={OUTCOME_LABEL[k] ?? k.replace(/_/g, " ")} value={outcomes[k] ?? 0} />
         ))}
       </div>
     </Card>

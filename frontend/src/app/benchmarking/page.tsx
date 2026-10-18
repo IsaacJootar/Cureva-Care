@@ -125,9 +125,9 @@ export default function BenchmarkingPage() {
           </ChartCard>
 
           <ChartCard
-            title="Equity — ANC coverage by parity"
-            subtitle="Does coverage differ by how many births a woman has had?"
-            note="Parity from the ANC register; unknown parity shown separately, never folded into a band."
+            title="Fairness — care by number of past births"
+            subtitle="Does care differ for first-time mothers vs. those with many births?"
+            note="Based on what was recorded at check-ups; women with no number recorded are shown separately, never guessed."
           >
             {!equity || equity.bands.length === 0 ? (
               <p style={{ fontSize: 12, color: "var(--cv-text-muted)" }}>No ANC parity data yet.</p>
@@ -136,10 +136,10 @@ export default function BenchmarkingPage() {
                 {equity.bands.map((b) => (
                   <div key={b.band} style={{ paddingBottom: 6 }}>
                     <div style={{ fontSize: 11.5, fontWeight: 600, color: "var(--cv-text-primary)", marginTop: 6 }}>
-                      {b.band} <span className="cv-num" style={{ color: "var(--cv-text-muted)", fontWeight: 400 }}>· {b.contacts} contacts</span>
+                      {b.band} <span className="cv-num" style={{ color: "var(--cv-text-muted)", fontWeight: 400 }}>· {b.contacts} check-ups</span>
                     </div>
-                    <MetricMeter label="Screening coverage" ratio={b.screening_coverage} />
-                    <MetricMeter label="Intervention coverage" ratio={b.intervention_coverage} />
+                    <MetricMeter label="Tested (HIV, syphilis, anaemia)" ratio={b.screening_coverage} />
+                    <MetricMeter label="Got preventives (iron, tetanus, malaria)" ratio={b.intervention_coverage} />
                   </div>
                 ))}
               </div>

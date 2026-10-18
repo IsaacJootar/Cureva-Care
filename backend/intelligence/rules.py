@@ -30,7 +30,7 @@ RULE_META = {
         "source_guidance": "ANC contact with systolic ≥140 or diastolic ≥90 mmHg.",
     },
     "anaemia": {
-        "label": "Anaemia recorded (Hb < 11 g/dl)",
+        "label": "Low blood level (anaemia) recorded",
         "severity": "medium",
         "version": 1,
         "effective_date": "2026-01-01",
@@ -38,7 +38,7 @@ RULE_META = {
         "source_guidance": "ANC contact with haemoglobin below 11 g/dl.",
     },
     "danger_signs": {
-        "label": "Postnatal danger signs recorded",
+        "label": "Danger signs after birth recorded",
         "severity": "high",
         "version": 1,
         "effective_date": "2026-01-01",
@@ -46,7 +46,7 @@ RULE_META = {
         "source_guidance": "PNC contact with danger signs recorded and not resolved.",
     },
     "open_referral": {
-        "label": "Open referral without documented outcome",
+        "label": "Referral with no recorded outcome",
         "severity": "medium",
         "version": 1,
         "effective_date": "2026-01-01",
@@ -54,7 +54,7 @@ RULE_META = {
         "source_guidance": "A referral recorded as open (no documented closure).",
     },
     "missing_postnatal": {
-        "label": "Delivery with no postnatal contact",
+        "label": "Gave birth, no after-birth check-up",
         "severity": "medium",
         "version": 1,
         "effective_date": "2026-01-01",

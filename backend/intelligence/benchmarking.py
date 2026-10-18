@@ -17,17 +17,17 @@ SMALL_SAMPLE = 5  # rates with a denominator below this are flagged low-confiden
 
 # Metric catalogue: kind + a human label. Rates are shown as %, counts as totals.
 METRICS = {
-    "deliveries": {"kind": "count", "label": "Deliveries"},
-    "anc_contacts": {"kind": "count", "label": "ANC contacts"},
-    "pnc_contacts": {"kind": "count", "label": "PNC contacts"},
-    "maternal_deaths": {"kind": "count", "label": "Maternal deaths", "invert": True},
+    "deliveries": {"kind": "count", "label": "Births recorded"},
+    "anc_contacts": {"kind": "count", "label": "Pregnancy check-ups"},
+    "pnc_contacts": {"kind": "count", "label": "After-birth check-ups"},
+    "maternal_deaths": {"kind": "count", "label": "Mothers who died", "invert": True},
     "still_births": {"kind": "count", "label": "Stillbirths", "invert": True},
-    "early_anc_booking": {"kind": "rate", "label": "Early ANC booking"},
-    "screening_coverage": {"kind": "rate", "label": "Screening coverage"},
-    "intervention_coverage": {"kind": "rate", "label": "Intervention coverage"},
-    "referral_closure": {"kind": "rate", "label": "Referral closure"},
-    "postnatal_linkage": {"kind": "rate", "label": "Postnatal linkage"},
-    "low_birth_weight": {"kind": "rate", "label": "Low birth weight", "invert": True},
+    "early_anc_booking": {"kind": "rate", "label": "Registered early (first 3 months)"},
+    "screening_coverage": {"kind": "rate", "label": "Tested (HIV, syphilis, anaemia)"},
+    "intervention_coverage": {"kind": "rate", "label": "Got preventives (iron, tetanus, malaria)"},
+    "referral_closure": {"kind": "rate", "label": "Referrals followed up"},
+    "postnatal_linkage": {"kind": "rate", "label": "Came back after birth"},
+    "low_birth_weight": {"kind": "rate", "label": "Underweight newborns (<2.5kg)", "invert": True},
 }
 
 RATE_METRICS = {k for k, m in METRICS.items() if m["kind"] == "rate"}
@@ -209,10 +209,10 @@ def _parity_band(value):
     except (TypeError, ValueError):
         return None
     if p == 0:
-        return "0 (nulliparous)"
+        return "First pregnancy (0 past births)"
     if p <= 4:
-        return "1–4"
-    return "5+ (grand multipara)"
+        return "1–4 past births"
+    return "5+ past births"
 
 
 def equity_by_parity(facility_ids, date_from=None, date_to=None) -> dict:
@@ -231,7 +231,7 @@ def equity_by_parity(facility_ids, date_from=None, date_to=None) -> dict:
             b["screen_num"] += 1
         if _has(c.data, ["iron_folate_given", "tetanus_given", "iptp_given"]):
             b["interv_num"] += 1
-    order = ["0 (nulliparous)", "1–4", "5+ (grand multipara)", "Unknown"]
+    order = ["First pregnancy (0 past births)", "1–4 past births", "5+ past births", "Unknown"]
     rows = []
     for band in order:
         if band not in bands:

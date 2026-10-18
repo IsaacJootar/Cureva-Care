@@ -56,11 +56,11 @@ def care_funnel(facility_ids, date_from=None, date_to=None) -> dict:
     pnc_n = sum(1 for e in eps if e.id in delivered and e.id in pnc_eps)
 
     raw = [
-        ("Booked", booked),
-        ("4+ ANC contacts", anc4),
-        ("8+ ANC contacts", anc8),
-        ("Delivered", delivered_n),
-        ("Postnatal contact", pnc_n),
+        ("Registered pregnancy", booked),
+        ("Had 4+ check-ups", anc4),
+        ("Completed 8+ check-ups (WHO)", anc8),
+        ("Gave birth", delivered_n),
+        ("Came back after birth", pnc_n),
     ]
     steps = []
     for i, (label, value) in enumerate(raw):
@@ -76,9 +76,9 @@ def care_funnel(facility_ids, date_from=None, date_to=None) -> dict:
 
 # Drop-off list definitions: each returns the episodes that fell out at a step.
 DROPOFFS = {
-    "anc_under_4": "Booked but fewer than 4 ANC contacts",
-    "booked_no_delivery": "Booked but no delivery recorded",
-    "delivered_no_pnc": "Delivered but no postnatal contact",
+    "anc_under_4": "Registered but had fewer than 4 check-ups",
+    "booked_no_delivery": "Registered but no birth recorded",
+    "delivered_no_pnc": "Gave birth but didn't return for after-birth care",
 }
 
 
@@ -158,8 +158,8 @@ def cohort_retention(facility_ids, date_from=None, date_to=None) -> dict:
     return {
         "cohorts": cohorts,
         "series": {
-            "anc4": {"label": "Reached 4+ ANC", "points": rate_points(anc4_by)},
-            "delivered": {"label": "Delivered", "points": rate_points(deliv_by)},
-            "pnc": {"label": "Postnatal contact", "points": rate_points(pnc_by)},
+            "anc4": {"label": "Reached 4+ check-ups", "points": rate_points(anc4_by)},
+            "delivered": {"label": "Gave birth", "points": rate_points(deliv_by)},
+            "pnc": {"label": "Came back after birth", "points": rate_points(pnc_by)},
         },
     }

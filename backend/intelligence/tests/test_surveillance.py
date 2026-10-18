@@ -68,7 +68,7 @@ def test_severe_cases_aggregate_tier_counts_only(facility, officer):
     out = severe_cases([facility.id], AccessLevel.AGGREGATE)
     assert out["count"] == 1
     assert out["cases"] == []
-    assert out["by_type"]["Maternal death"] == 1
+    assert out["by_type"]["Mother died"] == 1
 
 
 @pytest.mark.django_db

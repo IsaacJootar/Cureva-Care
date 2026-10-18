@@ -36,10 +36,10 @@ export function ContinuumSection() {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-      <ChartCard
-        title="Care-journey funnel"
-        subtitle="Women at each step of the continuum — and how many drop off between steps"
-        note="Only linked episodes count toward a cross-register step; a gap is a follow-up opportunity, not an error."
+        <ChartCard
+        title="Where women drop off"
+        subtitle="How many women reach each step — register → check-ups → birth → after-birth care"
+        note="A step only counts a woman once her records are matched across visits. A drop-off is a chance to follow up, not an error."
         exportCsv={{
           name: "care-funnel",
           header: ["Step", "Women", "Dropped from previous", "Share of booked"],
@@ -113,9 +113,9 @@ export function ContinuumSection() {
                   <thead>
                     <tr style={{ textAlign: "left", color: "var(--cv-text-muted)" }}>
                       <th style={{ padding: "6px 8px" }}>Woman</th>
-                      <th style={{ padding: "6px 8px" }}>Booked</th>
-                      <th style={{ padding: "6px 8px" }}>ANC</th>
-                      <th style={{ padding: "6px 8px" }}>Delivered</th>
+                      <th style={{ padding: "6px 8px" }}>Registered</th>
+                      <th style={{ padding: "6px 8px" }}>Check-ups</th>
+                      <th style={{ padding: "6px 8px" }}>Gave birth</th>
                       <th style={{ padding: "6px 8px" }}>Days since</th>
                     </tr>
                   </thead>
@@ -138,9 +138,9 @@ export function ContinuumSection() {
       </ChartCard>
 
       <ChartCard
-        title="Cohort retention"
-        subtitle="Of women who booked each month, the share reaching 4+ ANC, delivery and postnatal care"
-        note="Each cohort's denominator is its own bookings. Recorded activity, not population rates."
+        title="Each month's mothers, over time"
+        subtitle="Of the women who registered in a given month, the share who reached 4+ check-ups, birth, and after-birth care"
+        note="Each month's group is measured against its own registrations. Recorded activity, not population rates."
         exportCsv={cohorts ? {
           name: "cohort-retention",
           header: ["Booking month", ...Object.values(cohorts.series).map((s) => s.label)],
@@ -151,7 +151,7 @@ export function ContinuumSection() {
         } : undefined}
       >
         {!cohorts || cohorts.cohorts.length === 0 ? (
-          <p style={{ fontSize: 12, color: "var(--cv-text-muted)" }}>Cohort curves appear once bookings span more than one month.</p>
+          <p style={{ fontSize: 12, color: "var(--cv-text-muted)" }}>These curves appear once registrations span more than one month.</p>
         ) : (
           <LineChart series={cohortSeries} unit="percent" />
         )}

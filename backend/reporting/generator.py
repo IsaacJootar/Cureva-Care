@@ -114,15 +114,15 @@ def _ranked_actions(summary, lenses):
     actions = []
     m = summary["metrics"]
     if m["eight_contact_completion"]["rate"] is not None and m["eight_contact_completion"]["rate"] < 0.5:
-        actions.append({"action": "Strengthen ANC retention toward the 8-contact schedule", "owner": "Facility lead", "rationale": f"8+ ANC contacts at {_rate_pct(m['eight_contact_completion'])}.", "measure": "8-contact completion rate"})
+        actions.append({"action": "Help more women complete the full set of pregnancy check-ups", "owner": "Facility lead", "rationale": f"Only {_rate_pct(m['eight_contact_completion'])} completed 8+ check-ups.", "measure": "Share completing 8+ check-ups"})
     if m["referral_closure"]["rate"] is not None and m["referral_closure"]["rate"] < 0.8:
-        actions.append({"action": "Document outcomes for open referrals", "owner": "Facility lead", "rationale": f"Referral closure at {_rate_pct(m['referral_closure'])}.", "measure": "Referral closure rate"})
+        actions.append({"action": "Follow up referrals and record what happened", "owner": "Facility lead", "rationale": f"Only {_rate_pct(m['referral_closure'])} of referrals were followed up.", "measure": "Referrals followed up"})
     dq = lenses.get("data_quality", {})
     if dq.get("open_template_flags"):
-        actions.append({"action": "Resolve open template flags to improve extraction accuracy", "owner": "Systems admin", "rationale": f"{dq['open_template_flags']} open template flag(s).", "measure": "Open template flags"})
-    # Pad to three with generic continuity actions.
+        actions.append({"action": "Fix register column issues so records are read more accurately", "owner": "Systems admin", "rationale": f"{dq['open_template_flags']} unresolved column issue(s).", "measure": "Unresolved column issues"})
+    # Pad to three with a general continuity action.
     while len(actions) < 3:
-        actions.append({"action": "Maintain postnatal follow-up coverage", "owner": "Facility lead", "rationale": "Sustain delivery→PNC linkage.", "measure": "Postnatal linkage rate"})
+        actions.append({"action": "Keep women returning for after-birth care", "owner": "Facility lead", "rationale": "Sustain the share who come back after birth.", "measure": "Came back after birth"})
     return actions[:3]
 
 

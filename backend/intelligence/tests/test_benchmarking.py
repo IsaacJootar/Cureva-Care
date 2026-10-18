@@ -76,9 +76,9 @@ def test_equity_by_parity_bands(geo):
     _anc(f1, officer, 6)   # grand multipara
     eq = equity_by_parity([f1.id])
     bands = {b["band"] for b in eq["bands"]}
-    assert "0 (nulliparous)" in bands
-    assert "1–4" in bands
-    assert "5+ (grand multipara)" in bands
+    assert "First pregnancy (0 past births)" in bands
+    assert "1–4 past births" in bands
+    assert "5+ past births" in bands
     # Every contact has screening recorded → 100%.
     for b in eq["bands"]:
         assert b["screening_coverage"]["rate"] == 1.0

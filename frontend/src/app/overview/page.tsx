@@ -24,10 +24,10 @@ export default function OverviewPage() {
   const cj = useMemo(() => {
     if (!s) return [];
     return [
-      { label: "Booked episodes", value: s.care_journey.booked_episodes },
-      { label: "ANC contacts", value: s.care_journey.anc_contacts },
-      { label: "Deliveries", value: s.care_journey.deliveries },
-      { label: "PNC contacts", value: s.care_journey.pnc_contacts },
+      { label: "Registered pregnancies", value: s.care_journey.booked_episodes },
+      { label: "Pregnancy check-ups", value: s.care_journey.anc_contacts },
+      { label: "Births", value: s.care_journey.deliveries },
+      { label: "After-birth check-ups", value: s.care_journey.pnc_contacts },
     ];
   }, [s]);
 
@@ -47,25 +47,25 @@ export default function OverviewPage() {
             {isOrg && (
               <StatTile status="neutral" icon={<BuildingIcon size={14} />} label="Facilities" value={ws.facility_count} />
             )}
-            <StatTile status="success" icon={<CheckIcon size={14} />} label="Verified records" value={s.operational.verified_records} />
-            <StatTile status="neutral" icon={<ActivityIcon size={14} />} label="Deliveries" value={s.operational.deliveries} />
+            <StatTile status="success" icon={<CheckIcon size={14} />} label="Records captured" value={s.operational.verified_records} />
+            <StatTile status="neutral" icon={<ActivityIcon size={14} />} label="Births" value={s.operational.deliveries} />
             <StatTile
               status={s.operational.open_referrals > 0 ? "warning" : "success"}
               icon={<AlertTriangleIcon size={14} />}
-              label="Open referrals"
+              label="Referrals awaiting outcome"
               value={s.operational.open_referrals}
             />
-            <StatTile status="neutral" icon={<HeartPulseIcon size={14} />} label="PNC contacts" value={s.operational.pnc_contacts} />
+            <StatTile status="neutral" icon={<HeartPulseIcon size={14} />} label="After-birth check-ups" value={s.operational.pnc_contacts} />
           </div>
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18 }}>
-            <ChartPanel title="Care-journey funnel">
+            <ChartPanel title="The care journey">
               <Funnel stages={cj} />
             </ChartPanel>
-            <ChartPanel title="Continuity">
+            <ChartPanel title="Staying in care">
               <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                <LinkageLine label="ANC → Delivery linkage" ratio={s.care_journey.delivery_linkage} />
-                <LinkageLine label="Delivery → PNC linkage" ratio={s.care_journey.postnatal_linkage} />
+                <LinkageLine label="Pregnancy care → gave birth here" ratio={s.care_journey.delivery_linkage} />
+                <LinkageLine label="Came back after birth" ratio={s.care_journey.postnatal_linkage} />
               </div>
             </ChartPanel>
           </div>
