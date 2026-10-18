@@ -14,9 +14,9 @@ from .views import (
     WardListView,
 )
 from .views_auth import (
-    GoogleCallbackView,
-    GoogleStartView,
+    ChangePasswordView,
     MagicLinkRequestView,
+    PasswordLoginView,
     SessionExchangeView,
 )
 from .views_ops import (
@@ -28,6 +28,7 @@ from .views_ops import (
     UserDeactivateView,
     UserFacilityView,
     UserReactivateView,
+    UserSetPasswordView,
 )
 
 router = SimpleRouter(trailing_slash=False)
@@ -37,10 +38,10 @@ router.register("users", UserViewSet, basename="user")
 
 urlpatterns = [
     # Auth
+    path("auth/login", PasswordLoginView.as_view(), name="password-login"),
+    path("auth/change-password", ChangePasswordView.as_view(), name="change-password"),
     path("auth/magic-link", MagicLinkRequestView.as_view(), name="magic-link"),
     path("auth/session", SessionExchangeView.as_view(), name="session-exchange"),
-    path("auth/google/start", GoogleStartView.as_view(), name="google-start"),
-    path("auth/google/callback", GoogleCallbackView.as_view(), name="google-callback"),
     path("auth/token/refresh", TokenRefreshView.as_view(), name="token-refresh"),
     # Self
     path("users/me", MeView.as_view(), name="me"),
@@ -75,6 +76,7 @@ urlpatterns = [
     path("users/<uuid:user_id>/notification-preferences/<str:notification_type>", NotificationPreferenceUpdateView.as_view(), name="notification-pref-update"),
     # User management
     path("users/<uuid:user_id>/deactivate", UserDeactivateView.as_view(), name="user-deactivate"),
+    path("users/<uuid:user_id>/set-password", UserSetPasswordView.as_view(), name="user-set-password"),
     path("users/<uuid:user_id>/reactivate", UserReactivateView.as_view(), name="user-reactivate"),
     path("users/<uuid:user_id>/facility", UserFacilityView.as_view(), name="user-facility"),
 ]

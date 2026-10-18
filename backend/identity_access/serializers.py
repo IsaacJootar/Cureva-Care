@@ -1,4 +1,6 @@
 """Serializers for Identity & Access resources."""
+import secrets
+
 from rest_framework import serializers
 
 from .models import (
@@ -192,6 +194,11 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class UserCreateSerializer(serializers.ModelSerializer):
+    # Admin may set an initial password; if omitted, one is generated and
+    # returned ONCE (in initial_password) for the admin to share with the user.
+    password = serializers.CharField(write_only=True, required=False, allow_blank=True, min_length=8)
+    initial_password = serializers.SerializerMethodField(read_only=True)
+
     class Meta:
         model = User
         fields = [
@@ -203,8 +210,13 @@ class UserCreateSerializer(serializers.ModelSerializer):
             "facility",
             "organisation",
             "can_manage_org_users",
+            "password",
+            "initial_password",
         ]
         read_only_fields = ["id"]
+
+    def get_initial_password(self, obj):
+        return getattr(obj, "_initial_password", None)
 
     def validate(self, attrs):
         role = attrs.get("role")
@@ -237,7 +249,14 @@ class UserCreateSerializer(serializers.ModelSerializer):
         return attrs
 
     def create(self, validated_data):
-        return User.objects.create_user(**validated_data)
+        password = validated_data.pop("password", None) or None
+        generated = None
+        if not password:
+            generated = f"Cureva-{secrets.token_urlsafe(6)}"  # readable, shareable
+            password = generated
+        user = User.objects.create_user(password=password, **validated_data)
+        user._initial_password = generated  # only surfaced when auto-generated
+        return user
 
 
 class SelfUserSerializer(serializers.ModelSerializer):

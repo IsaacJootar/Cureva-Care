@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import type { CurrentUser, Role } from "@/lib/types";
-import { createUser, deactivateUser, editUser, listUsers, reactivateUser } from "@/lib/ops";
+import { adminSetPassword, createUser, deactivateUser, editUser, listUsers, reactivateUser } from "@/lib/ops";
 import { AppShell } from "@/components/layout/AppShell";
 import { Button } from "@/components/ui/Button";
 import { ConfirmDialog, Modal } from "@/components/ui/Dialog";
@@ -26,6 +26,7 @@ export default function UsersPage() {
   const [formOpen, setFormOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<CurrentUser | null>(null);
   const [deactivateTarget, setDeactivateTarget] = useState<CurrentUser | null>(null);
+  const [resetReveal, setResetReveal] = useState<{ name: string; password: string } | null>(null);
 
   const load = useCallback(() => {
     listUsers().then(setUsers).catch(() => setUsers([]));
@@ -34,6 +35,16 @@ export default function UsersPage() {
   useEffect(() => {
     load();
   }, [load]);
+
+  async function doResetPassword(u: CurrentUser) {
+    try {
+      const res = await adminSetPassword(u.id);
+      if (res.initial_password) setResetReveal({ name: u.name, password: res.initial_password });
+      else toast.success("Password reset.");
+    } catch {
+      toast.error("Could not reset password.");
+    }
+  }
 
   async function doDeactivate() {
     if (!deactivateTarget) return;
@@ -75,6 +86,7 @@ export default function UsersPage() {
                   {u.is_active ? (
                     <RowActionsMenu actions={[
                       { icon: <EditIcon size={16} />, label: "Edit user", onClick: () => { setEditTarget(u); setFormOpen(true); } },
+                      { icon: <EditIcon size={16} />, label: "Reset password", onClick: () => doResetPassword(u) },
                       { icon: <TrashIcon size={16} />, label: "Deactivate user", destructive: true, onClick: () => setDeactivateTarget(u) },
                     ]} />
                   ) : (
@@ -105,6 +117,22 @@ export default function UsersPage() {
         onCancel={() => setDeactivateTarget(null)}
         onConfirm={doDeactivate}
       />
+
+      {resetReveal && (
+        <Modal open onClose={() => setResetReveal(null)} width={460}>
+          <h2 style={{ fontSize: 16, color: "var(--cv-text-primary)", margin: "0 0 10px" }}>New password for {resetReveal.name}</h2>
+          <p style={{ fontSize: 12.5, color: "var(--cv-text-secondary)", margin: "0 0 12px" }}>
+            Share it with them; they can change it after signing in. <strong>It won&apos;t be shown again.</strong>
+          </p>
+          <div style={{ fontFamily: "monospace", fontSize: 16, fontWeight: 700, color: "var(--cv-text-primary)", background: "var(--cv-bg)", border: "1px solid var(--cv-card-border)", borderRadius: 8, padding: "12px 14px", textAlign: "center", letterSpacing: 1 }}>
+            {resetReveal.password}
+          </div>
+          <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 18 }}>
+            <Button variant="secondary" onClick={() => navigator.clipboard?.writeText(resetReveal.password)}>Copy</Button>
+            <Button onClick={() => setResetReveal(null)}>Done</Button>
+          </div>
+        </Modal>
+      )}
     </AppShell>
   );
 }
@@ -113,12 +141,15 @@ function UserFormModal({ target, onClose, onSaved }: { target: CurrentUser | nul
   const [name, setName] = useState(target?.name ?? "");
   const [email, setEmail] = useState(target?.email ?? "");
   const [role, setRole] = useState<Role>(target?.role ?? "data_officer");
+  const [password, setPassword] = useState("");
   const [sel, setSel] = useState<GeoSelection | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string>();
+  const [created, setCreated] = useState<{ name: string; password: string } | null>(null);
 
   const needsFacility = role === "facility_lead";
-  const valid = name.trim() && (target || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) && (!needsFacility || target || sel?.facilityId);
+  const pwOk = password === "" || password.length >= 8;
+  const valid = name.trim() && (target || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) && pwOk && (!needsFacility || target || sel?.facilityId);
 
   async function save() {
     setSaving(true);
@@ -126,14 +157,35 @@ function UserFormModal({ target, onClose, onSaved }: { target: CurrentUser | nul
     try {
       if (target) {
         await editUser(target.id, { name: name.trim(), role });
+        onSaved(name.trim());
       } else {
-        await createUser({ name: name.trim(), email: email.trim(), role, facility: needsFacility ? sel?.facilityId : null });
+        const res = await createUser({ name: name.trim(), email: email.trim(), role, facility: needsFacility ? sel?.facilityId : null, password: password || undefined });
+        // Show the auto-generated password once so the admin can share it.
+        if (res.initial_password) setCreated({ name: name.trim(), password: res.initial_password });
+        else onSaved(name.trim());
       }
-      onSaved(name.trim());
     } catch {
       setError("Could not save — check the details (email may already be in use).");
       setSaving(false);
     }
+  }
+
+  if (created) {
+    return (
+      <Modal open onClose={() => onSaved(created.name)} width={460}>
+        <h2 style={{ fontSize: 16, color: "var(--cv-text-primary)", margin: "0 0 10px" }}>{created.name} created ✓</h2>
+        <p style={{ fontSize: 12.5, color: "var(--cv-text-secondary)", margin: "0 0 12px" }}>
+          Share this one-time password with them. They can change it after signing in. <strong>It won&apos;t be shown again.</strong>
+        </p>
+        <div style={{ fontFamily: "monospace", fontSize: 16, fontWeight: 700, color: "var(--cv-text-primary)", background: "var(--cv-bg)", border: "1px solid var(--cv-card-border)", borderRadius: 8, padding: "12px 14px", textAlign: "center", letterSpacing: 1 }}>
+          {created.password}
+        </div>
+        <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 18 }}>
+          <Button variant="secondary" onClick={() => navigator.clipboard?.writeText(created.password)}>Copy</Button>
+          <Button onClick={() => onSaved(created.name)}>Done</Button>
+        </div>
+      </Modal>
+    );
   }
 
   return (
@@ -147,6 +199,17 @@ function UserFormModal({ target, onClose, onSaved }: { target: CurrentUser | nul
           <option value="facility_lead">Facility lead</option>
           <option value="systems_admin">Systems admin</option>
         </SelectField>
+        {!target && (
+          <TextField
+            id="u-password"
+            label="Initial password (optional)"
+            type="text"
+            placeholder="Leave blank to auto-generate"
+            value={password}
+            error={password !== "" && password.length < 8 ? "At least 8 characters" : undefined}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+        )}
         {needsFacility && !target && (
           <div>
             <div style={{ fontSize: 11.5, fontWeight: 600, color: "var(--cv-text-secondary)", marginBottom: 6 }}>Assign facility</div>

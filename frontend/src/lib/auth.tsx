@@ -17,6 +17,7 @@ interface AuthState {
   user: CurrentUser | null;
   loading: boolean;
   signInWithTicket: (token: string) => Promise<CurrentUser>;
+  signInWithPassword: (email: string, password: string) => Promise<CurrentUser>;
   signOut: () => void;
   setUser: (u: CurrentUser) => void;
   refresh: () => Promise<void>;
@@ -65,6 +66,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return data.user;
   }, []);
 
+  const signInWithPassword = useCallback(async (email: string, password: string) => {
+    const data = await apiPost<SessionResponse>("/auth/login", { email, password }, { auth: false });
+    tokenStore.set(data.access, data.refresh);
+    setUser(data.user);
+    applyTheme(data.user.theme_preference);
+    setLoading(false);
+    return data.user;
+  }, []);
+
   const signOut = useCallback(() => {
     tokenStore.clear();
     setUser(null);
@@ -72,7 +82,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, loading, signInWithTicket, signOut, setUser, refresh: loadMe }}
+      value={{ user, loading, signInWithTicket, signInWithPassword, signOut, setUser, refresh: loadMe }}
     >
       {children}
     </AuthContext.Provider>

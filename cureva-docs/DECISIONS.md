@@ -21,11 +21,17 @@ are appended at the bottom.
 
 ## Authentication
 
-- **No passwords anywhere** — sign-in is magic-link or SSO only (a locked
-  package decision). *Why:* avoids credential storage/rotation; invite-only.
-  *Used by:* every user; the magic link (dev) prints to the backend console.
-- **Google SSO** built but **deferred** pending real Google client credentials
-  (product-owner decision). Magic-link is fully working.
+- **Email + password sign-in** (changed 2026-10-18, product-owner decision).
+  *What:* accounts are invite-only — an admin creates the user and sets an
+  initial password (or one is auto-generated and shown once to share); the user
+  signs in with email + password and can change it from the account menu; an
+  admin can reset it. *Why:* the deployment model is "create accounts, hand out
+  usernames/passwords," which doesn't depend on email delivery. Minimum 8
+  characters; stored hashed by Django. Magic-link sign-in is **kept** as a
+  secondary option ("email me a sign-in link").
+- **Google SSO removed** (2026-10-18, product-owner decision) — not needed;
+  replaced by email+password above. The original package's "no passwords"
+  decision is superseded.
 - **Magic-link lifetime/reuse are env-configurable** (`MAGIC_LINK_TTL_MINUTES`,
   `MAGIC_LINK_SINGLE_USE`). *Why:* during hands-on testing a 15-minute,
   single-use link is painful — it expires on the shelf and dies after one
@@ -49,11 +55,17 @@ are appended at the bottom.
   columns, PNC to 24, ANC kept at 22. *Why:* the package's Delivery/PNC lists
   were abbreviated placeholders. *Used by:* extraction field-matching.
 
-## Clinical governance (open decision #2, pending)
+## Clinical governance (open decision #2, resolved 2026-10-17)
 
-- Risk/referral rules carry owner `UNASSIGNED (pending clinical sign-off)`
-  until a clinical owner is named. The "clinical review of reports" launch gate
-  stays open until then.
+- **Resolved (product-owner decision):** the risk/referral thresholds are
+  standard WHO-aligned defaults and are **accepted as the program baseline** —
+  no individual clinical sign-off is required for launch. Rules/tiers now carry
+  owner `WHO-aligned program default`, and the UI states plainly that a flag is
+  an operational follow-up prioritisation, **not a diagnosis**. *Why:* the
+  thresholds (e.g. BP ≥140/90, Hb <11) are well-established, non-controversial
+  WHO values; gating launch on a named signatory added process without changing
+  the (deliberately conservative, explainable) rules. A program may still
+  version a local clinical adaptation later.
 
 ## Identity-matching update (`IDENTITY_MATCHING_UPDATE.md`)
 

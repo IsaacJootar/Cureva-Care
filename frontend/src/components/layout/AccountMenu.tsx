@@ -3,10 +3,13 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { apiPatch } from "@/lib/api";
+import { changePassword } from "@/lib/ops";
 import { useAuth } from "@/lib/auth";
 import type { CurrentUser } from "@/lib/types";
 import { Button } from "../ui/Button";
+import { Modal } from "../ui/Dialog";
 import { TextField } from "../ui/Field";
+import { useToast } from "../ui/Toast";
 import { BellIcon, EditIcon, LogOutIcon } from "../icons";
 
 const ROLE_LABEL: Record<CurrentUser["role"], string> = {
@@ -18,15 +21,36 @@ const ROLE_LABEL: Record<CurrentUser["role"], string> = {
 
 // The account menu behind every sidebar's user footer (cureva-docs/09 "Account
 // menu"): Profile (self-editable name, read-only email), Notification
-// preferences, Sign out. There is no password anywhere — sign-in is magic-link
-// or SSO only.
+// preferences, Change password, Sign out.
 export function AccountMenu({ user }: { user: CurrentUser }) {
   const { signOut, setUser } = useAuth();
+  const toast = useToast();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(user.name);
   const [saving, setSaving] = useState(false);
+  const [pwOpen, setPwOpen] = useState(false);
+  const [cur, setCur] = useState("");
+  const [nw, setNw] = useState("");
+  const [pwSaving, setPwSaving] = useState(false);
+  const [pwErr, setPwErr] = useState<string>();
   const ref = useRef<HTMLDivElement>(null);
+
+  async function savePassword() {
+    if (nw.length < 8) { setPwErr("New password must be at least 8 characters."); return; }
+    setPwSaving(true);
+    setPwErr(undefined);
+    try {
+      await changePassword(cur, nw);
+      toast.success("Password changed.");
+      setPwOpen(false);
+      setCur(""); setNw("");
+    } catch {
+      setPwErr("Couldn't change password — check your current password.");
+    } finally {
+      setPwSaving(false);
+    }
+  }
 
   useEffect(() => {
     if (!open) return;
@@ -100,10 +124,29 @@ export function AccountMenu({ user }: { user: CurrentUser }) {
             <BellIcon size={14} /> Notification preferences
           </Link>
 
+          <button onClick={() => { setOpen(false); setPwOpen(true); }} style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", padding: "8px 0", background: "none", border: "none", borderTop: "1px solid var(--cv-hairline)", cursor: "pointer", color: "var(--cv-text-primary)", fontSize: 12.5 }}>
+            <EditIcon size={14} /> Change password
+          </button>
+
           <button onClick={signOut} style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", padding: "8px 0", background: "none", border: "none", borderTop: "1px dashed var(--cv-hairline)", cursor: "pointer", color: "var(--cv-button-danger-bg)", fontSize: 12.5, marginTop: 4 }}>
             <LogOutIcon size={14} /> Sign out
           </button>
         </div>
+      )}
+
+      {pwOpen && (
+        <Modal open onClose={() => setPwOpen(false)} width={400}>
+          <h2 style={{ fontSize: 16, color: "var(--cv-text-primary)", margin: "0 0 14px" }}>Change password</h2>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            <TextField id="cur-pw" label="Current password" type="password" value={cur} onChange={(e) => setCur(e.target.value)} />
+            <TextField id="new-pw" label="New password" type="password" placeholder="At least 8 characters" value={nw} onChange={(e) => { setNw(e.target.value); if (pwErr) setPwErr(undefined); }} />
+          </div>
+          {pwErr && <div style={{ color: "var(--cv-danger-text)", fontSize: 11.5, marginTop: 10 }}>{pwErr}</div>}
+          <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 18 }}>
+            <Button variant="secondary" onClick={() => setPwOpen(false)}>Cancel</Button>
+            <Button onClick={savePassword} loading={pwSaving} disabled={!cur || !nw}>Change password</Button>
+          </div>
+        </Modal>
       )}
     </div>
   );

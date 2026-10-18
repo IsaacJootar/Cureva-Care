@@ -35,8 +35,8 @@ export default function RiskPage() {
     >
       <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
         <div style={{ background: "var(--cv-warning-bg)", border: "1px solid var(--cv-warning-border)", borderRadius: "var(--cv-radius-card)", padding: "10px 14px", fontSize: 11.5, color: "var(--cv-text-secondary)" }}>
-          Risk tiers are a transparent function of <strong>recorded</strong> ANC markers — not a diagnosis. Thresholds are
-          WHO-aligned defaults <strong>pending clinical sign-off</strong>. &quot;None recorded&quot; means no marker was recorded, not that a pregnancy is low-risk.
+          Risk tiers are a transparent function of <strong>recorded</strong> ANC markers — a follow-up prioritisation, <strong>not a diagnosis</strong>. Thresholds are
+          standard <strong>WHO-aligned defaults</strong>. &quot;None recorded&quot; means no marker was recorded, not that a pregnancy is low-risk.
         </div>
 
         <ChartCard title="Early-warning alerts" subtitle="Proactive signals for your scope">

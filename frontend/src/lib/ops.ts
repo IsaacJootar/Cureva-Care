@@ -33,8 +33,12 @@ export const listUsers = async (): Promise<CurrentUser[]> => {
   const data = await apiGet<{ results?: CurrentUser[] } | CurrentUser[]>("/users");
   return Array.isArray(data) ? data : (data.results ?? []);
 };
-export const createUser = (body: { name: string; email: string; role: Role; facility?: string | null }) =>
-  apiPost<CurrentUser>("/users", body);
+export const createUser = (body: { name: string; email: string; role: Role; facility?: string | null; password?: string }) =>
+  apiPost<CurrentUser & { initial_password: string | null }>("/users", body);
+export const changePassword = (current_password: string, new_password: string) =>
+  apiPost<{ detail: string }>("/auth/change-password", { current_password, new_password });
+export const adminSetPassword = (userId: string, password?: string) =>
+  apiPost<{ status: string; initial_password: string | null }>(`/users/${userId}/set-password`, password ? { password } : {});
 export const editUser = (id: string, body: { name?: string; role?: Role }) =>
   apiPatch<CurrentUser>(`/users/${id}`, body);
 export const deactivateUser = (id: string) => apiPost(`/users/${id}/deactivate`);

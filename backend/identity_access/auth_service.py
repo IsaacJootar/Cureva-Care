@@ -1,31 +1,25 @@
-"""Authentication service — Django owns both sign-in paths.
+"""Authentication service — Django owns sign-in.
 
-Both magic-link and Google SSO converge on a single-use, short-lived *sign-in
-ticket* (stored hashed in MagicLinkToken). The frontend exchanges that ticket
-at POST /auth/session for a JWT access+refresh pair. This keeps the long-lived
-credential out of any URL, and gives both paths one identical final step.
+Sign-in is by email + password, verified here against the admin-set password.
+A magic-link path also exists: it mints a single-use, short-lived *sign-in
+ticket* (stored hashed in MagicLinkToken) that the frontend exchanges at
+POST /auth/session for a JWT access+refresh pair.
 
-Magic-link or SSO only ever establishes WHO someone is; role and facility
-scope come exclusively from the admin-managed user record, looked up at login
+Credentials only ever establish WHO someone is; role and facility scope come
+exclusively from the admin-managed user record, looked up at login
 (cureva-docs/07-security-privacy-access.md). Account creation is invite-only:
 a login attempt for an unknown or inactive email never creates a user.
 """
 import hashlib
 import secrets
 from datetime import timedelta
-from urllib.parse import urlencode
 
-import requests
 from django.conf import settings
 from django.core.mail import send_mail
 from django.utils import timezone
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from .models import AuditEvent, MagicLinkToken, User
-
-GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth"
-GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token"
-GOOGLE_USERINFO_URL = "https://openidconnect.googleapis.com/v1/userinfo"
 
 
 def _hash(raw_token: str) -> str:
@@ -108,50 +102,16 @@ def send_magic_link(email: str) -> None:
     )
 
 
-# --- Google SSO -----------------------------------------------------------
-def google_authorization_url(redirect_uri: str, state: str) -> str:
-    params = {
-        "client_id": settings.GOOGLE_OAUTH_CLIENT_ID,
-        "redirect_uri": redirect_uri,
-        "response_type": "code",
-        "scope": "openid email profile",
-        "state": state,
-        "access_type": "online",
-        "prompt": "select_account",
-    }
-    return f"{GOOGLE_AUTH_URL}?{urlencode(params)}"
-
-
-def google_exchange_code(code: str, redirect_uri: str) -> str | None:
-    """Exchange an authorization code for the signed-in user's email address.
-    Returns the email, or None on failure."""
-    token_resp = requests.post(
-        GOOGLE_TOKEN_URL,
-        data={
-            "code": code,
-            "client_id": settings.GOOGLE_OAUTH_CLIENT_ID,
-            "client_secret": settings.GOOGLE_OAUTH_CLIENT_SECRET,
-            "redirect_uri": redirect_uri,
-            "grant_type": "authorization_code",
-        },
-        timeout=10,
-    )
-    if token_resp.status_code != 200:
+# --- Password sign-in -----------------------------------------------------
+def authenticate_password(email: str, password: str) -> User | None:
+    """Verify email + password. Invite-only: the user must already exist, be
+    active, and have a usable (admin-set) password."""
+    user = User.objects.filter(email=email.lower(), is_active=True).first()
+    if user is None or not user.has_usable_password():
         return None
-    access_token = token_resp.json().get("access_token")
-    if not access_token:
+    if not user.check_password(password):
         return None
-    userinfo_resp = requests.get(
-        GOOGLE_USERINFO_URL,
-        headers={"Authorization": f"Bearer {access_token}"},
-        timeout=10,
-    )
-    if userinfo_resp.status_code != 200:
-        return None
-    info = userinfo_resp.json()
-    if not info.get("email_verified", False):
-        return None
-    return (info.get("email") or "").lower() or None
+    return user
 
 
 def find_active_user_by_email(email: str) -> User | None:

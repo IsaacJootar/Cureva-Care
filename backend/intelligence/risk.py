@@ -3,8 +3,8 @@
 A pregnancy's risk TIER is a plain, explainable function of the risk markers
 RECORDED on its ANC contacts — never a black-box score, never a diagnosis, and
 every tier shows exactly which recorded markers produced it. The marker
-thresholds are clinical and ship labelled "pending clinical sign-off"
-(open decision #2); they are deliberately conservative WHO-aligned defaults.
+thresholds are conservative WHO-aligned defaults, accepted as the program
+baseline; a tier is an operational prioritisation, never a diagnosis.
 
 Tier:
   High          — at least one high-severity marker recorded.
@@ -19,7 +19,7 @@ from identity_access.models import AccessLevel
 from maternal_projection.models import ANCContact, BirthEvent, PregnancyEpisode
 
 RISK_RULESET_VERSION = 1
-CLINICAL_OWNER = "UNASSIGNED (pending clinical sign-off — open decision #2)"
+CLINICAL_OWNER = "WHO-aligned program default"
 
 
 def _bp_high(value) -> bool:

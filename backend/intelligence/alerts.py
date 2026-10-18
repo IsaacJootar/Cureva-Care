@@ -74,7 +74,7 @@ def evaluate_alerts(facility_ids) -> list[dict]:
             alerts.append({
                 "kind": "severe_cluster", "severity": "high",
                 "title": f"Elevated severe-outcome rate at {f['name']}",
-                "detail": f"{f['severe']} severe outcome(s) in {f['deliveries']} deliveries ({round(f['rate'] * 100)}%), at/above the {round(cluster_rate * 100)}% threshold. Pending clinical sign-off.",
+                "detail": f"{f['severe']} severe outcome(s) in {f['deliveries']} deliveries ({round(f['rate'] * 100)}%), at/above the {round(cluster_rate * 100)}% threshold.",
                 "facility_id": f["facility_id"], "threshold": cluster_rate,
             })
 

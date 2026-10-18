@@ -9,27 +9,24 @@ import { Button } from "@/components/ui/Button";
 import { TextField } from "@/components/ui/Field";
 import { CheckIcon } from "@/components/icons";
 
-const SSO_ERRORS: Record<string, string> = {
-  sso_state: "The sign-in request expired or was tampered with. Please try again.",
-  sso_failed: "We couldn't complete Google sign-in. Please try again.",
-  not_invited: "That account isn't registered for Cureva Care. Ask an administrator to invite you.",
-};
-
 function LoginInner() {
   const router = useRouter();
   const params = useSearchParams();
-  const { user, loading, signInWithTicket } = useAuth();
+  const { user, loading, signInWithTicket, signInWithPassword } = useAuth();
 
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [emailError, setEmailError] = useState<string>();
+  const [loginError, setLoginError] = useState<string>();
+  const [signingIn, setSigningIn] = useState(false);
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
+  const [showLink, setShowLink] = useState(false);
   const [exchanging, setExchanging] = useState(false);
   const [exchangeError, setExchangeError] = useState<string>();
   const exchangedRef = useRef(false);
 
   const token = params.get("token");
-  const ssoError = params.get("error");
 
   // Exchange a sign-in ticket (from a magic link or the SSO callback) once.
   useEffect(() => {
@@ -48,6 +45,25 @@ function LoginInner() {
   useEffect(() => {
     if (!token && !loading && user) router.replace(roleLanding(user.role));
   }, [token, loading, user, router]);
+
+  async function doPasswordLogin(e: React.FormEvent) {
+    e.preventDefault();
+    const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+    if (!valid) {
+      setEmailError("Enter a valid email address");
+      return;
+    }
+    setEmailError(undefined);
+    setLoginError(undefined);
+    setSigningIn(true);
+    try {
+      const u = await signInWithPassword(email.trim().toLowerCase(), password);
+      router.replace(roleLanding(u.role));
+    } catch {
+      setLoginError("Incorrect email or password.");
+      setSigningIn(false);
+    }
+  }
 
   async function requestLink(e: React.FormEvent) {
     e.preventDefault();
@@ -128,7 +144,7 @@ function LoginInner() {
 
   return shell(
     <>
-      {(exchangeError || (ssoError && SSO_ERRORS[ssoError])) && (
+      {(exchangeError || loginError) && (
         <div
           style={{
             background: "var(--cv-danger-bg)",
@@ -140,11 +156,11 @@ function LoginInner() {
             marginBottom: 16,
           }}
         >
-          {exchangeError ?? SSO_ERRORS[ssoError!]}
+          {exchangeError ?? loginError}
         </div>
       )}
 
-      <form onSubmit={requestLink} noValidate>
+      <form onSubmit={doPasswordLogin} noValidate>
         <TextField
           id="email"
           label="Work email"
@@ -157,34 +173,52 @@ function LoginInner() {
             if (emailError) setEmailError(undefined);
           }}
         />
-        <div style={{ marginTop: 14 }}>
-          <Button type="submit" fullWidth loading={sending} loadingLabel="Sending…">
-            Email me a sign-in link
+        <div style={{ marginTop: 12 }}>
+          <TextField
+            id="password"
+            label="Password"
+            type="password"
+            placeholder="Your password"
+            value={password}
+            onChange={(e) => {
+              setPassword(e.target.value);
+              if (loginError) setLoginError(undefined);
+            }}
+          />
+        </div>
+        <div style={{ marginTop: 16 }}>
+          <Button type="submit" fullWidth loading={signingIn} loadingLabel="Signing in…" disabled={!password}>
+            Sign in
           </Button>
         </div>
       </form>
 
-      <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "18px 0" }}>
-        <span style={{ flex: 1, height: 1, background: "var(--cv-hairline)" }} />
-        <span style={{ fontSize: 10.5, color: "var(--cv-text-muted)", textTransform: "uppercase", letterSpacing: "0.5px" }}>
-          or
-        </span>
-        <span style={{ flex: 1, height: 1, background: "var(--cv-hairline)" }} />
-      </div>
-
-      <Button
-        variant="secondary"
-        fullWidth
-        onClick={() => {
-          window.location.href = `${API_BASE}/auth/google/start`;
-        }}
-      >
-        Continue with Google
-      </Button>
-
-      <p style={{ fontSize: 11, color: "var(--cv-text-muted)", textAlign: "center", marginTop: 18, lineHeight: 1.5 }}>
-        Access is invite-only. There is no password — sign in with a magic link or your organisation's SSO.
-      </p>
+      {!showLink ? (
+        <p style={{ fontSize: 11, color: "var(--cv-text-muted)", textAlign: "center", marginTop: 18, lineHeight: 1.6 }}>
+          Forgot your password? Ask a Cureva Care administrator to reset it.
+          <br />
+          <button
+            onClick={() => setShowLink(true)}
+            style={{ background: "none", border: "none", color: "var(--cv-accent-solid)", cursor: "pointer", fontSize: 11, padding: 0, marginTop: 4 }}
+          >
+            Or email me a sign-in link instead
+          </button>
+        </p>
+      ) : (
+        <>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "18px 0" }}>
+            <span style={{ flex: 1, height: 1, background: "var(--cv-hairline)" }} />
+            <span style={{ fontSize: 10.5, color: "var(--cv-text-muted)", textTransform: "uppercase", letterSpacing: "0.5px" }}>or</span>
+            <span style={{ flex: 1, height: 1, background: "var(--cv-hairline)" }} />
+          </div>
+          <Button variant="secondary" fullWidth loading={sending} loadingLabel="Sending…" onClick={(e) => requestLink(e as unknown as React.FormEvent)}>
+            Email me a sign-in link
+          </Button>
+          <p style={{ fontSize: 11, color: "var(--cv-text-muted)", textAlign: "center", marginTop: 14 }}>
+            Access is invite-only.
+          </p>
+        </>
+      )}
     </>,
   );
 }

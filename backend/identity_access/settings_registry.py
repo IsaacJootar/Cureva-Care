@@ -117,8 +117,8 @@ SETTING_DEFINITIONS = [
         "value_type": "decimal",
         "description": (
             "Severe-outcome rate (severe outcomes / deliveries, 0-1) at or above "
-            "which a facility raises a severe-outcome cluster alert. Pending "
-            "clinical sign-off."
+            "which a facility raises a severe-outcome cluster alert "
+            "(WHO-aligned default)."
         ),
     },
     {

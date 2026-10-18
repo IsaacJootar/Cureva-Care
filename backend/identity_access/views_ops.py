@@ -124,6 +124,31 @@ class UserReactivateView(APIView):
         return Response({"status": "reactivated"})
 
 
+class UserSetPasswordView(APIView):
+    """POST /users/{id}/set-password — admin sets/resets a user's password.
+    If no password is supplied, a readable one is generated and returned once."""
+
+    permission_classes = [IsSystemsAdmin]
+
+    def post(self, request, user_id):
+        import secrets
+
+        user = User.objects.filter(pk=user_id).first()
+        if user is None:
+            return Response(status=404)
+        password = request.data.get("password") or None
+        generated = None
+        if not password:
+            generated = f"Cureva-{secrets.token_urlsafe(6)}"
+            password = generated
+        elif len(password) < 8:
+            return Response({"detail": "Password must be at least 8 characters."}, status=400)
+        user.set_password(password)
+        user.save(update_fields=["password"])
+        AuditEvent.objects.create(actor=request.user, event_type="user_password_reset", subject_type="user", subject_id=user.id)
+        return Response({"status": "password_set", "initial_password": generated})
+
+
 class UserFacilityView(APIView):
     """PATCH /users/{id}/facility — admin assigns a Facility lead's facility."""
 

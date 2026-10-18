@@ -9,14 +9,15 @@ model (not stored); a WorklistAction overlay records follow-up without ever
 touching the register data, and an item resurfaces while its rule still
 evaluates true (cureva-docs/02 "Worklist actions").
 
-Clinical owner is pending open decision #2 (named clinical owner) — recorded as
-"UNASSIGNED (pending clinical sign-off)" until a human is named.
+The rule thresholds are standard WHO-aligned defaults, accepted as the program
+baseline. They flag recorded values for operational follow-up — they are never a
+diagnosis. A program may still version a local adaptation later.
 """
 from datetime import date
 
 from maternal_projection.models import ANCContact, BirthEvent, PNCContact, PregnancyEpisode, Referral
 
-CLINICAL_OWNER_PENDING = "UNASSIGNED (pending clinical sign-off — open decision #2)"
+CLINICAL_OWNER_PENDING = "WHO-aligned program default"
 
 # Rule metadata registry. Each rule's evaluator yields worklist items.
 RULE_META = {
