@@ -544,7 +544,7 @@ function ManageAccessModal({ org, onClose, onChanged }: { org: Organisation; onC
       <GrantEditor onAdd={addGrant} />
 
       <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 18 }}>
-        <Button variant="secondary" onClick={onClose}>Done</Button>
+        <Button onClick={onClose}>Done</Button>
       </div>
     </Modal>
   );
