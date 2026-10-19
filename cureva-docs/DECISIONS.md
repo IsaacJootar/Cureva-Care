@@ -67,6 +67,27 @@ are appended at the bottom.
   the (deliberately conservative, explainable) rules. A program may still
   version a local clinical adaptation later.
 
+## Intelligence entitlements — plans & modules (resolved 2026-10-19)
+
+- **Resolved (product-owner decision):** intelligence is sold in plans. Each
+  intelligence hub is a gateable **module**; a **plan** (subscription tier) is a
+  named, admin-editable bundle of modules. Three plans are seeded —
+  **Essentials / Professional / Enterprise** — configured from the admin
+  *Plans & modules* screen (tick modules into each plan, no code change). An
+  organisation is assigned one plan and may additionally be granted individual
+  **add-on modules** on top of it. *Why:* customers pay for different depths of
+  intelligence; plans keep pricing simple while add-ons allow a single hub to be
+  sold à la carte without a bespoke plan per customer.
+- **Enforcement is server-side.** `identity_access/entitlements.py` is the one
+  source of the module catalogue, the resolver, and the path→module map. The
+  `HasModule` DRF permission gates every intelligence + reporting endpoint by
+  the request path — hiding a sidebar link is never the control. Facility leads
+  are internal to their own facility and see the full set; systems admins and
+  data officers are not dashboard consumers.
+- **Resolution order:** `plan.modules ∪ organisation.extra_modules`, intersected
+  with the valid catalogue. The signed-in user's resolved set is returned on
+  `/users/me` (`entitled_modules`) and drives which sidebar links render.
+
 ## Identity-matching update (`IDENTITY_MATCHING_UPDATE.md`)
 
 A product-owner spec that strengthens how the system decides "this row belongs
