@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from identity_access.models import AccessLevel
-from identity_access.permissions import IsDashboardViewer
+from identity_access.permissions import HasModule, IsDashboardViewer
 from intelligence.scoping import caller_scope
 from intelligence.views import IDENTITY_FIELDS
 
@@ -17,7 +17,7 @@ from .models import ExportAudit, SavedReport
 class ReportsView(APIView):
     """GET /reports (list) and POST /reports (generate + save a brief)."""
 
-    permission_classes = [IsDashboardViewer]
+    permission_classes = [IsDashboardViewer, HasModule]
 
     def get(self, request):
         scope = set(caller_scope(request.user)["facility_ids"] or [])
@@ -64,7 +64,7 @@ class ReportsView(APIView):
 
 
 class ReportDetailView(APIView):
-    permission_classes = [IsDashboardViewer]
+    permission_classes = [IsDashboardViewer, HasModule]
 
     def get(self, request, report_id):
         report = SavedReport.objects.filter(pk=report_id).first()
@@ -89,7 +89,7 @@ class RecordsExportView(APIView):
     """GET /records/export — CSV of verified rows, scoped + access-level
     filtered + audited (cureva-docs/07). Aggregate tier gets no row export."""
 
-    permission_classes = [IsDashboardViewer]
+    permission_classes = [IsDashboardViewer, HasModule]
 
     def get(self, request):
         scope = caller_scope(request.user)

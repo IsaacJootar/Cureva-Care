@@ -136,11 +136,38 @@ class Facility(models.Model):
 
 
 # --- Organisations (the view-only SaaS customer layer) --------------------
+class SubscriptionTier(models.Model):
+    """A configurable bundle of intelligence modules a paying organisation can be
+    subscribed to (e.g. Essentials / Professional / Enterprise). Which modules are
+    in each tier is admin-editable (11-intelligence-module.md); nothing is
+    hard-coded. `modules` is a list of module keys from identity_access.entitlements.
+    """
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=64)
+    slug = models.SlugField(unique=True)
+    modules = models.JSONField(default=list)  # list of intelligence module keys
+    order = models.IntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ["order", "name"]
+
+    def __str__(self):
+        return self.name
+
+
 class Organisation(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.TextField()
     org_type = models.TextField(null=True, blank=True)  # free text, not an enum
     is_active = models.BooleanField(default=True)
+    # Intelligence entitlements: the tier they subscribed to, plus any individual
+    # add-on modules granted on top of it.
+    tier = models.ForeignKey(
+        "SubscriptionTier", on_delete=models.SET_NULL, null=True, blank=True, related_name="organisations"
+    )
+    extra_modules = models.JSONField(default=list, blank=True)  # add-on module keys
     created_by = models.ForeignKey(
         "User",
         on_delete=models.SET_NULL,

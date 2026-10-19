@@ -1,8 +1,16 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { apiDelete, apiGet, apiPost } from "@/lib/api";
-import type { AccessLevel, FacilityAccessGrant, Organisation, ScopeType } from "@/lib/types";
+import { apiDelete, apiGet, apiPatch, apiPost } from "@/lib/api";
+import type {
+  AccessLevel,
+  FacilityAccessGrant,
+  IntelModule,
+  Organisation,
+  ScopeType,
+  SubscriptionTier,
+} from "@/lib/types";
+import { listTiers } from "@/lib/ops";
 import { AppShell } from "@/components/layout/AppShell";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Dialog";
@@ -11,7 +19,7 @@ import { EmptyState, StatusPill, StatTileSkeleton } from "@/components/ui/Feedba
 import { RowActionsMenu, Table, Td, Th } from "@/components/ui/Table";
 import { GeoCascade, type GeoSelection } from "@/components/geo";
 import { useToast } from "@/components/ui/Toast";
-import { EditIcon, PlusIcon, ShieldIcon } from "@/components/icons";
+import { CheckIcon, EditIcon, PlusIcon, ShieldIcon } from "@/components/icons";
 
 const TIER_LABEL: Record<AccessLevel, string> = {
   aggregate: "Aggregate",
@@ -91,6 +99,7 @@ export default function OrganisationsPage() {
             <tr>
               <Th>Name</Th>
               <Th>Type</Th>
+              <Th>Plan</Th>
               <Th>Facilities / regions granted</Th>
               <Th>Access tier</Th>
               <Th>Active users</Th>
@@ -103,6 +112,18 @@ export default function OrganisationsPage() {
               <tr key={o.id}>
                 <Td style={{ color: "var(--cv-text-primary)", fontWeight: 600 }}>{o.name}</Td>
                 <Td>{o.org_type ?? "—"}</Td>
+                <Td>
+                  {o.tier_name ? (
+                    <StatusPill status="success">{o.tier_name}</StatusPill>
+                  ) : (
+                    <span style={{ color: "var(--cv-text-muted)" }}>No plan</span>
+                  )}
+                  {o.extra_modules && o.extra_modules.length > 0 && (
+                    <span style={{ fontSize: 10.5, color: "var(--cv-text-muted)", marginLeft: 6 }}>
+                      +{o.extra_modules.length}
+                    </span>
+                  )}
+                </Td>
                 <Td>{o.access_summary}</Td>
                 <Td>{tierSummary(o)}</Td>
                 <Td><span className="cv-num">{o.active_user_count}</span></Td>
@@ -213,6 +234,112 @@ function GrantRow({ label, tier, onRemove }: { label: string; tier: AccessLevel;
   );
 }
 
+// --- Plan & add-on module editor ------------------------------------------
+// A plan (subscription tier) bundles intelligence modules; add-ons unlock extra
+// modules on top. These decide which dashboard links a subscriber sees.
+function usePlans() {
+  const [tiers, setTiers] = useState<SubscriptionTier[]>([]);
+  const [modules, setModules] = useState<IntelModule[]>([]);
+  useEffect(() => {
+    listTiers()
+      .then((d) => {
+        setTiers([...d.tiers].sort((a, b) => a.order - b.order));
+        setModules(d.modules);
+      })
+      .catch(() => {});
+  }, []);
+  return { tiers, modules };
+}
+
+function PlanEditor({
+  tierId,
+  extraModules,
+  onChange,
+}: {
+  tierId: string | null;
+  extraModules: string[];
+  onChange: (next: { tier: string | null; extra_modules: string[] }) => void;
+}) {
+  const { tiers, modules } = usePlans();
+  const selectedTier = tiers.find((t) => t.id === tierId) ?? null;
+  const planModules = new Set(selectedTier?.modules ?? []);
+
+  function toggleAddOn(key: string) {
+    const next = new Set(extraModules);
+    if (next.has(key)) next.delete(key);
+    else next.add(key);
+    onChange({ tier: tierId, extra_modules: [...next] });
+  }
+
+  return (
+    <div style={{ border: "1px solid var(--cv-card-border)", borderRadius: 10, padding: 14 }}>
+      <SelectField
+        id="plan"
+        label="Plan"
+        value={tierId ?? ""}
+        onChange={(e) => onChange({ tier: e.target.value || null, extra_modules: extraModules })}
+      >
+        <option value="">No plan (no intelligence access)</option>
+        {tiers.map((t) => (
+          <option key={t.id} value={t.id}>
+            {t.name} — {t.modules.length} module{t.modules.length === 1 ? "" : "s"}
+          </option>
+        ))}
+      </SelectField>
+
+      <p style={{ fontSize: 11, color: "var(--cv-text-muted)", margin: "12px 0 8px" }}>
+        Add-on modules (unlocked on top of the plan). Modules already in the plan are ticked and locked.
+      </p>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 7 }}>
+        {modules.map((m) => {
+          const inPlan = planModules.has(m.key);
+          const on = inPlan || extraModules.includes(m.key);
+          return (
+            <button
+              key={m.key}
+              onClick={() => !inPlan && toggleAddOn(m.key)}
+              disabled={inPlan}
+              aria-pressed={on}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                padding: "8px 10px",
+                borderRadius: 7,
+                border: `1px solid ${on ? "var(--cv-accent, #6366f1)" : "var(--cv-card-border)"}`,
+                background: on ? "var(--cv-accent-soft, rgba(99,102,241,0.08))" : "var(--cv-input-bg)",
+                color: "var(--cv-text-primary)",
+                cursor: inPlan ? "default" : "pointer",
+                opacity: inPlan ? 0.7 : 1,
+                textAlign: "left",
+                fontSize: 12,
+              }}
+            >
+              <span
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  width: 16,
+                  height: 16,
+                  borderRadius: 4,
+                  flexShrink: 0,
+                  border: `1.5px solid ${on ? "var(--cv-accent, #6366f1)" : "var(--cv-input-border)"}`,
+                  background: on ? "var(--cv-accent, #6366f1)" : "transparent",
+                  color: "#fff",
+                }}
+              >
+                {on && <CheckIcon size={11} />}
+              </span>
+              {m.label}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 // --- New organisation (two-step) ------------------------------------------
 interface PendingGrant {
   scope_type: ScopeType;
@@ -225,6 +352,8 @@ function NewOrganisationModal({ onClose, onCreated }: { onClose: () => void; onC
   const [step, setStep] = useState<1 | 2>(1);
   const [name, setName] = useState("");
   const [orgType, setOrgType] = useState("");
+  const [tierId, setTierId] = useState<string | null>(null);
+  const [extraModules, setExtraModules] = useState<string[]>([]);
   const [grants, setGrants] = useState<PendingGrant[]>([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string>();
@@ -233,7 +362,12 @@ function NewOrganisationModal({ onClose, onCreated }: { onClose: () => void; onC
     setSaving(true);
     setError(undefined);
     try {
-      const org = await apiPost<Organisation>("/organisations", { name: name.trim(), org_type: orgType || null });
+      const org = await apiPost<Organisation>("/organisations", {
+        name: name.trim(),
+        org_type: orgType || null,
+        tier: tierId,
+        extra_modules: extraModules,
+      });
       for (const g of grants) {
         await apiPost(`/organisations/${org.id}/facility-access`, {
           scope_type: g.scope_type,
@@ -263,6 +397,14 @@ function NewOrganisationModal({ onClose, onCreated }: { onClose: () => void; onC
             <option value="Private/business">Private / business</option>
             <option value="Donor">Donor agency</option>
           </SelectField>
+          <PlanEditor
+            tierId={tierId}
+            extraModules={extraModules}
+            onChange={({ tier, extra_modules }) => {
+              setTierId(tier);
+              setExtraModules(extra_modules);
+            }}
+          />
           <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 8 }}>
             <Button variant="secondary" onClick={onClose}>Cancel</Button>
             <Button disabled={name.trim().length === 0} onClick={() => setStep(2)}>Next: access</Button>
@@ -301,6 +443,22 @@ function NewOrganisationModal({ onClose, onCreated }: { onClose: () => void; onC
 function ManageAccessModal({ org, onClose, onChanged }: { org: Organisation; onClose: () => void; onChanged: () => void }) {
   const toast = useToast();
   const [grants, setGrants] = useState<FacilityAccessGrant[]>(org.facility_access);
+  const [tierId, setTierId] = useState<string | null>(org.tier);
+  const [extraModules, setExtraModules] = useState<string[]>(org.extra_modules ?? []);
+  const [savingPlan, setSavingPlan] = useState(false);
+
+  async function savePlan() {
+    setSavingPlan(true);
+    try {
+      await apiPatch(`/organisations/${org.id}`, { tier: tierId, extra_modules: extraModules });
+      toast.success("Plan updated.");
+      onChanged();
+    } catch {
+      toast.error("Could not update the plan.");
+    } finally {
+      setSavingPlan(false);
+    }
+  }
 
   async function addGrant(g: PendingGrant) {
     try {
@@ -332,9 +490,27 @@ function ManageAccessModal({ org, onClose, onChanged }: { org: Organisation; onC
     <Modal open onClose={onClose} width={520}>
       <h2 style={{ fontSize: 16, color: "var(--cv-text-primary)", margin: "0 0 2px" }}>{org.name} — access</h2>
       <p style={{ fontSize: 12, color: "var(--cv-text-muted)", margin: "0 0 18px" }}>
-        Grant or revoke this organisation&apos;s view-only facility/region access.
+        Choose the plan (which intelligence they can see) and grant view-only facility/region access.
       </p>
 
+      <div style={{ fontSize: 12, fontWeight: 600, color: "var(--cv-text-primary)", marginBottom: 8 }}>Plan & modules</div>
+      <PlanEditor
+        tierId={tierId}
+        extraModules={extraModules}
+        onChange={({ tier, extra_modules }) => {
+          setTierId(tier);
+          setExtraModules(extra_modules);
+        }}
+      />
+      <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 10, marginBottom: 20 }}>
+        <Button onClick={savePlan} loading={savingPlan} style={{ padding: "7px 14px", fontSize: 12 }}>
+          Save plan
+        </Button>
+      </div>
+
+      <div style={{ fontSize: 12, fontWeight: 600, color: "var(--cv-text-primary)", marginBottom: 8 }}>
+        Facilities & regions
+      </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 16 }}>
         {grants.length === 0 ? (
           <p style={{ fontSize: 12, color: "var(--cv-text-muted)" }}>No access granted yet.</p>

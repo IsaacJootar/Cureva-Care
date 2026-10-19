@@ -1,6 +1,6 @@
 // Operations API helpers (settings, notification prefs, user management).
 import { apiDelete, apiGet, apiPatch, apiPost } from "./api";
-import type { CurrentUser, Role } from "./types";
+import type { CurrentUser, IntelModule, Role, SubscriptionTier } from "./types";
 
 export interface PlatformSetting {
   key: string;
@@ -17,6 +17,14 @@ export interface NotificationPref {
   channel: "email" | "sms" | "email_and_sms" | "none";
   updated_at: string;
 }
+
+// Subscription tiers (intelligence module bundles) — Systems admin only.
+export const listTiers = () =>
+  apiGet<{ modules: IntelModule[]; tiers: SubscriptionTier[] }>("/tiers");
+export const updateTier = (
+  id: string,
+  body: { modules?: string[]; name?: string; order?: number },
+) => apiPatch<SubscriptionTier>(`/tiers/${id}`, body);
 
 export const listSettings = () => apiGet<PlatformSetting[]>("/settings");
 export const updateSetting = (key: string, value: unknown) =>

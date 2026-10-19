@@ -25,6 +25,8 @@ from .views_ops import (
     OrgUserDeleteView,
     SettingUpdateView,
     SettingsListView,
+    TierUpdateView,
+    TiersView,
     UserDeactivateView,
     UserFacilityView,
     UserReactivateView,
@@ -69,6 +71,8 @@ urlpatterns = [
         name="organisation-user-delete",
     ),
     # Platform settings
+    path("tiers", TiersView.as_view(), name="tiers"),
+    path("tiers/<uuid:tier_id>", TierUpdateView.as_view(), name="tier-update"),
     path("settings", SettingsListView.as_view(), name="settings"),
     path("settings/<str:key>", SettingUpdateView.as_view(), name="setting-update"),
     # Notification preferences (self-service)

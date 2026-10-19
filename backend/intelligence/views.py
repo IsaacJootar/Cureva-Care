@@ -10,7 +10,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from identity_access.models import AccessLevel, Facility, Role
-from identity_access.permissions import IsDashboardViewer
+from identity_access.permissions import HasModule, IsDashboardViewer
 from identity_access.services import get_setting
 from identity_access.settings_registry import STALE_FACILITY_ALERT_DAYS
 
@@ -43,7 +43,7 @@ class MaternalSummaryView(APIView):
     """GET /maternal-summary — deterministic maternal metrics for a service-date
     window, scoped to the caller."""
 
-    permission_classes = [IsDashboardViewer]
+    permission_classes = [IsDashboardViewer, HasModule]
 
     def get(self, request):
         scope = caller_scope(request.user)
@@ -57,7 +57,7 @@ class MaternalSummaryView(APIView):
 class CareJourneyView(APIView):
     """GET /care-journey — the care-journey funnel + linkage, scoped."""
 
-    permission_classes = [IsDashboardViewer]
+    permission_classes = [IsDashboardViewer, HasModule]
 
     def get(self, request):
         scope = caller_scope(request.user)
@@ -71,7 +71,7 @@ class TrendsView(APIView):
     """GET /trends — time-bucketed metric series (WS1), scoped to the caller.
     Query: from, to (service dates), bucket=month|week."""
 
-    permission_classes = [IsDashboardViewer]
+    permission_classes = [IsDashboardViewer, HasModule]
 
     def get(self, request):
         scope = caller_scope(request.user)
@@ -86,7 +86,7 @@ class TrendsView(APIView):
 class BenchmarkingView(APIView):
     """GET /benchmarking — facility league table on a chosen metric (WS2)."""
 
-    permission_classes = [IsDashboardViewer]
+    permission_classes = [IsDashboardViewer, HasModule]
 
     def get(self, request):
         scope = caller_scope(request.user)
@@ -102,7 +102,7 @@ class BenchmarkingView(APIView):
 class GeoRollupView(APIView):
     """GET /geo — a metric aggregated to State or LGA for the geographic view."""
 
-    permission_classes = [IsDashboardViewer]
+    permission_classes = [IsDashboardViewer, HasModule]
 
     def get(self, request):
         scope = caller_scope(request.user)
@@ -118,7 +118,7 @@ class GeoRollupView(APIView):
 class EquityView(APIView):
     """GET /equity — ANC coverage sliced by recorded parity band (WS2)."""
 
-    permission_classes = [IsDashboardViewer]
+    permission_classes = [IsDashboardViewer, HasModule]
 
     def get(self, request):
         scope = caller_scope(request.user)
@@ -132,7 +132,7 @@ class EquityView(APIView):
 class ContinuumFunnelView(APIView):
     """GET /continuum/funnel — care-journey funnel with drop-offs (WS3)."""
 
-    permission_classes = [IsDashboardViewer]
+    permission_classes = [IsDashboardViewer, HasModule]
 
     def get(self, request):
         scope = caller_scope(request.user)
@@ -147,7 +147,7 @@ class DropoffView(APIView):
     """GET /continuum/dropoff?kind= — access-scoped line-list of women who fell
     out at a step. Aggregate tier gets counts only (never the women)."""
 
-    permission_classes = [IsDashboardViewer]
+    permission_classes = [IsDashboardViewer, HasModule]
 
     def get(self, request):
         scope = caller_scope(request.user)
@@ -162,7 +162,7 @@ class DropoffView(APIView):
 class CohortView(APIView):
     """GET /continuum/cohorts — booking-month cohort retention (WS3)."""
 
-    permission_classes = [IsDashboardViewer]
+    permission_classes = [IsDashboardViewer, HasModule]
 
     def get(self, request):
         scope = caller_scope(request.user)
@@ -177,7 +177,7 @@ class SurveillanceCasesView(APIView):
     """GET /surveillance/cases — MPDSR severe-outcome case register (WS4),
     access-scoped (aggregate tier gets counts only)."""
 
-    permission_classes = [IsDashboardViewer]
+    permission_classes = [IsDashboardViewer, HasModule]
 
     def get(self, request):
         scope = caller_scope(request.user)
@@ -190,7 +190,7 @@ class CaseTimelineView(APIView):
     """GET /surveillance/cases/{episode_id} — one woman's linked ANC→Delivery→PNC
     story. Blocked for aggregate-tier callers (case-level data)."""
 
-    permission_classes = [IsDashboardViewer]
+    permission_classes = [IsDashboardViewer, HasModule]
 
     def get(self, request, episode_id):
         scope = caller_scope(request.user)
@@ -202,7 +202,7 @@ class CaseTimelineView(APIView):
 class SevereTrendView(APIView):
     """GET /surveillance/trend — severe outcomes over time by type (WS4)."""
 
-    permission_classes = [IsDashboardViewer]
+    permission_classes = [IsDashboardViewer, HasModule]
 
     def get(self, request):
         scope = caller_scope(request.user)
@@ -214,7 +214,7 @@ class SevereTrendView(APIView):
 class ClustersView(APIView):
     """GET /surveillance/clusters — per-facility severe-outcome rate, ranked."""
 
-    permission_classes = [IsDashboardViewer]
+    permission_classes = [IsDashboardViewer, HasModule]
 
     def get(self, request):
         scope = caller_scope(request.user)
@@ -226,7 +226,7 @@ class ClustersView(APIView):
 class RiskPyramidView(APIView):
     """GET /risk/pyramid — active-pregnancy risk-tier distribution (WS5)."""
 
-    permission_classes = [IsDashboardViewer]
+    permission_classes = [IsDashboardViewer, HasModule]
 
     def get(self, request):
         scope = caller_scope(request.user)
@@ -236,7 +236,7 @@ class RiskPyramidView(APIView):
 class RiskRegistryView(APIView):
     """GET /risk/registry — active high/moderate-risk pregnancies, access-scoped."""
 
-    permission_classes = [IsDashboardViewer]
+    permission_classes = [IsDashboardViewer, HasModule]
 
     def get(self, request):
         scope = caller_scope(request.user)
@@ -247,7 +247,7 @@ class RiskRegistryView(APIView):
 class AlertsView(APIView):
     """GET /alerts — early-warning alerts for the caller's scope (WS5)."""
 
-    permission_classes = [IsDashboardViewer]
+    permission_classes = [IsDashboardViewer, HasModule]
 
     def get(self, request):
         scope = caller_scope(request.user)
@@ -257,7 +257,7 @@ class AlertsView(APIView):
 class RDQAScorecardView(APIView):
     """GET /rdqa/scorecard — continuous data-quality assessment per facility (WS6)."""
 
-    permission_classes = [IsDashboardViewer]
+    permission_classes = [IsDashboardViewer, HasModule]
 
     def get(self, request):
         scope = caller_scope(request.user)
@@ -269,7 +269,7 @@ class RDQAScorecardView(APIView):
 class RDQATrendView(APIView):
     """GET /rdqa/trend — mean extraction confidence over time (WS6)."""
 
-    permission_classes = [IsDashboardViewer]
+    permission_classes = [IsDashboardViewer, HasModule]
 
     def get(self, request):
         scope = caller_scope(request.user)
@@ -280,7 +280,7 @@ class WorkspaceView(APIView):
     """GET /workspace — first-paint context: the caller's scope, their
     facilities, and headline counts in one call."""
 
-    permission_classes = [IsDashboardViewer]
+    permission_classes = [IsDashboardViewer, HasModule]
 
     def get(self, request):
         scope = caller_scope(request.user)
@@ -324,7 +324,7 @@ class FacilitiesOverviewView(APIView):
     """GET /facilities-overview — per-facility rows for the Facilities dashboard
     (reporting freshness, verified records, open referrals, stale flag)."""
 
-    permission_classes = [IsDashboardViewer]
+    permission_classes = [IsDashboardViewer, HasModule]
 
     def get(self, request):
         scope = caller_scope(request.user)
@@ -428,7 +428,7 @@ class RecordsView(APIView):
     Aggregate-tier callers get no row-level detail (counts only); de-identified
     strips declared identity fields; identifiable sees full evidence."""
 
-    permission_classes = [IsDashboardViewer]
+    permission_classes = [IsDashboardViewer, HasModule]
 
     def get(self, request):
         scope = caller_scope(request.user)

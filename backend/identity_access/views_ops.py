@@ -5,7 +5,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .models import AuditEvent, NotificationPreference, PlatformSetting, Role, User
+from .entitlements import INTEL_MODULES, MODULE_KEYS
+from .models import AuditEvent, NotificationPreference, PlatformSetting, Role, SubscriptionTier, User
 from .permissions import IsSystemsAdmin
 from .serializers import (
     NotificationPreferenceSerializer,
@@ -13,6 +14,50 @@ from .serializers import (
     UserSerializer,
 )
 from .services import SettingValidationError, set_setting
+
+
+# --- Intelligence tiers / entitlements (Systems admin) --------------------
+def _tier_dict(t):
+    return {"id": str(t.id), "name": t.name, "slug": t.slug, "modules": t.modules or [], "order": t.order}
+
+
+class TiersView(APIView):
+    """GET /tiers — the module catalogue + every tier's module composition.
+    Admin configures which modules each tier includes (nothing hard-coded)."""
+
+    permission_classes = [IsSystemsAdmin]
+
+    def get(self, request):
+        return Response({
+            "modules": INTEL_MODULES,
+            "tiers": [_tier_dict(t) for t in SubscriptionTier.objects.all()],
+        })
+
+
+class TierUpdateView(APIView):
+    """PATCH /tiers/{id} — set a tier's modules (and optionally name/order)."""
+
+    permission_classes = [IsSystemsAdmin]
+
+    def patch(self, request, tier_id):
+        tier = SubscriptionTier.objects.filter(pk=tier_id).first()
+        if tier is None:
+            return Response(status=404)
+        if "modules" in request.data:
+            modules = request.data.get("modules") or []
+            if not isinstance(modules, list) or any(m not in MODULE_KEYS for m in modules):
+                return Response({"detail": "modules must be a list of valid module keys."}, status=400)
+            tier.modules = modules
+        if "name" in request.data and str(request.data["name"]).strip():
+            tier.name = str(request.data["name"]).strip()
+        if "order" in request.data:
+            try:
+                tier.order = int(request.data["order"])
+            except (TypeError, ValueError):
+                pass
+        tier.save()
+        AuditEvent.objects.create(actor=request.user, event_type="tier_updated", subject_type="tier", subject_id=tier.id, metadata={"modules": tier.modules})
+        return Response(_tier_dict(tier))
 
 
 # --- Platform settings (Systems admin) ------------------------------------

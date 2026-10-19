@@ -8,6 +8,7 @@ organisation's users).
 """
 from rest_framework.permissions import BasePermission
 
+from .entitlements import has_module, module_for_path
 from .models import Role
 
 
@@ -70,3 +71,19 @@ class IsDashboardViewer(BasePermission):
             and request.user.is_authenticated
             and request.user.role in {Role.FACILITY_LEAD, Role.ORGANISATION_USER}
         )
+
+
+class HasModule(BasePermission):
+    """Gate an intelligence endpoint by the module an organisation subscribed to.
+
+    The module is resolved from the request path (identity_access.entitlements).
+    A path that maps to no module is ungated (e.g. /workspace). Enforced
+    server-side — hiding a sidebar link is not enough (11-intelligence-module.md).
+    """
+
+    message = "Your subscription does not include this intelligence module."
+
+    def has_permission(self, request, view):
+        if not (request.user and request.user.is_authenticated):
+            return False
+        return has_module(request.user, module_for_path(request.path))

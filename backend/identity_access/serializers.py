@@ -134,6 +134,20 @@ class OrganisationSerializer(serializers.ModelSerializer):
     facility_access = OrganisationFacilityAccessSerializer(many=True, read_only=True)
     active_user_count = serializers.SerializerMethodField()
     access_summary = serializers.SerializerMethodField()
+    tier_name = serializers.CharField(source="tier.name", read_only=True)
+    entitled_modules = serializers.SerializerMethodField()
+
+    def get_entitled_modules(self, obj):
+        mods = set(obj.tier.modules or []) if obj.tier_id else set()
+        mods |= set(obj.extra_modules or [])
+        return sorted(mods)
+
+    def validate_extra_modules(self, value):
+        from .entitlements import MODULE_KEYS
+
+        if not isinstance(value, list) or any(m not in MODULE_KEYS for m in value):
+            raise serializers.ValidationError("Must be a list of valid module keys.")
+        return value
 
     class Meta:
         model = Organisation
@@ -142,6 +156,10 @@ class OrganisationSerializer(serializers.ModelSerializer):
             "name",
             "org_type",
             "is_active",
+            "tier",
+            "tier_name",
+            "extra_modules",
+            "entitled_modules",
             "facility_access",
             "active_user_count",
             "access_summary",
@@ -267,6 +285,11 @@ class SelfUserSerializer(serializers.ModelSerializer):
     organisation_name = serializers.CharField(
         source="organisation.name", read_only=True
     )
+    entitled_modules = serializers.SerializerMethodField()
+
+    def get_entitled_modules(self, obj):
+        from .entitlements import entitled_modules
+        return sorted(entitled_modules(obj))
 
     class Meta:
         model = User
@@ -281,6 +304,7 @@ class SelfUserSerializer(serializers.ModelSerializer):
             "organisation_name",
             "can_manage_org_users",
             "theme_preference",
+            "entitled_modules",
         ]
         read_only_fields = [
             "id",

@@ -22,6 +22,9 @@ export interface CurrentUser {
   can_manage_org_users: boolean;
   theme_preference: ThemePreference;
   is_active?: boolean;
+  /** Intelligence modules this user may access (facility leads: all). Drives
+   * which sidebar links appear; the server enforces the same set. */
+  entitled_modules?: string[];
 }
 
 export interface GeoState {
@@ -66,8 +69,29 @@ export interface Organisation {
   name: string;
   org_type: string | null;
   is_active: boolean;
+  tier: string | null;
+  tier_name?: string | null;
+  extra_modules: string[];
+  entitled_modules?: string[];
   facility_access: FacilityAccessGrant[];
   active_user_count: number;
   access_summary: string;
   created_at: string;
+}
+
+/** A gateable intelligence module (from the backend catalogue). */
+export interface IntelModule {
+  key: string;
+  label: string;
+  href: string;
+  order: number;
+}
+
+/** A subscription tier: a named, reorderable bundle of module keys. */
+export interface SubscriptionTier {
+  id: string;
+  name: string;
+  slug: string;
+  modules: string[];
+  order: number;
 }
