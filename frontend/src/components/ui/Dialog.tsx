@@ -43,6 +43,11 @@ export function Modal({
         style={{
           width,
           maxWidth: "100%",
+          // Never taller than the viewport (minus the scrim's 16px gutter each
+          // side); scroll inside when the content doesn't fit, so nothing below
+          // the fold is unreachable.
+          maxHeight: "calc(100vh - 32px)",
+          overflowY: "auto",
           background: "var(--cv-card-bg)",
           border: "1px solid var(--cv-card-border)",
           borderRadius: 12,
