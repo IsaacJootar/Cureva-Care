@@ -21,10 +21,17 @@ import { GeoCascade, type GeoSelection } from "@/components/geo";
 import { useToast } from "@/components/ui/Toast";
 import { CheckIcon, EditIcon, PlusIcon, ShieldIcon } from "@/components/icons";
 
-const TIER_LABEL: Record<AccessLevel, string> = {
-  aggregate: "Aggregate",
-  de_identified: "De-identified",
-  identifiable: "Identifiable",
+// How much personal detail an organisation sees in the records it's granted.
+// Short label for the pill; longer plain-language line for the dropdown.
+const DETAIL_LABEL: Record<AccessLevel, string> = {
+  aggregate: "Totals only",
+  de_identified: "No names",
+  identifiable: "Full detail",
+};
+const DETAIL_OPTION: Record<AccessLevel, string> = {
+  aggregate: "Totals & charts only — no individual records (default)",
+  de_identified: "Individual records, with names & phone numbers removed",
+  identifiable: "Full records, including names & contact",
 };
 
 interface Paginated<T> {
@@ -42,9 +49,9 @@ function scopeFrom(sel: GeoSelection): { scope_type: ScopeType; scope_id: string
   return null;
 }
 
-function tierSummary(org: Organisation): string {
-  const tiers = new Set(org.facility_access.map((g) => TIER_LABEL[g.access_level]));
-  return tiers.size === 0 ? "—" : Array.from(tiers).join(", ");
+function detailSummary(org: Organisation): string {
+  const levels = new Set(org.facility_access.map((g) => DETAIL_LABEL[g.access_level]));
+  return levels.size === 0 ? "—" : Array.from(levels).join(", ");
 }
 
 export default function OrganisationsPage() {
@@ -101,7 +108,7 @@ export default function OrganisationsPage() {
               <Th>Type</Th>
               <Th>Plan</Th>
               <Th>Facilities / regions granted</Th>
-              <Th>Access tier</Th>
+              <Th>Data detail</Th>
               <Th>Active users</Th>
               <Th>Status</Th>
               <Th style={{ textAlign: "right" }}>Actions</Th>
@@ -125,7 +132,7 @@ export default function OrganisationsPage() {
                   )}
                 </Td>
                 <Td>{o.access_summary}</Td>
-                <Td>{tierSummary(o)}</Td>
+                <Td>{detailSummary(o)}</Td>
                 <Td><span className="cv-num">{o.active_user_count}</span></Td>
                 <Td>
                   {o.is_active ? (
@@ -182,13 +189,17 @@ function GrantEditor({ onAdd }: { onAdd: (g: { scope_type: ScopeType; scope_id: 
 
   return (
     <div style={{ border: "1px solid var(--cv-card-border)", borderRadius: 10, padding: 14 }}>
+      <p style={{ fontSize: 11.5, color: "var(--cv-text-muted)", margin: "0 0 10px" }}>
+        Pick one facility, or stop at a state / LGA / ward and leave the facility blank to grant
+        every facility in that area (including any added later).
+      </p>
       <GeoCascade includeFacility onChange={setSel} />
       <div style={{ display: "flex", gap: 10, alignItems: "flex-end", marginTop: 12 }}>
         <div style={{ flex: 1 }}>
-          <SelectField id="tier" label="Access tier" value={tier} onChange={(e) => setTier(e.target.value as AccessLevel)}>
-            <option value="aggregate">Aggregate (least identifiable — default)</option>
-            <option value="de_identified">De-identified</option>
-            <option value="identifiable">Identifiable</option>
+          <SelectField id="tier" label="How much detail can they see?" value={tier} onChange={(e) => setTier(e.target.value as AccessLevel)}>
+            <option value="aggregate">{DETAIL_OPTION.aggregate}</option>
+            <option value="de_identified">{DETAIL_OPTION.de_identified}</option>
+            <option value="identifiable">{DETAIL_OPTION.identifiable}</option>
           </SelectField>
         </div>
         <Button
@@ -198,12 +209,12 @@ function GrantEditor({ onAdd }: { onAdd: (g: { scope_type: ScopeType; scope_id: 
             if (scope) onAdd({ ...scope, access_level: tier });
           }}
         >
-          Add grant
+          Add
         </Button>
       </div>
       {scope && (
         <p style={{ fontSize: 11, color: "var(--cv-text-muted)", marginTop: 8 }}>
-          Will grant: <strong>{scope.label}</strong> at {TIER_LABEL[tier]} tier.
+          Will grant <strong>{scope.label}</strong> — {DETAIL_OPTION[tier].replace(" (default)", "")}.
         </p>
       )}
     </div>
@@ -224,7 +235,7 @@ function GrantRow({ label, tier, onRemove }: { label: string; tier: AccessLevel;
     >
       <span style={{ fontSize: 12.5, color: "var(--cv-text-primary)" }}>{label}</span>
       <span style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>
-        <StatusPill status="neutral">{TIER_LABEL[tier]}</StatusPill>
+        <StatusPill status="neutral">{DETAIL_LABEL[tier]}</StatusPill>
         <button onClick={onRemove} style={{ background: "none", border: "none", color: "var(--cv-button-danger-bg)", cursor: "pointer", fontSize: 11.5 }}>
           Remove
         </button>
@@ -412,7 +423,8 @@ function NewOrganisationModal({ onClose, onCreated }: { onClose: () => void; onC
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
           <p style={{ fontSize: 12, color: "var(--cv-text-secondary)", margin: 0 }}>
-            Grant view-only access to facilities or whole regions. A region grant auto-expands to every facility under it, present and future. New organisations default to the Aggregate tier.
+            Choose whose data this organisation can see. They get view-only access to the facilities
+            or regions you grant — a region grant covers every facility in it, now and in future.
           </p>
           <GrantEditor onAdd={(g) => setGrants((prev) => [...prev, g])} />
 
@@ -507,9 +519,12 @@ function ManageAccessModal({ org, onClose, onChanged }: { org: Organisation; onC
         </Button>
       </div>
 
-      <div style={{ fontSize: 12, fontWeight: 600, color: "var(--cv-text-primary)", marginBottom: 8 }}>
+      <div style={{ fontSize: 12, fontWeight: 600, color: "var(--cv-text-primary)", marginBottom: 2 }}>
         Facilities & regions
       </div>
+      <p style={{ fontSize: 11.5, color: "var(--cv-text-muted)", margin: "0 0 10px" }}>
+        Whose data this organisation can see, and how much personal detail.
+      </p>
       <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 16 }}>
         {grants.length === 0 ? (
           <p style={{ fontSize: 12, color: "var(--cv-text-muted)" }}>No access granted yet.</p>
