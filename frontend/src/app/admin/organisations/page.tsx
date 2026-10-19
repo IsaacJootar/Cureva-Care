@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Dialog";
 import { SelectField, TextField } from "@/components/ui/Field";
 import { EmptyState, StatusPill, StatTileSkeleton } from "@/components/ui/Feedback";
-import { RowActionsMenu, Table, Td, Th } from "@/components/ui/Table";
+import { Table, Td, Th } from "@/components/ui/Table";
 import { GeoCascade, type GeoSelection } from "@/components/geo";
 import { useToast } from "@/components/ui/Toast";
 import { CheckIcon, EditIcon, PlusIcon, ShieldIcon } from "@/components/icons";
@@ -134,16 +134,15 @@ export default function OrganisationsPage() {
                     <StatusPill status="neutral">Inactive</StatusPill>
                   )}
                 </Td>
-                <Td>
-                  <RowActionsMenu
-                    actions={[
-                      {
-                        icon: <EditIcon size={16} />,
-                        label: "Manage access",
-                        onClick: () => setEditing(o),
-                      },
-                    ]}
-                  />
+                <Td style={{ textAlign: "right" }}>
+                  <Button
+                    variant="secondary"
+                    leftIcon={<EditIcon size={15} />}
+                    onClick={() => setEditing(o)}
+                    style={{ padding: "6px 12px", fontSize: 12.5 }}
+                  >
+                    Manage
+                  </Button>
                 </Td>
               </tr>
             ))}
