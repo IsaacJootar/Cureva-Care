@@ -30,7 +30,7 @@ function csvFor(t: Trends, keys: string[]) {
   return { header, rows };
 }
 
-const NOTE = "Recorded register activity by service date — not population rates. A gap means no data, never zero.";
+const NOTE = "Recorded activity, not population rates.";
 
 export function TrendsPanel() {
   const [bucket, setBucket] = useState<"month" | "week">("month");

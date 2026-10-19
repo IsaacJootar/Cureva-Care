@@ -39,7 +39,7 @@ export function ContinuumSection() {
         <ChartCard
         title="Where women drop off"
         subtitle="How many women reach each step — register → check-ups → birth → after-birth care"
-        note="A step only counts a woman once her records are matched across visits. A drop-off is a chance to follow up, not an error."
+        note="A drop-off is a chance to follow up."
         exportCsv={{
           name: "care-funnel",
           header: ["Step", "Women", "Dropped from previous", "Share of booked"],
@@ -77,8 +77,7 @@ export function ContinuumSection() {
 
       <ChartCard
         title="Follow-up list — who fell through"
-        subtitle="Download a named list of women to follow up at a drop-off point"
-        note="Access-scoped: aggregate viewers see counts only; de-identified hides names. Recorded activity, not population rates."
+        subtitle="A named list to follow up"
         action={
           <select
             value={kind}
@@ -139,8 +138,8 @@ export function ContinuumSection() {
 
       <ChartCard
         title="Each month's mothers, over time"
-        subtitle="Of the women who registered in a given month, the share who reached 4+ check-ups, birth, and after-birth care"
-        note="Each month's group is measured against its own registrations. Recorded activity, not population rates."
+        subtitle="Each month's registrations, followed through the journey"
+        note="Recorded activity, not population rates."
         exportCsv={cohorts ? {
           name: "cohort-retention",
           header: ["Booking month", ...Object.values(cohorts.series).map((s) => s.label)],

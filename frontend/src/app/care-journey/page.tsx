@@ -14,7 +14,7 @@ export default function CareJourneyPage() {
   }, []);
 
   return (
-    <AppShell title="Care journey" subtitle="How far women get along the path: register → check-ups → birth → after-birth care" allowedRoles={["facility_lead", "organisation_user"]}>
+    <AppShell title="Care journey" subtitle="From registration to after-birth care" allowedRoles={["facility_lead", "organisation_user"]}>
       {!s ? (
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18 }}><StatTileSkeleton /><StatTileSkeleton /></div>
       ) : (

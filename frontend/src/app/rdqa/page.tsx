@@ -32,7 +32,7 @@ export default function RdqaPage() {
   return (
     <AppShell
       title="Data quality (RDQA)"
-      subtitle="Continuous Routine Data Quality Assessment — the grant-condition audit, generated continuously"
+      subtitle="Continuous data-quality check"
       allowedRoles={["facility_lead", "organisation_user"]}
     >
       <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
@@ -45,8 +45,7 @@ export default function RdqaPage() {
 
         <ChartCard
           title="How clearly registers are being read, over time"
-          subtitle="How confident the AI was when reading each field, by month"
-          note="A sign of how legible each facility's paper registers are — produced automatically as registers are imported."
+          subtitle="AI reading confidence, by month"
         >
           {!trend || trend.points.length === 0 ? (
             <p style={{ fontSize: 12, color: "var(--cv-text-muted)" }}>Confidence trend appears once intakes publish across more than one month.</p>
@@ -56,9 +55,8 @@ export default function RdqaPage() {
         </ChartCard>
 
         <ChartCard
-          title="RDQA scorecard"
-          subtitle="Per facility — download as your grant-condition data-quality report"
-          note="Score (0–100) = 45% confidence + 45% completeness − implausible-value & open-flag penalties. Weights are operational, not clinical."
+          title="Scorecard"
+          subtitle="Per facility — download the full report"
           exportCsv={sc ? {
             name: "rdqa-scorecard",
             header: ["Facility", "Region", "Rows", "Score", "Confidence", "Completeness", "Implausible rate", "Open flags", "Avg days to publish"],

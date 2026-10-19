@@ -29,16 +29,12 @@ export default function RiskPage() {
 
   return (
     <AppShell
-      title="Risk & early warning"
-      subtitle="Risk-stratified pregnancies and proactive alerts"
+      title="Risk & alerts"
+      subtitle="Who to follow up first"
       allowedRoles={["facility_lead", "organisation_user"]}
     >
       <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-        <div style={{ background: "var(--cv-warning-bg)", border: "1px solid var(--cv-warning-border)", borderRadius: "var(--cv-radius-card)", padding: "10px 14px", fontSize: 11.5, color: "var(--cv-text-secondary)" }}>
-          Risk levels come only from <strong>what was recorded</strong> at check-ups — a way to decide who to follow up first, <strong>not a diagnosis</strong>. The cut-offs are standard <strong>World Health Organization</strong> values. &quot;None recorded&quot; means no warning sign was written down, not that a pregnancy is safe.
-        </div>
-
-        <ChartCard title="Early-warning alerts" subtitle="Proactive signals for your scope">
+        <ChartCard title="Alerts" subtitle="Based on recorded check-ups · WHO guidance · not a diagnosis">
           {!alerts ? (
             <p style={{ fontSize: 12, color: "var(--cv-text-muted)" }}>Loading…</p>
           ) : alerts.alerts.length === 0 ? (
@@ -60,7 +56,7 @@ export default function RiskPage() {
         </ChartCard>
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1.4fr", gap: 16 }}>
-          <ChartCard title="Risk levels" subtitle="Current (not yet delivered) pregnancies, grouped by risk">
+          <ChartCard title="Risk levels" subtitle="Current pregnancies by risk">
             {!pyr || pyr.total === 0 ? (
               <p style={{ fontSize: 12, color: "var(--cv-text-muted)" }}>No active pregnancies in scope.</p>
             ) : (
@@ -73,8 +69,7 @@ export default function RiskPage() {
 
           <ChartCard
             title="Pregnancies to watch"
-            subtitle="Current pregnancies with a warning sign — highest risk first"
-            note="Aggregate viewers see counts only; names are hidden for de-identified access."
+            subtitle="Highest risk first"
             exportCsv={reg && !aggregate ? {
               name: "risk-registry",
               header: ["Woman", "Risk level", "Warning signs", "Registered", "Last check-up", "Days since last check-up"],

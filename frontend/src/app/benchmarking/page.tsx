@@ -10,7 +10,7 @@ import { SelectField } from "@/components/ui/Field";
 import { ChartCard, LeagueTable, MetricMeter, type LeagueRow } from "@/components/ui/Charts";
 import { NigeriaMap, type MapDatum } from "@/components/dashboard/NigeriaMap";
 
-const NOTE = "Recorded register activity, not population rates. Rates on a small denominator are flagged — a 1/1 can't outrank a 180/200.";
+const NOTE = "Recorded activity, not population rates. Small samples flagged.";
 
 function fmtRate(rate: number | null, num: number, den: number | null) {
   if (rate == null) return "no data";
@@ -101,7 +101,7 @@ export default function BenchmarkingPage() {
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
           <ChartCard
             title={`By ${level === "state" ? "State" : "LGA"} — ${geo?.label ?? ""}`}
-            subtitle="Geographic rollup (map view in the geographic tab)"
+            subtitle="Totals by area"
             note={NOTE}
             action={
               <div style={{ display: "inline-flex", background: "var(--cv-bg)", borderRadius: "var(--cv-radius-pill)", padding: 2, border: "1px solid var(--cv-hairline)" }}>

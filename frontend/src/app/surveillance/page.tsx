@@ -50,7 +50,7 @@ export default function SurveillancePage() {
   return (
     <AppShell
       title="Deaths & stillbirths"
-      subtitle="Every mother or baby death and stillbirth, traced back through her pregnancy record (surveillance / MPDSR)"
+      subtitle="Each one, traced back through her record (MPDSR)"
       allowedRoles={["facility_lead", "organisation_user"]}
     >
       <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
@@ -64,7 +64,7 @@ export default function SurveillancePage() {
         <ChartCard
           title="Deaths & stillbirths over time"
           subtitle="Stillbirths, newborn deaths & mothers who died, by month"
-          note="Recorded on the birth register; a rising line at one facility is an early warning to look closer, not a diagnosis."
+          note="A rising line is a signal to look closer."
           exportCsv={trend ? {
             name: "deaths-stillbirths-trend",
             header: ["Month", "Stillbirths", "Newborn deaths (first week)", "Mothers who died"],
@@ -79,7 +79,7 @@ export default function SurveillancePage() {
         </ChartCard>
 
         <div style={{ display: "grid", gridTemplateColumns: "1.3fr 1fr", gap: 16 }}>
-          <ChartCard title="Case list" subtitle="Click a case to see the woman's full story — pregnancy check-ups → birth → after-birth care">
+          <ChartCard title="Case list" subtitle="Click a case for her full story">
             {aggregate ? (
               <p style={{ fontSize: 11.5, color: "var(--cv-text-muted)" }}>Your access level shows counts only — the case list is not available.</p>
             ) : !cases || cases.cases.length === 0 ? (
@@ -108,8 +108,8 @@ export default function SurveillancePage() {
 
           <ChartCard
             title="Which facilities to look at"
-            subtitle="Facilities with the highest share of deaths/stillbirths per birth"
-            note="Deaths & stillbirths ÷ births. A facility with very few births can swing high or low on one case."
+            subtitle="Highest share of deaths/stillbirths per birth"
+            note="Small samples swing easily."
             exportCsv={clusters ? {
               name: "facilities-to-review",
               header: ["Facility", "Region", "Deaths & stillbirths", "Births", "Rate"],
