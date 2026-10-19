@@ -34,7 +34,8 @@ export interface Workspace {
   role: string;
   access_level: string;
   facility_count: number;
-  facilities: { id: string; name: string; region: string }[];
+  scope_breakdown?: { facilities: number; wards: number; lgas: number; states: number };
+  facilities: { id: string; name: string; region: string; ward?: string; lga?: string; state?: string }[];
   summary: Summary;
 }
 
@@ -42,6 +43,9 @@ export interface FacilityRow {
   id: string;
   name: string;
   region: string;
+  ward?: string;
+  lga?: string;
+  state?: string;
   last_intake: string | null;
   is_stale: boolean;
   verified_records: number;
@@ -90,12 +94,12 @@ export interface Benchmarking {
 export interface GeoArea {
   area_id: string; name: string; value: number | null; numerator: number; denominator: number | null; rate: number | null; low_confidence: boolean;
 }
-export interface GeoRollup { metric: string; level: "state" | "lga"; kind: "count" | "rate"; label: string; areas: GeoArea[] }
+export interface GeoRollup { metric: string; level: "ward" | "lga" | "state"; kind: "count" | "rate"; label: string; areas: GeoArea[] }
 export interface EquityBand { band: string; contacts: number; screening_coverage: Ratio; intervention_coverage: Ratio }
 export interface Equity { dimension: string; bands: EquityBand[] }
 
 export const getBenchmarking = (metric = "deliveries") => apiGet<Benchmarking>(`/benchmarking?metric=${metric}`);
-export const getGeo = (metric = "deliveries", level: "state" | "lga" = "state") =>
+export const getGeo = (metric = "deliveries", level: "ward" | "lga" | "state" = "state") =>
   apiGet<GeoRollup>(`/geo?metric=${metric}&level=${level}`);
 export const getEquity = () => apiGet<Equity>("/equity");
 

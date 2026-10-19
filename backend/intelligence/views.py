@@ -289,15 +289,30 @@ class WorkspaceView(APIView):
             "ward__local_government__state"
         )
         summary = maternal_summary(facility_ids)
+        facilities = list(facilities)
+        # Facility-first scope: how many facilities, and across how many wards /
+        # LGAs / states they sit (the hierarchy the customer is buying into).
+        wards = {f.ward_id for f in facilities}
+        lgas = {f.ward.local_government_id for f in facilities}
+        states = {f.ward.local_government.state_id for f in facilities}
         return Response({
             "role": request.user.role,
             "access_level": scope["access_level"],
             "facility_count": len(facility_ids),
+            "scope_breakdown": {
+                "facilities": len(facilities),
+                "wards": len(wards),
+                "lgas": len(lgas),
+                "states": len(states),
+            },
             "facilities": [
                 {
                     "id": str(f.id),
                     "name": f.name,
-                    "region": f"{f.state.name} · {f.local_government.name}",
+                    "region": f.region_path,
+                    "ward": f.ward.name,
+                    "lga": f.ward.local_government.name,
+                    "state": f.ward.local_government.state.name,
                 }
                 for f in facilities
             ],
@@ -334,7 +349,10 @@ class FacilitiesOverviewView(APIView):
             rows.append({
                 "id": str(f.id),
                 "name": f.name,
-                "region": f"{f.state.name} · {f.local_government.name}",
+                "region": f.region_path,
+                "ward": f.ward.name,
+                "lga": f.ward.local_government.name,
+                "state": f.ward.local_government.state.name,
                 "last_intake": last,
                 "is_stale": (last is None) or (last < cutoff),
                 "verified_records": summ["operational"]["verified_records"],

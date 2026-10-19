@@ -127,6 +127,13 @@ class Facility(models.Model):
     def state(self):
         return self.ward.local_government.state
 
+    @property
+    def region_path(self):
+        """Full location, top-down: 'State · LGA · Ward'. The facility itself is
+        named separately; this places it in its ward within the hierarchy."""
+        lga = self.ward.local_government
+        return f"{lga.state.name} · {lga.name} · {self.ward.name}"
+
 
 # --- Organisations (the view-only SaaS customer layer) --------------------
 class Organisation(models.Model):

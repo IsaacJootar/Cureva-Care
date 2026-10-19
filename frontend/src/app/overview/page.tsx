@@ -34,7 +34,7 @@ export default function OverviewPage() {
   return (
     <AppShell
       title="Overview"
-      subtitle={ws ? (isOrg ? `${ws.facility_count} facilities in your scope` : "Your facility's operating picture") : "Loading…"}
+      subtitle={ws ? (isOrg ? scopeLine(ws.scope_breakdown) : "Your facility's operating picture") : "Loading…"}
       allowedRoles={["facility_lead", "organisation_user"]}
     >
       {!ws || !s ? (
@@ -95,6 +95,12 @@ export default function OverviewPage() {
       )}
     </AppShell>
   );
+}
+
+function scopeLine(b?: { facilities: number; wards: number; lgas: number; states: number }): string {
+  if (!b) return "Your scope";
+  const p = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
+  return `${p(b.facilities, "facility", "facilities")} · ${p(b.wards, "ward", "wards")} · ${p(b.lgas, "LGA", "LGAs")} · ${p(b.states, "state", "states")}`;
 }
 
 function LinkageLine({ label, ratio }: { label: string; ratio: { numerator: number; denominator: number; rate: number | null } }) {

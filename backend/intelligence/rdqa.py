@@ -97,7 +97,7 @@ def rdqa_scorecard(facility_ids, date_from=None, date_to=None) -> dict:
             continue
         card.update({
             "facility_id": fid, "name": f.name,
-            "region": f"{f.ward.local_government.state.name} · {f.ward.local_government.name}",
+            "region": f.region_path,
         })
         rows.append(card)
     rows.sort(key=lambda r: (r["score"] is None, -(r["score"] or 0)))

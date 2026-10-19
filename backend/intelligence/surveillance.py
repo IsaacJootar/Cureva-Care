@@ -89,7 +89,7 @@ def severe_cases(facility_ids, access_level, date_from=None, date_to=None, limit
             "woman": None if de_identify else {"internal_id": b.woman.internal_id, "name": b.woman.name},
             "woman_internal_id": b.woman.internal_id,
             "facility": f.name,
-            "region": f"{f.ward.local_government.state.name} · {f.ward.local_government.name}",
+            "region": f.region_path,
             "delivery_date": b.delivery_date,
             "outcomes": _severe_types(b),
             "antenatal_risk": _antenatal_risk(b.episode_id) if b.episode_id else [],
@@ -174,7 +174,7 @@ def facility_clusters(facility_ids, date_from=None, date_to=None) -> dict:
             continue
         rows.append({
             "facility_id": fid, "name": f.name,
-            "region": f"{f.ward.local_government.state.name} · {f.ward.local_government.name}",
+            "region": f.region_path,
             "severe": sev, "deliveries": deliv,
             "rate": round(sev / deliv, 4) if deliv else None,
         })

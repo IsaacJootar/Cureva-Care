@@ -19,7 +19,7 @@ function fmtRate(rate: number | null, num: number, den: number | null) {
 
 export default function BenchmarkingPage() {
   const [metric, setMetric] = useState("deliveries");
-  const [level, setLevel] = useState<"state" | "lga">("state");
+  const [level, setLevel] = useState<"ward" | "lga" | "state">("state");
   const [bench, setBench] = useState<Benchmarking | null>(null);
   const [geo, setGeo] = useState<GeoRollup | null>(null);
   const [stateGeo, setStateGeo] = useState<GeoRollup | null>(null);
@@ -100,12 +100,12 @@ export default function BenchmarkingPage() {
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
           <ChartCard
-            title={`By ${level === "state" ? "State" : "LGA"} — ${geo?.label ?? ""}`}
+            title={`By ${level === "state" ? "State" : level === "lga" ? "LGA" : "Ward"} — ${geo?.label ?? ""}`}
             subtitle="Totals by area"
             note={NOTE}
             action={
               <div style={{ display: "inline-flex", background: "var(--cv-bg)", borderRadius: "var(--cv-radius-pill)", padding: 2, border: "1px solid var(--cv-hairline)" }}>
-                {(["state", "lga"] as const).map((l) => (
+                {(["ward", "lga", "state"] as const).map((l) => (
                   <button key={l} onClick={() => setLevel(l)} style={{
                     padding: "3px 10px", borderRadius: "var(--cv-radius-pill)", border: "none", cursor: "pointer",
                     fontSize: 10.5, fontWeight: 600, textTransform: "uppercase",

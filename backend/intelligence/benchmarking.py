@@ -150,7 +150,7 @@ def facility_league(facility_ids, metric="deliveries", date_from=None, date_to=N
         rows.append({
             "facility_id": fid,
             "name": f.name,
-            "region": f"{f.ward.local_government.state.name} · {f.ward.local_government.name}",
+            "region": f.region_path,
             "value": value,
             "numerator": num,
             "denominator": den,
@@ -164,11 +164,11 @@ def facility_league(facility_ids, metric="deliveries", date_from=None, date_to=N
 
 
 def geo_rollup(facility_ids, metric="deliveries", level="state", date_from=None, date_to=None) -> dict:
-    """Aggregate a metric up to State or LGA for the choropleth / geographic view."""
+    """Aggregate a metric up the hierarchy — Ward, LGA or State."""
     facility_ids = list(facility_ids or [])
     if metric not in METRICS:
         metric = "deliveries"
-    if level not in ("state", "lga"):
+    if level not in ("ward", "lga", "state"):
         level = "state"
     if not facility_ids:
         return {"metric": metric, "level": level, "kind": METRICS[metric]["kind"], "areas": []}
@@ -181,8 +181,10 @@ def geo_rollup(facility_ids, metric="deliveries", level="state", date_from=None,
     for f in facs:
         if level == "state":
             area_id, area_name = str(f.ward.local_government.state_id), f.ward.local_government.state.name
-        else:
+        elif level == "lga":
             area_id, area_name = str(f.ward.local_government_id), f.ward.local_government.name
+        else:  # ward
+            area_id, area_name = str(f.ward_id), f.ward.name
         names[area_id] = area_name
         a = acc.get(str(f.id), _blank_acc())
         g = groups[area_id]
