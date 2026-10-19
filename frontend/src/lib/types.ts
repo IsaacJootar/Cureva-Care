@@ -61,6 +61,7 @@ export interface FacilityAccessGrant {
   scope_id: string;
   access_level: AccessLevel;
   scope_label: string | null;
+  scope_region: string | null;
   granted_at: string;
 }
 

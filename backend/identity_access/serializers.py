@@ -80,6 +80,7 @@ class FacilityCreateSerializer(serializers.ModelSerializer):
 # --- Organisations --------------------------------------------------------
 class OrganisationFacilityAccessSerializer(serializers.ModelSerializer):
     scope_label = serializers.SerializerMethodField()
+    scope_region = serializers.SerializerMethodField()
 
     class Meta:
         model = OrganisationFacilityAccess
@@ -90,6 +91,7 @@ class OrganisationFacilityAccessSerializer(serializers.ModelSerializer):
             "scope_id",
             "access_level",
             "scope_label",
+            "scope_region",
             "granted_at",
         ]
         read_only_fields = ["id", "organisation", "granted_at"]
@@ -106,6 +108,22 @@ class OrganisationFacilityAccessSerializer(serializers.ModelSerializer):
             return None
         row = model.objects.filter(pk=obj.scope_id).first()
         return row.name if row else None
+
+    def get_scope_region(self, obj):
+        """Where the granted scope sits in the hierarchy, so a facility grant
+        shows its ward/LGA/state rather than just a bare name."""
+        if obj.scope_type == ScopeType.FACILITY:
+            f = Facility.objects.filter(pk=obj.scope_id).select_related(
+                "ward__local_government__state"
+            ).first()
+            return f.region_path if f else None
+        if obj.scope_type == ScopeType.WARD:
+            w = Ward.objects.filter(pk=obj.scope_id).select_related("local_government__state").first()
+            return f"{w.local_government.state.name} · {w.local_government.name}" if w else None
+        if obj.scope_type == ScopeType.LOCAL_GOVERNMENT:
+            lga = LocalGovernment.objects.filter(pk=obj.scope_id).select_related("state").first()
+            return lga.state.name if lga else None
+        return None  # state grant: already top-level
 
 
 class OrganisationFacilityAccessCreateSerializer(serializers.Serializer):

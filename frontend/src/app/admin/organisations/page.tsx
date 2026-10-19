@@ -221,7 +221,7 @@ function GrantEditor({ onAdd }: { onAdd: (g: { scope_type: ScopeType; scope_id: 
   );
 }
 
-function GrantRow({ label, tier, onRemove }: { label: string; tier: AccessLevel; onRemove: () => void }) {
+function GrantRow({ label, region, tier, onRemove }: { label: string; region?: string | null; tier: AccessLevel; onRemove: () => void }) {
   return (
     <div
       style={{
@@ -233,7 +233,10 @@ function GrantRow({ label, tier, onRemove }: { label: string; tier: AccessLevel;
         borderRadius: 8,
       }}
     >
-      <span style={{ fontSize: 12.5, color: "var(--cv-text-primary)" }}>{label}</span>
+      <span style={{ display: "flex", flexDirection: "column", gap: 1 }}>
+        <span style={{ fontSize: 12.5, color: "var(--cv-text-primary)" }}>{label}</span>
+        {region && <span style={{ fontSize: 10.5, color: "var(--cv-text-muted)" }}>{region}</span>}
+      </span>
       <span style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>
         <StatusPill status="neutral">{DETAIL_LABEL[tier]}</StatusPill>
         <button onClick={onRemove} style={{ background: "none", border: "none", color: "var(--cv-button-danger-bg)", cursor: "pointer", fontSize: 11.5 }}>
@@ -530,11 +533,14 @@ function ManageAccessModal({ org, onClose, onChanged }: { org: Organisation; onC
           <p style={{ fontSize: 12, color: "var(--cv-text-muted)" }}>No access granted yet.</p>
         ) : (
           grants.map((g) => (
-            <GrantRow key={g.id} label={g.scope_label ?? `${g.scope_type}`} tier={g.access_level} onRemove={() => revoke(g.id)} />
+            <GrantRow key={g.id} label={g.scope_label ?? `${g.scope_type}`} region={g.scope_region} tier={g.access_level} onRemove={() => revoke(g.id)} />
           ))
         )}
       </div>
 
+      <div style={{ fontSize: 12, fontWeight: 600, color: "var(--cv-text-primary)", marginBottom: 8 }}>
+        Add another facility or region
+      </div>
       <GrantEditor onAdd={addGrant} />
 
       <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 18 }}>
