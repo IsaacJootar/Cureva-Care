@@ -33,13 +33,13 @@ export default function TiersPage() {
       allowedRoles={["systems_admin"]}
     >
       {!tiers || !modules ? (
-        <div style={{ display: "flex", flexDirection: "column", gap: 14, maxWidth: 760 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 14, maxWidth: 760, margin: "0 auto" }}>
           {Array.from({ length: 3 }).map((_, i) => (
             <StatTileSkeleton key={i} />
           ))}
         </div>
       ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 16, maxWidth: 760 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 16, maxWidth: 760, margin: "0 auto" }}>
           {tiers.map((t) => (
             <TierCard key={t.id} tier={t} modules={modules} />
           ))}

@@ -41,9 +41,9 @@ export default function NotificationsPage() {
   return (
     <AppShell title="Notification preferences" subtitle="Choose how you receive each notification — for your own account">
       {!prefs ? (
-        <div style={{ maxWidth: 560 }}><StatTileSkeleton /></div>
+        <div style={{ maxWidth: 560, margin: "0 auto" }}><StatTileSkeleton /></div>
       ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 12, maxWidth: 560 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 12, maxWidth: 560, margin: "0 auto" }}>
           {prefs.map((p) => (
             <Card key={p.id} padding="14px 16px">
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16 }}>

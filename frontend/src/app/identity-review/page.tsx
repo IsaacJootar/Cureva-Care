@@ -43,7 +43,7 @@ export default function IdentityReviewPage() {
       ) : candidates.length === 0 ? (
         <EmptyState icon={<UsersIcon size={24} />} heading="No matches to review" hint="Candidate identity matches above the confidence threshold will appear here for confirmation." />
       ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 14, maxWidth: 860 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 14, maxWidth: 860, margin: "0 auto" }}>
           {candidates.map((c) => (
             <CandidateCard key={c.id} candidate={c} onAct={act} />
           ))}

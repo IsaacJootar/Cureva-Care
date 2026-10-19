@@ -39,7 +39,7 @@ export default function MappingPage() {
       ) : data.unmatched_labels.length === 0 ? (
         <EmptyState icon={<CheckIcon size={24} />} heading="Nothing to map" hint="Every extracted label matched the template." />
       ) : (
-        <div style={{ maxWidth: 640, display: "flex", flexDirection: "column", gap: 12 }}>
+        <div style={{ maxWidth: 640, margin: "0 auto", display: "flex", flexDirection: "column", gap: 12 }}>
           <p style={{ fontSize: 12.5, color: "var(--cv-text-secondary)" }}>
             These labels were read from the page but didn&apos;t match the resolved template. Map each to a canonical
             field and save it as an alias — this creates a new template version; prior intakes keep their version.

@@ -19,11 +19,11 @@ export default function SettingsPage() {
   return (
     <AppShell title="Settings" subtitle="Every tunable value in the platform, in one place" allowedRoles={["systems_admin"]}>
       {!settings ? (
-        <div style={{ display: "flex", flexDirection: "column", gap: 12, maxWidth: 680 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 12, maxWidth: 680, margin: "0 auto" }}>
           {Array.from({ length: 3 }).map((_, i) => <StatTileSkeleton key={i} />)}
         </div>
       ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 12, maxWidth: 680 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 12, maxWidth: 680, margin: "0 auto" }}>
           {settings.map((s) => (
             <SettingRow key={s.key} setting={s} />
           ))}

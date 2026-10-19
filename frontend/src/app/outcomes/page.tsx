@@ -21,7 +21,7 @@ export default function OutcomesPage() {
           {Array.from({ length: 4 }).map((_, i) => <StatTileSkeleton key={i} />)}
         </div>
       ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 18, maxWidth: 900 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 18, maxWidth: 900, margin: "0 auto" }}>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 14 }}>
             <StatTile status="success" icon={<HeartPulseIcon size={14} />} label="Live births" value={s.outcomes.live_births} />
             <StatTile status={s.outcomes.still_births > 0 ? "danger" : "success"} icon={<HeartPulseIcon size={14} />} label="Stillbirths" value={s.outcomes.still_births} />

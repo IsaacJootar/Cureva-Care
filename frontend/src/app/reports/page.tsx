@@ -106,7 +106,7 @@ function ReportView({ report }: { report: ReportDetail }) {
   const s = report.sections as Record<string, Record<string, unknown>>;
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 16, maxWidth: 720 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 16, maxWidth: 720, margin: "0 auto" }}>
       <Card>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10 }}>
           <div>

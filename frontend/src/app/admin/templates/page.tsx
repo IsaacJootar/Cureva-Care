@@ -63,7 +63,7 @@ export default function TemplatesPage() {
         ))}
       </div>
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 18, maxWidth: 900 }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 18, maxWidth: 900, margin: "0 auto" }}>
         {/* Shared default */}
         <Card>
           <CardTitle right={sharedDefault ? <StatusPill status="success">Active · v{sharedDefault.version}</StatusPill> : undefined}>
