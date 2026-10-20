@@ -79,7 +79,7 @@ export default function RiskPage() {
             {!reg ? (
               <p style={{ fontSize: 12, color: "var(--cv-text-muted)" }}>Loading…</p>
             ) : aggregate ? (
-              <p style={{ fontSize: 11.5, color: "var(--cv-text-muted)" }}><strong className="cv-num">{reg.count}</strong> at-risk pregnancies. Your access level shows counts only.</p>
+              <p style={{ fontSize: 11.5, color: "var(--cv-text-muted)" }}><strong className="cv-num">{reg.count}</strong> at-risk pregnancies. Your access is totals only, so individual pregnancies aren’t listed.</p>
             ) : reg.rows.length === 0 ? (
               <p style={{ fontSize: 12, color: "var(--cv-text-muted)" }}>No pregnancies with a recorded risk marker. 🎉</p>
             ) : (

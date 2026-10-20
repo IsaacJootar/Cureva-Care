@@ -46,7 +46,7 @@ export default function ReportsPage() {
 
   async function exportCsv() {
     const result = await downloadRecordsCsv();
-    if (result === "forbidden") toast.warning("Record export isn't available at your access tier.");
+    if (result === "forbidden") toast.warning("Your access is totals only, so exporting individual records isn't available.");
     else if (result === "error") toast.error("Export failed.");
     else toast.success("Records exported.");
   }
@@ -54,7 +54,7 @@ export default function ReportsPage() {
   return (
     <AppShell
       title="Reports"
-      subtitle="Buyer-ready briefs and dataset exports"
+      subtitle="Ready-to-share reports and data downloads"
       allowedRoles={["facility_lead", "organisation_user"]}
       action={<Button onClick={generate} loading={generating} loadingLabel="Generating…">Generate report</Button>}
     >
@@ -62,12 +62,12 @@ export default function ReportsPage() {
         <div className="cv-no-print" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           <Card padding="14px 16px">
             <div style={{ marginBottom: 12 }}>
-              <SelectField id="rtype" label="Report product" value={reportType} onChange={(e) => setReportType(e.target.value)}>
+              <SelectField id="rtype" label="Report type" value={reportType} onChange={(e) => setReportType(e.target.value)}>
                 {types.length === 0 && <option value="facility_operational">Facility operational report</option>}
                 {types.map((t) => <option key={t.key} value={t.key}>{t.label}</option>)}
               </SelectField>
             </div>
-            <Toggle checked={withNarrative} onChange={setWithNarrative} label="Include AI narrative" caption="Aggregate-only prose; no identifiable data" />
+            <Toggle checked={withNarrative} onChange={setWithNarrative} label="Include AI summary" caption="A short written summary from the totals — no personal details" />
             <div style={{ marginTop: 12 }}>
               <Button variant="secondary" fullWidth leftIcon={<UploadIcon size={14} />} onClick={exportCsv}>Export records (CSV)</Button>
             </div>
@@ -82,7 +82,7 @@ export default function ReportsPage() {
                   <button key={r.id} onClick={() => getReport(r.id).then(setSelected)}
                     style={{ textAlign: "left", padding: "10px 12px", borderRadius: 8, border: "1px solid var(--cv-card-border)", background: selected?.id === r.id ? "var(--cv-accent-soft)" : "var(--cv-card-bg)", cursor: "pointer" }}>
                     <div style={{ fontSize: 12.5, fontWeight: 600, color: "var(--cv-text-primary)" }}>{r.title}</div>
-                    <div style={{ fontSize: 10.5, color: "var(--cv-text-muted)" }}>{new Date(r.created_at).toLocaleDateString()}{r.has_narrative ? " · narrative" : ""}</div>
+                    <div style={{ fontSize: 10.5, color: "var(--cv-text-muted)" }}>{new Date(r.created_at).toLocaleDateString()}{r.has_narrative ? " · summary" : ""}</div>
                   </button>
                 ))}
               </div>
@@ -92,7 +92,7 @@ export default function ReportsPage() {
 
         <div className="cv-print-area">
           {!selected ? (
-            <EmptyState icon={<FileTextIcon size={24} />} heading="No report selected" hint="Pick a product and generate a brief, or open a saved one." />
+            <EmptyState icon={<FileTextIcon size={24} />} heading="No report selected" hint="Pick a report type and generate one, or open a saved report." />
           ) : (
             <ReportView report={selected} />
           )}
@@ -119,7 +119,7 @@ function ReportView({ report }: { report: ReportDetail }) {
         {report.narrative ? (
           <p style={{ fontSize: 12.5, color: "var(--cv-text-secondary)", lineHeight: 1.6, whiteSpace: "pre-wrap", marginTop: 12 }}>{report.narrative}</p>
         ) : (
-          <p style={{ fontSize: 11.5, color: "var(--cv-text-muted)", marginTop: 12 }}>Figures reflect recorded register activity, not population rates. Missing fields are not inferred.</p>
+          <p style={{ fontSize: 11.5, color: "var(--cv-text-muted)", marginTop: 12 }}>Figures come from what facilities have recorded, not an estimate for the whole population. Blank entries are left blank, never guessed.</p>
         )}
       </Card>
 

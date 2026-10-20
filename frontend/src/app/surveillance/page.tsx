@@ -81,7 +81,7 @@ export default function SurveillancePage() {
         <div style={{ display: "grid", gridTemplateColumns: "1.3fr 1fr", gap: 16 }}>
           <ChartCard title="Case list" subtitle="Click a case for her full story">
             {aggregate ? (
-              <p style={{ fontSize: 11.5, color: "var(--cv-text-muted)" }}>Your access level shows counts only — the case list is not available.</p>
+              <p style={{ fontSize: 11.5, color: "var(--cv-text-muted)" }}>Your access is totals only, so the individual case list isn’t shown.</p>
             ) : !cases || cases.cases.length === 0 ? (
               <p style={{ fontSize: 12, color: "var(--cv-text-muted)" }}>No cases in this period.</p>
             ) : (

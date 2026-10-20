@@ -35,7 +35,7 @@ export default function OutcomesPage() {
               { label: "Low birth wt.", value: s.outcomes.low_birth_weight, status: "warning" },
             ]} />
             <p style={{ fontSize: 11, color: "var(--cv-text-muted)", marginTop: 12 }}>
-              Counts of documented outcomes only — missing outcomes are never inferred (rule #6). Cureva Care reports recorded activity, not population rates.
+              These are counts of outcomes facilities actually recorded. Blank entries are left blank, never guessed — so this shows what was logged, not an estimate for the whole population.
             </p>
           </ChartPanel>
         </div>

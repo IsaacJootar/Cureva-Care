@@ -30,7 +30,7 @@ function csvFor(t: Trends, keys: string[]) {
   return { header, rows };
 }
 
-const NOTE = "Recorded activity, not population rates.";
+const NOTE = "Based on what facilities have recorded, not population estimates.";
 
 export function TrendsPanel() {
   const [bucket, setBucket] = useState<"month" | "week">("month");

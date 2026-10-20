@@ -10,7 +10,7 @@ import { SelectField } from "@/components/ui/Field";
 import { ChartCard, LeagueTable, MetricMeter, type LeagueRow } from "@/components/ui/Charts";
 import { NigeriaMap, type MapDatum } from "@/components/dashboard/NigeriaMap";
 
-const NOTE = "Recorded activity, not population rates. Small samples flagged.";
+const NOTE = "Based on what facilities have recorded, not population estimates. Very small numbers are flagged.";
 
 function fmtRate(rate: number | null, num: number, den: number | null) {
   if (rate == null) return "no data";
@@ -130,7 +130,7 @@ export default function BenchmarkingPage() {
             note="Based on what was recorded at check-ups; women with no number recorded are shown separately, never guessed."
           >
             {!equity || equity.bands.length === 0 ? (
-              <p style={{ fontSize: 12, color: "var(--cv-text-muted)" }}>No ANC parity data yet.</p>
+              <p style={{ fontSize: 12, color: "var(--cv-text-muted)" }}>No data on past births recorded yet.</p>
             ) : (
               <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
                 {equity.bands.map((b) => (

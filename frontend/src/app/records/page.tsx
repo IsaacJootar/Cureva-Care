@@ -28,11 +28,11 @@ export default function RecordsPage() {
 
   if (aggregate) {
     return (
-      <AppShell title="Records" subtitle="Source-faithful verified evidence" allowedRoles={["facility_lead", "organisation_user"]}>
+      <AppShell title="Records" subtitle="The individual verified records behind the numbers" allowedRoles={["facility_lead", "organisation_user"]}>
         <EmptyState
           icon={<AlertTriangleIcon size={24} />}
-          heading="Row-level records aren't available at your access tier"
-          hint="Your organisation's grant is at the Aggregate tier, which includes counts, rates, and charts — not individual records. Contact a Systems admin if you need de-identified or identifiable access."
+          heading="Individual records aren't included in your plan"
+          hint="Your organisation can see totals and charts, but not individual mothers' records. Ask a Cureva Care administrator if you need access to the records themselves."
         />
       </AppShell>
     );
@@ -51,7 +51,7 @@ export default function RecordsPage() {
           {Array.from({ length: 3 }).map((_, i) => <StatTileSkeleton key={i} />)}
         </div>
       ) : data.results.length === 0 ? (
-        <EmptyState icon={<FileTextIcon size={24} />} heading="No verified records yet" hint="Published register rows appear here as source-faithful evidence." />
+        <EmptyState icon={<FileTextIcon size={24} />} heading="No verified records yet" hint="Once records are checked and published, they appear here exactly as written in the register." />
       ) : (
         <>
           <Table>

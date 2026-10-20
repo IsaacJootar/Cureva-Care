@@ -27,7 +27,7 @@ export default function NeedsAttentionPage() {
   return (
     <AppShell
       title="Needs attention"
-      subtitle={items ? `${items.length} item${items.length === 1 ? "" : "s"} flagged by the rule engine` : "Loading…"}
+      subtitle={items ? `${items.length} item${items.length === 1 ? "" : "s"} to follow up` : "Loading…"}
       allowedRoles={["facility_lead"]}
     >
       {!items ? (
@@ -35,7 +35,7 @@ export default function NeedsAttentionPage() {
           {Array.from({ length: 3 }).map((_, i) => <StatTileSkeleton key={i} />)}
         </div>
       ) : items.length === 0 ? (
-        <EmptyState icon={<CheckIcon size={24} />} heading="Nothing needs attention" hint="No risk, referral, or follow-up rule is currently triggered for your facility." />
+        <EmptyState icon={<CheckIcon size={24} />} heading="Nothing needs attention" hint="No risks, referrals, or follow-ups are flagged for your facility right now." />
       ) : (
         <Table>
           <thead>

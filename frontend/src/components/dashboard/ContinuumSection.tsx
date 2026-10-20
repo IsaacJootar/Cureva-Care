@@ -139,7 +139,7 @@ export function ContinuumSection() {
       <ChartCard
         title="Each month's mothers, over time"
         subtitle="Each month's registrations, followed through the journey"
-        note="Recorded activity, not population rates."
+        note="Based on what facilities have recorded, not population estimates."
         exportCsv={cohorts ? {
           name: "cohort-retention",
           header: ["Booking month", ...Object.values(cohorts.series).map((s) => s.label)],
