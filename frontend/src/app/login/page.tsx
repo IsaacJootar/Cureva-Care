@@ -7,7 +7,7 @@ import { useAuth } from "@/lib/auth";
 import { roleLanding } from "@/lib/nav";
 import { Button } from "@/components/ui/Button";
 import { TextField } from "@/components/ui/Field";
-import { CheckIcon } from "@/components/icons";
+import { CheckIcon, MotherIcon } from "@/components/icons";
 
 function LoginInner() {
   const router = useRouter();
@@ -99,6 +99,22 @@ function LoginInner() {
           maxWidth: "100%",
         }}
       >
+        <span
+          style={{
+            width: 46,
+            height: 46,
+            borderRadius: 12,
+            background: "var(--cv-accent-gradient)",
+            boxShadow: "var(--cv-accent-glow)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: "#fff",
+            margin: "0 auto 12px",
+          }}
+        >
+          <MotherIcon size={26} />
+        </span>
         <div className="cv-brand" style={{ fontSize: 22, color: "var(--cv-text-primary)", textAlign: "center" }}>
           Cureva Care
         </div>

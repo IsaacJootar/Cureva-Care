@@ -25,6 +25,16 @@ function base({ size = 16, strokeWidth = 2, ...props }: IconProps) {
 export const CheckIcon = (p: IconProps) => (
   <svg {...base(p)}><path d="M20 6 9 17l-5-5" /></svg>
 );
+// Brand mark: a pregnant woman in side profile — head, back, a clear belly
+// curve, and two legs. Maternal-care identity for Cureva Care.
+export const MotherIcon = (p: IconProps) => (
+  <svg {...base(p)}>
+    <circle cx="11" cy="4" r="2.2" />
+    <path d="M11 6.2c-1.3.2-1.9 1.4-1.9 3 0 1.9 0 3.6-.4 5.1" />
+    <path d="M11 9.6c2.5-.2 4.3 1 4.3 3.1 0 1.8-1.5 3-3.6 3" />
+    <path d="M8.7 14.3 8 22M11.7 15.7 12.6 22" />
+  </svg>
+);
 export const XIcon = (p: IconProps) => (
   <svg {...base(p)}><path d="M18 6 6 18M6 6l12 12" /></svg>
 );

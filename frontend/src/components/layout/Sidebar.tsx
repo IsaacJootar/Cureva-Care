@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { navForUser, type NavGroup } from "@/lib/nav";
-import { CheckIcon } from "../icons";
+import { MotherIcon } from "../icons";
 import type { CurrentUser } from "@/lib/types";
 import { AccountMenu } from "./AccountMenu";
 
@@ -47,7 +47,7 @@ export function Sidebar({ user }: { user: CurrentUser }) {
             color: "#fff",
           }}
         >
-          <CheckIcon size={16} />
+          <MotherIcon size={17} />
         </span>
         <span className="cv-brand" style={{ color: "var(--cv-text-on-dark)", fontSize: 16 }}>
           Cureva Care
