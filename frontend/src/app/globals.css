@@ -271,6 +271,48 @@ h2,
   margin: 0 0 10px;
 }
 
+/* Saved-report list item — clearly clickable: lifts and highlights on hover,
+   with a chevron that nudges right, so it reads as "open this report". */
+.cv-brief-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  text-align: left;
+  padding: 11px 12px;
+  border-radius: 9px;
+  border: 1px solid var(--cv-card-border);
+  background: var(--cv-card-bg);
+  cursor: pointer;
+  transition: background 0.12s ease, border-color 0.12s ease, transform 0.12s ease,
+    box-shadow 0.12s ease;
+}
+.cv-brief-item:hover {
+  border-color: var(--cv-accent-solid);
+  background: var(--cv-accent-soft);
+  box-shadow: var(--cv-card-shadow);
+  transform: translateY(-1px);
+}
+.cv-brief-item:focus-visible {
+  outline: 2px solid var(--cv-accent-solid);
+  outline-offset: 2px;
+}
+.cv-brief-item[data-selected="true"] {
+  border-color: var(--cv-accent-solid);
+  background: var(--cv-accent-soft);
+}
+.cv-brief-chevron {
+  color: var(--cv-text-muted);
+  flex-shrink: 0;
+  transition: color 0.12s ease, transform 0.12s ease;
+}
+.cv-brief-item:hover .cv-brief-chevron,
+.cv-brief-item[data-selected="true"] .cv-brief-chevron {
+  color: var(--cv-accent-solid);
+  transform: translateX(2px);
+}
+
 /* Print / Save-as-PDF: hide the app chrome, print only the report area. */
 @media print {
   aside,

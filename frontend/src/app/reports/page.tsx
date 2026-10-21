@@ -10,7 +10,7 @@ import { SelectField } from "@/components/ui/Field";
 import { EmptyState, StatusPill } from "@/components/ui/Feedback";
 import { Toggle } from "@/components/ui/Toggle";
 import { useToast } from "@/components/ui/Toast";
-import { FileTextIcon, UploadIcon } from "@/components/icons";
+import { ChevronRightIcon, FileTextIcon, UploadIcon } from "@/components/icons";
 
 type Ratio = { numerator: number; denominator: number; rate: number | null };
 const pct = (r: Ratio | undefined | null) => (r && r.rate != null ? `${Math.round(r.rate * 100)}% (${r.numerator}/${r.denominator})` : "no data");
@@ -79,10 +79,17 @@ export default function ReportsPage() {
             ) : (
               <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                 {reports?.map((r) => (
-                  <button key={r.id} onClick={() => getReport(r.id).then(setSelected)}
-                    style={{ textAlign: "left", padding: "10px 12px", borderRadius: 8, border: "1px solid var(--cv-card-border)", background: selected?.id === r.id ? "var(--cv-accent-soft)" : "var(--cv-card-bg)", cursor: "pointer" }}>
-                    <div style={{ fontSize: 12.5, fontWeight: 600, color: "var(--cv-text-primary)" }}>{r.title}</div>
-                    <div style={{ fontSize: 10.5, color: "var(--cv-text-muted)" }}>{new Date(r.created_at).toLocaleDateString()}{r.has_narrative ? " · summary" : ""}</div>
+                  <button
+                    key={r.id}
+                    className="cv-brief-item"
+                    data-selected={selected?.id === r.id}
+                    onClick={() => getReport(r.id).then(setSelected)}
+                  >
+                    <span style={{ minWidth: 0 }}>
+                      <div style={{ fontSize: 12.5, fontWeight: 600, color: "var(--cv-text-primary)" }}>{r.title}</div>
+                      <div style={{ fontSize: 10.5, color: "var(--cv-text-muted)" }}>{new Date(r.created_at).toLocaleDateString()}{r.has_narrative ? " · summary" : ""}</div>
+                    </span>
+                    <ChevronRightIcon size={16} className="cv-brief-chevron" />
                   </button>
                 ))}
               </div>
