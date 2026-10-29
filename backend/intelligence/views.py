@@ -19,7 +19,8 @@ from identity_access.permissions import IsFacilityLead
 
 from .benchmarking import METRICS, equity_by_parity, facility_league, geo_rollup
 from .coverage import INDICATORS as COVERAGE_INDICATORS, coverage
-from .models import CoverageDenominator
+from .targets import TARGET_CATALOGUE, target_progress
+from .models import CoverageDenominator, ProgramTarget
 from .alerts import evaluate_alerts
 from .continuum import DROPOFFS, care_funnel, cohort_retention, dropoff_lines
 from .metrics import maternal_summary
@@ -589,3 +590,63 @@ class CoverageDenominatorsView(APIView):
             "expected_pregnancies": row.expected_pregnancies,
             "expected_births": row.expected_births, "source": row.source,
         }, status=200)
+
+
+# --- Goals & Targets (expansion M7) ----------------------------------------
+class GoalsView(APIView):
+    """GET /goals — progress against the active program targets, scoped."""
+
+    permission_classes = [IsDashboardViewer, HasModule]
+
+    def get(self, request):
+        scope = caller_scope(request.user)
+        date_from = _parse_date(request.query_params.get("from"))
+        date_to = _parse_date(request.query_params.get("to"))
+        data = target_progress(scope["facility_ids"], date_from, date_to)
+        data["access_level"] = scope["access_level"]
+        return Response(data)
+
+
+class TargetsView(APIView):
+    """Systems admin: GET the catalogue + every target's percentage, PATCH one.
+
+    GET /targets — all indicators with their current target % and active flag.
+    PATCH /targets/{key} — set target_pct / is_active for one indicator.
+    """
+
+    permission_classes = [IsSystemsAdmin]
+
+    def get(self, request, key=None):
+        existing = {t.key: t for t in ProgramTarget.objects.all()}
+        rows = []
+        for key, spec in TARGET_CATALOGUE.items():
+            t = existing.get(key)
+            rows.append({
+                "key": key,
+                "label": spec["label"],
+                "help": spec["help"],
+                "target_pct": t.target_pct if t else 0,
+                "is_active": t.is_active if t else False,
+                "order": t.order if t else 0,
+            })
+        rows.sort(key=lambda r: (r["order"], r["label"]))
+        return Response({"targets": rows})
+
+    def patch(self, request, key):
+        if key not in TARGET_CATALOGUE:
+            return Response({"detail": "Unknown target."}, status=404)
+        t, _ = ProgramTarget.objects.get_or_create(key=key)
+        if "target_pct" in request.data:
+            try:
+                t.target_pct = max(0, min(100, int(request.data["target_pct"])))
+            except (TypeError, ValueError):
+                return Response({"detail": "target_pct must be 0–100."}, status=400)
+        if "is_active" in request.data:
+            t.is_active = bool(request.data["is_active"])
+        t.save()
+        AuditEvent.objects.create(
+            actor=request.user, event_type="program_target_updated",
+            subject_type="program_target", subject_id=t.id,
+            metadata={"key": key, "target_pct": t.target_pct, "is_active": t.is_active},
+        )
+        return Response({"key": key, "target_pct": t.target_pct, "is_active": t.is_active})

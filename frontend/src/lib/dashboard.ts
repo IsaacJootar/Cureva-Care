@@ -210,3 +210,16 @@ export const getCoverage = (opts: { year?: number; level?: string; indicator?: s
   const q = p.toString();
   return apiGet<Coverage>(`/coverage${q ? `?${q}` : ""}`);
 };
+
+// --- M7: Goals & targets ---
+export interface Goal {
+  key: string;
+  label: string;
+  help: string;
+  target_pct: number;
+  current_pct: number | null;
+  numerator: number;
+  denominator: number | null;
+  on_track: boolean | null;
+}
+export const getGoals = () => apiGet<{ goals: Goal[]; access_level: string }>("/goals");

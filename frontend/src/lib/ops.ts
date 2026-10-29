@@ -46,6 +46,19 @@ export const saveCoverageDenominator = (body: {
   source: string;
 }) => apiPost<CoverageDenominatorRow>("/coverage/denominators", body);
 
+// Program targets (SDG/national goals) — Systems admin only.
+export interface ProgramTargetRow {
+  key: string;
+  label: string;
+  help: string;
+  target_pct: number;
+  is_active: boolean;
+  order: number;
+}
+export const listTargets = () => apiGet<{ targets: ProgramTargetRow[] }>("/targets");
+export const updateTarget = (key: string, body: { target_pct?: number; is_active?: boolean }) =>
+  apiPatch<{ key: string; target_pct: number; is_active: boolean }>(`/targets/${key}`, body);
+
 export const listSettings = () => apiGet<PlatformSetting[]>("/settings");
 export const updateSetting = (key: string, value: unknown) =>
   apiPatch<PlatformSetting>(`/settings/${key}`, { value });

@@ -69,6 +69,24 @@ class CoverageDenominator(models.Model):
         indexes = [models.Index(fields=["area_type", "year"])]
 
 
+class ProgramTarget(models.Model):
+    """A configurable program goal the dashboards track progress against
+    (expansion M7) — SDG 3.1 / national coverage targets. Keyed to a computable
+    indicator (intelligence.targets.TARGET_CATALOGUE); the admin sets the target
+    percentage. Seeded with WHO/SDG-aligned defaults, editable afterwards.
+    """
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    key = models.CharField(max_length=64, unique=True)
+    target_pct = models.IntegerField(default=0)  # 0–100
+    is_active = models.BooleanField(default=True)
+    order = models.IntegerField(default=0)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["order", "key"]
+
+
 class WorklistAction(models.Model):
     """Audit overlay recording that a Facility lead followed up on a worklist
     item — never a mutation of register data or referral_status (cureva-docs/02).
