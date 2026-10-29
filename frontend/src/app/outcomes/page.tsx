@@ -1,27 +1,60 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { getSummary, type Summary } from "@/lib/dashboard";
 import { AppShell } from "@/components/layout/AppShell";
 import { BarGroup, ChartPanel } from "@/components/ui/Charts";
+import { SelectField } from "@/components/ui/Field";
 import { StatTile } from "@/components/ui/StatTile";
 import { StatTileSkeleton } from "@/components/ui/Feedback";
 import { HeartPulseIcon } from "@/components/icons";
 
+type Period = "all" | "year" | "90d";
+const iso = (d: Date) => d.toISOString().slice(0, 10);
+
+function periodRange(p: Period): { from?: string; to?: string; label: string } {
+  const now = new Date();
+  if (p === "year") return { from: `${now.getFullYear()}-01-01`, to: iso(now), label: `this year (${now.getFullYear()})` };
+  if (p === "90d") return { from: iso(new Date(Date.now() - 90 * 86400000)), to: iso(now), label: "the last 3 months" };
+  return { label: "all recorded dates" };
+}
+
 export default function OutcomesPage() {
+  const [period, setPeriod] = useState<Period>("all");
   const [s, setS] = useState<Summary | null>(null);
+  const range = useMemo(() => periodRange(period), [period]);
+
   useEffect(() => {
-    getSummary().then(setS).catch(() => setS(null));
-  }, []);
+    setS(null);
+    getSummary(range.from, range.to).then(setS).catch(() => setS(null));
+  }, [range.from, range.to]);
+
+  const facilities = s?.scope?.facility_count ?? 0;
 
   return (
-    <AppShell title="Outcomes" subtitle="Documented maternal, birth, and newborn outcomes" allowedRoles={["facility_lead", "organisation_user"]}>
+    <AppShell
+      title="Outcomes"
+      subtitle="Documented maternal, birth, and newborn outcomes"
+      allowedRoles={["facility_lead", "organisation_user"]}
+      action={
+        <div style={{ width: 170 }}>
+          <SelectField id="period" label="" value={period} onChange={(e) => setPeriod(e.target.value as Period)}>
+            <option value="all">All recorded dates</option>
+            <option value="year">This year</option>
+            <option value="90d">Last 3 months</option>
+          </SelectField>
+        </div>
+      }
+    >
       {!s ? (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 14 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 14, maxWidth: 900, margin: "0 auto" }}>
           {Array.from({ length: 4 }).map((_, i) => <StatTileSkeleton key={i} />)}
         </div>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 18, maxWidth: 900, margin: "0 auto" }}>
+          <div style={{ fontSize: 11.5, color: "var(--cv-text-muted)" }}>
+            Combined across all <strong>{facilities}</strong> facilit{facilities === 1 ? "y" : "ies"} in your scope · {range.label}.
+          </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 14 }}>
             <StatTile status="success" icon={<HeartPulseIcon size={14} />} label="Live births" value={s.outcomes.live_births} />
             <StatTile status={s.outcomes.still_births > 0 ? "danger" : "success"} icon={<HeartPulseIcon size={14} />} label="Stillbirths" value={s.outcomes.still_births} />
@@ -35,7 +68,7 @@ export default function OutcomesPage() {
               { label: "Low birth wt.", value: s.outcomes.low_birth_weight, status: "warning" },
             ]} />
             <p style={{ fontSize: 11, color: "var(--cv-text-muted)", marginTop: 12 }}>
-              These are counts of outcomes facilities actually recorded. Blank entries are left blank, never guessed — so this shows what was logged, not an estimate for the whole population.
+              Counts of outcomes facilities actually recorded. Blank entries are left blank, never guessed.
             </p>
           </ChartPanel>
         </div>
