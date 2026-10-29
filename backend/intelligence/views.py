@@ -9,8 +9,8 @@ from django.utils import timezone
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from identity_access.models import AccessLevel, Facility, Role
-from identity_access.permissions import HasModule, IsDashboardViewer
+from identity_access.models import AccessLevel, Facility, LocalGovernment, Role
+from identity_access.permissions import HasModule, IsDashboardViewer, IsSystemsAdmin
 from identity_access.services import get_setting
 from identity_access.settings_registry import STALE_FACILITY_ALERT_DAYS
 
@@ -18,6 +18,8 @@ from identity_access.models import AuditEvent
 from identity_access.permissions import IsFacilityLead
 
 from .benchmarking import METRICS, equity_by_parity, facility_league, geo_rollup
+from .coverage import INDICATORS as COVERAGE_INDICATORS, coverage
+from .models import CoverageDenominator
 from .alerts import evaluate_alerts
 from .continuum import DROPOFFS, care_funnel, cohort_retention, dropoff_lines
 from .metrics import maternal_summary
@@ -478,3 +480,112 @@ class RecordsView(APIView):
             "page_size": page_size,
             "access_level": scope["access_level"],
         })
+
+
+# --- Coverage & Reach (expansion M1) ---------------------------------------
+class CoverageView(APIView):
+    """GET /coverage — recorded activity as a share of expected (population
+    estimate). Query: year, level=lga|state, indicator=anc1|anc4|sba|pnc,
+    from, to. Scoped to the caller; every figure is an estimate (sources
+    returned), and areas without a loaded denominator get no rate."""
+
+    permission_classes = [IsDashboardViewer, HasModule]
+
+    def get(self, request):
+        scope = caller_scope(request.user)
+        try:
+            year = int(request.query_params.get("year") or date.today().year)
+        except (TypeError, ValueError):
+            year = date.today().year
+        level = request.query_params.get("level", "lga")
+        indicator = request.query_params.get("indicator", "anc1")
+        date_from = _parse_date(request.query_params.get("from"))
+        date_to = _parse_date(request.query_params.get("to"))
+        data = coverage(scope["facility_ids"], year, level, indicator, date_from, date_to)
+        data["indicator_catalogue"] = [
+            {"key": k, "label": v["label"]} for k, v in COVERAGE_INDICATORS.items()
+        ]
+        data["access_level"] = scope["access_level"]
+        return Response(data)
+
+
+class CoverageDenominatorsView(APIView):
+    """Systems-admin: load/list the population denominators that power coverage.
+
+    GET /coverage/denominators?year= — every LGA that has a facility, with its
+    current expected pregnancies/births for the year (blank where not loaded).
+    POST — upsert one LGA's estimate for the year.
+    """
+
+    permission_classes = [IsSystemsAdmin]
+
+    def get(self, request):
+        try:
+            year = int(request.query_params.get("year") or date.today().year)
+        except (TypeError, ValueError):
+            year = date.today().year
+        lgas = (
+            LocalGovernment.objects.filter(wards__facilities__isnull=False)
+            .select_related("state")
+            .distinct()
+            .order_by("state__name", "name")
+        )
+        existing = {
+            str(d.area_id): d
+            for d in CoverageDenominator.objects.filter(
+                area_type=CoverageDenominator.AreaType.LOCAL_GOVERNMENT, year=year
+            )
+        }
+        rows = []
+        for lga in lgas:
+            d = existing.get(str(lga.id))
+            rows.append({
+                "area_type": "local_government",
+                "area_id": str(lga.id),
+                "name": lga.name,
+                "state_name": lga.state.name,
+                "expected_pregnancies": d.expected_pregnancies if d else None,
+                "expected_births": d.expected_births if d else None,
+                "source": d.source if d else "",
+            })
+        return Response({"year": year, "rows": rows})
+
+    def post(self, request):
+        data = request.data
+        area_id = data.get("area_id")
+        try:
+            year = int(data.get("year"))
+        except (TypeError, ValueError):
+            return Response({"detail": "A valid year is required."}, status=400)
+        if not LocalGovernment.objects.filter(pk=area_id).exists():
+            return Response({"detail": "Unknown LGA."}, status=400)
+
+        def _int_or_none(v):
+            if v in (None, ""):
+                return None
+            try:
+                return max(0, int(v))
+            except (TypeError, ValueError):
+                return None
+
+        row, _ = CoverageDenominator.objects.update_or_create(
+            area_type=CoverageDenominator.AreaType.LOCAL_GOVERNMENT,
+            area_id=area_id,
+            year=year,
+            defaults={
+                "expected_pregnancies": _int_or_none(data.get("expected_pregnancies")),
+                "expected_births": _int_or_none(data.get("expected_births")),
+                "source": (data.get("source") or "").strip()[:160],
+                "updated_by": request.user,
+            },
+        )
+        AuditEvent.objects.create(
+            actor=request.user, event_type="coverage_denominator_updated",
+            subject_type="coverage_denominator", subject_id=row.id,
+            metadata={"area_id": str(area_id), "year": year},
+        )
+        return Response({
+            "area_id": str(area_id), "year": year,
+            "expected_pregnancies": row.expected_pregnancies,
+            "expected_births": row.expected_births, "source": row.source,
+        }, status=200)

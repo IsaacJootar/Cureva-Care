@@ -32,6 +32,43 @@ class DailyFacilityMetric(models.Model):
         indexes = [models.Index(fields=["facility", "day"])]
 
 
+class CoverageDenominator(models.Model):
+    """Expected pregnancies/births for an area in a year — the denominator that
+    turns recorded activity into coverage rates (expansion M1). Loaded by a
+    Systems admin from external estimates (WorldPop / national projections); it
+    is an ESTIMATE and every surface says so. Stored by area (State / LGA / Ward)
+    and year so coverage can roll up the hierarchy. No denominator → no rate;
+    we never fabricate a coverage figure where the estimate is missing.
+    """
+
+    class AreaType(models.TextChoices):
+        STATE = "state", "State"
+        LOCAL_GOVERNMENT = "local_government", "Local Government Area"
+        WARD = "ward", "Ward"
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    area_type = models.CharField(max_length=20, choices=AreaType.choices)
+    area_id = models.UUIDField()  # id of the State / LocalGovernment / Ward
+    year = models.IntegerField()
+    expected_pregnancies = models.IntegerField(null=True, blank=True)
+    expected_births = models.IntegerField(null=True, blank=True)
+    source = models.CharField(max_length=160, blank=True, default="")
+    updated_at = models.DateTimeField(auto_now=True)
+    updated_by = models.ForeignKey(
+        "identity_access.User", on_delete=models.SET_NULL, null=True, blank=True,
+        related_name="coverage_denominators",
+    )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["area_type", "area_id", "year"],
+                name="uniq_coverage_denominator_area_year",
+            )
+        ]
+        indexes = [models.Index(fields=["area_type", "year"])]
+
+
 class WorklistAction(models.Model):
     """Audit overlay recording that a Facility lead followed up on a worklist
     item — never a mutation of register data or referral_status (cureva-docs/02).

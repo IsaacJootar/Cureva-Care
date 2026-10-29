@@ -16,13 +16,14 @@ full set; tiers gate the paying organisation accounts.
 INTEL_MODULES = [
     {"key": "overview", "label": "Overview", "href": "/overview", "order": 1},
     {"key": "care_journey", "label": "Care journey", "href": "/care-journey", "order": 2},
-    {"key": "benchmarking", "label": "Benchmarking", "href": "/benchmarking", "order": 3},
-    {"key": "surveillance", "label": "Deaths & stillbirths", "href": "/surveillance", "order": 4},
-    {"key": "risk", "label": "Risk & alerts", "href": "/risk", "order": 5},
-    {"key": "rdqa", "label": "Reporting reliability", "href": "/rdqa", "order": 6},
-    {"key": "reports", "label": "Reports", "href": "/reports", "order": 7},
-    {"key": "records", "label": "Records", "href": "/records", "order": 8},
-    {"key": "facilities", "label": "Facilities", "href": "/facilities", "order": 9},
+    {"key": "coverage", "label": "Coverage & reach", "href": "/coverage", "order": 3},
+    {"key": "benchmarking", "label": "Benchmarking", "href": "/benchmarking", "order": 4},
+    {"key": "surveillance", "label": "Deaths & stillbirths", "href": "/surveillance", "order": 5},
+    {"key": "risk", "label": "Risk & alerts", "href": "/risk", "order": 6},
+    {"key": "rdqa", "label": "Reporting reliability", "href": "/rdqa", "order": 7},
+    {"key": "reports", "label": "Reports", "href": "/reports", "order": 8},
+    {"key": "records", "label": "Records", "href": "/records", "order": 9},
+    {"key": "facilities", "label": "Facilities", "href": "/facilities", "order": 10},
 ]
 MODULE_KEYS = {m["key"] for m in INTEL_MODULES}
 
@@ -31,9 +32,9 @@ DEFAULT_TIERS = [
     {"name": "Essentials", "slug": "essentials", "order": 1,
      "modules": ["overview", "care_journey", "reports"]},
     {"name": "Professional", "slug": "professional", "order": 2,
-     "modules": ["overview", "care_journey", "benchmarking", "rdqa", "facilities", "reports"]},
+     "modules": ["overview", "care_journey", "coverage", "benchmarking", "rdqa", "facilities", "reports"]},
     {"name": "Enterprise", "slug": "enterprise", "order": 3,
-     "modules": ["overview", "care_journey", "benchmarking", "surveillance", "risk", "rdqa", "records", "facilities", "reports"]},
+     "modules": ["overview", "care_journey", "coverage", "benchmarking", "surveillance", "risk", "rdqa", "records", "facilities", "reports"]},
 ]
 
 
@@ -66,6 +67,7 @@ def has_module(user, module_key) -> bool:
 PATH_MODULES = [
     ("/continuum/", "care_journey"),
     ("/care-journey", "care_journey"),
+    ("/coverage", "coverage"),
     ("/benchmarking", "benchmarking"),
     ("/geo", "benchmarking"),
     ("/equity", "benchmarking"),

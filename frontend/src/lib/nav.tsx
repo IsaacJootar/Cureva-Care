@@ -10,6 +10,7 @@ import {
   LayersIcon,
   SettingsIcon,
   ShieldIcon,
+  TargetIcon,
   UploadIcon,
   UsersIcon,
 } from "@/components/icons";
@@ -36,6 +37,7 @@ export interface RoleNav {
 const HREF_MODULE: Record<string, string> = {
   "/overview": "overview",
   "/care-journey": "care_journey",
+  "/coverage": "coverage",
   "/benchmarking": "benchmarking",
   "/surveillance": "surveillance",
   "/risk": "risk",
@@ -89,6 +91,7 @@ export function navForUser(user: CurrentUser): RoleNav {
               { label: "Manage facilities", href: "/admin/facilities", icon: <BuildingIcon size={16} /> },
               { label: "Organisations", href: "/admin/organisations", icon: <ShieldIcon size={16} /> },
               { label: "Plans & modules", href: "/admin/tiers", icon: <LayersIcon size={16} /> },
+              { label: "Population estimates", href: "/admin/coverage", icon: <TargetIcon size={16} /> },
               { label: "Users & roles", href: "/admin/users", icon: <UsersIcon size={16} /> },
               { label: "Settings", href: "/admin/settings", icon: <SettingsIcon size={16} /> },
             ],
@@ -108,6 +111,7 @@ export function navForUser(user: CurrentUser): RoleNav {
             links: [
               { label: "Overview", href: "/overview", icon: <BarChartIcon size={16} /> },
               { label: "Care journey", href: "/care-journey", icon: <ActivityIcon size={16} /> },
+              { label: "Coverage & reach", href: "/coverage", icon: <TargetIcon size={16} /> },
               { label: "Benchmarking", href: "/benchmarking", icon: <LayersIcon size={16} /> },
               { label: "Deaths & stillbirths", href: "/surveillance", icon: <ShieldIcon size={16} /> },
               { label: "Risk & alerts", href: "/risk", icon: <AlertTriangleIcon size={16} /> },
@@ -139,6 +143,7 @@ export function navForUser(user: CurrentUser): RoleNav {
           links: [
             { label: "Overview", href: "/overview", icon: <BarChartIcon size={16} /> },
             { label: "Care journey", href: "/care-journey", icon: <ActivityIcon size={16} /> },
+            { label: "Coverage & reach", href: "/coverage", icon: <TargetIcon size={16} /> },
             { label: "Benchmarking", href: "/benchmarking", icon: <LayersIcon size={16} /> },
             { label: "Deaths & stillbirths", href: "/surveillance", icon: <ShieldIcon size={16} /> },
             { label: "Risk & alerts", href: "/risk", icon: <AlertTriangleIcon size={16} /> },

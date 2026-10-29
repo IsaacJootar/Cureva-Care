@@ -174,3 +174,39 @@ export const getRecords = (page = 1) =>
   apiGet<{ results: RecordRow[]; count: number; page: number; page_size: number; access_level: string }>(
     `/records?page=${page}`,
   );
+
+// --- M1: Coverage & reach ---
+export interface CoverageIndicator {
+  label: string;
+  numerator: number;
+  denominator: number | null;
+  rate: number | null;
+}
+export interface CoverageArea {
+  area_id: string;
+  name: string;
+  numerator: number;
+  denominator: number | null;
+  rate: number | null;
+  has_denominator: boolean;
+}
+export interface Coverage {
+  year: number;
+  level: "lga" | "state";
+  indicator: string;
+  indicators: Record<string, CoverageIndicator>;
+  areas: CoverageArea[];
+  sources: string[];
+  areas_missing_denominator: string[];
+  indicator_catalogue: { key: string; label: string }[];
+  access_level: string;
+}
+
+export const getCoverage = (opts: { year?: number; level?: string; indicator?: string } = {}) => {
+  const p = new URLSearchParams();
+  if (opts.year) p.set("year", String(opts.year));
+  if (opts.level) p.set("level", opts.level);
+  if (opts.indicator) p.set("indicator", opts.indicator);
+  const q = p.toString();
+  return apiGet<Coverage>(`/coverage${q ? `?${q}` : ""}`);
+};

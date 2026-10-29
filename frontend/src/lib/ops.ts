@@ -26,6 +26,26 @@ export const updateTier = (
   body: { modules?: string[]; name?: string; order?: number },
 ) => apiPatch<SubscriptionTier>(`/tiers/${id}`, body);
 
+// Coverage denominators (population estimates) — Systems admin only.
+export interface CoverageDenominatorRow {
+  area_type: string;
+  area_id: string;
+  name: string;
+  state_name: string;
+  expected_pregnancies: number | null;
+  expected_births: number | null;
+  source: string;
+}
+export const listCoverageDenominators = (year: number) =>
+  apiGet<{ year: number; rows: CoverageDenominatorRow[] }>(`/coverage/denominators?year=${year}`);
+export const saveCoverageDenominator = (body: {
+  area_id: string;
+  year: number;
+  expected_pregnancies: number | null;
+  expected_births: number | null;
+  source: string;
+}) => apiPost<CoverageDenominatorRow>("/coverage/denominators", body);
+
 export const listSettings = () => apiGet<PlatformSetting[]>("/settings");
 export const updateSetting = (key: string, value: unknown) =>
   apiPatch<PlatformSetting>(`/settings/${key}`, { value });

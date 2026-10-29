@@ -4,6 +4,8 @@ from django.urls import path
 from .views import (
     BenchmarkingView,
     CareJourneyView,
+    CoverageDenominatorsView,
+    CoverageView,
     CaseTimelineView,
     ClustersView,
     CohortView,
@@ -32,6 +34,8 @@ urlpatterns = [
     path("maternal-summary", MaternalSummaryView.as_view(), name="maternal-summary"),
     path("trends", TrendsView.as_view(), name="trends"),
     path("benchmarking", BenchmarkingView.as_view(), name="benchmarking"),
+    path("coverage", CoverageView.as_view(), name="coverage"),
+    path("coverage/denominators", CoverageDenominatorsView.as_view(), name="coverage-denominators"),
     path("geo", GeoRollupView.as_view(), name="geo"),
     path("equity", EquityView.as_view(), name="equity"),
     path("care-journey", CareJourneyView.as_view(), name="care-journey"),
