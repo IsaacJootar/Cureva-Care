@@ -30,13 +30,10 @@ export default function RiskPage() {
   return (
     <AppShell
       title="Risk & alerts"
-      subtitle="Who to follow up first — a live list of pregnancies in progress right now"
+      subtitle="Open pregnancies to follow up — as of today"
       allowedRoles={["facility_lead", "organisation_user"]}
     >
       <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-        <div style={{ fontSize: 11.5, color: "var(--cv-text-muted)", background: "var(--cv-accent-soft)", border: "1px solid var(--cv-card-border)", borderRadius: 9, padding: "9px 12px" }}>
-          This is a live snapshot <strong>as of today</strong>, not a monthly or yearly total. It counts pregnancies that have registered but not yet given birth; a woman drops off this list once her birth is recorded.
-        </div>
         <ChartCard title="Alerts" subtitle="Based on recorded check-ups · WHO guidance · not a diagnosis">
           {!alerts ? (
             <p style={{ fontSize: 12, color: "var(--cv-text-muted)" }}>Loading…</p>
