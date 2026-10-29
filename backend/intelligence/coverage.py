@@ -24,10 +24,10 @@ FOUR_CONTACT = 4
 
 # The four headline coverage indicators and which denominator each divides by.
 INDICATORS = {
-    "anc1": {"label": "Registered a pregnancy", "denom": "pregnancies"},
-    "anc4": {"label": "Had 4+ check-ups", "denom": "pregnancies"},
-    "sba": {"label": "Gave birth in a facility", "denom": "births"},
-    "pnc": {"label": "Came back after birth", "denom": "births"},
+    "anc1": {"label": "Women who registered a pregnancy", "denom": "pregnancies"},
+    "anc4": {"label": "Women who reached 4+ check-ups", "denom": "pregnancies"},
+    "sba": {"label": "Women who gave birth in a facility", "denom": "births"},
+    "pnc": {"label": "Women who came back after birth", "denom": "births"},
 }
 
 

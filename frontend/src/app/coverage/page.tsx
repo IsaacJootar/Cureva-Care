@@ -28,10 +28,10 @@ export default function CoveragePage() {
   useEffect(() => { load(); }, [load]);
 
   const catalogue = cov?.indicator_catalogue ?? [
-    { key: "anc1", label: "Registered a pregnancy" },
-    { key: "anc4", label: "Had 4+ check-ups" },
-    { key: "sba", label: "Gave birth in a facility" },
-    { key: "pnc", label: "Came back after birth" },
+    { key: "anc1", label: "Women who registered a pregnancy" },
+    { key: "anc4", label: "Women who reached 4+ check-ups" },
+    { key: "sba", label: "Women who gave birth in a facility" },
+    { key: "pnc", label: "Women who came back after birth" },
   ];
   const ind = cov?.indicators ?? {};
   const selectedLabel = catalogue.find((c) => c.key === indicator)?.label ?? "";
@@ -94,8 +94,8 @@ export default function CoveragePage() {
         </ChartCard>
 
         <ChartCard
-          title={`Map — ${selectedLabel} coverage by State`}
-          subtitle="Shaded by coverage; states with no loaded estimate stay grey"
+          title="Coverage by State"
+          subtitle={`Shaded by "${selectedLabel}" — states with no loaded estimate stay grey`}
           exportCsv={{
             name: `coverage-state-${indicator}-${year}`,
             header: ["State", "Rate", "Numerator", "Denominator"],
@@ -106,8 +106,8 @@ export default function CoveragePage() {
         </ChartCard>
 
         <ChartCard
-          title={`${selectedLabel} coverage by ${level === "state" ? "State" : "LGA"}`}
-          subtitle="Highest to lowest across the areas in your scope"
+          title={`Coverage by ${level === "state" ? "State" : "LGA"}`}
+          subtitle={`"${selectedLabel}" — highest to lowest across your areas`}
           action={
             <div style={{ width: 150 }}>
               <SelectField id="level" label="" value={level} onChange={(e) => setLevel(e.target.value as "lga" | "state")}>

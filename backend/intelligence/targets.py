@@ -16,26 +16,26 @@ from .models import ProgramTarget
 # goal here.
 TARGET_CATALOGUE = {
     "anc4_of_registered": {
-        "label": "Reached 4+ check-ups",
+        "label": "Women who reached 4+ check-ups",
         "help": "Of women who registered a pregnancy, the share who had at least four check-ups.",
     },
     "early_booking": {
-        "label": "Registered in the first 3 months",
+        "label": "Women who registered in the first 3 months",
         "help": "Share of pregnancies registered early (first trimester).",
         "metric": "early_anc_booking",
     },
     "screening": {
-        "label": "Tested (HIV, syphilis, anaemia)",
+        "label": "Women tested (HIV, syphilis, anaemia)",
         "help": "Share of check-ups with a recorded screening test.",
         "metric": "screening_coverage",
     },
     "interventions": {
-        "label": "Got preventives (iron, tetanus, malaria)",
+        "label": "Women who got preventives (iron, tetanus, malaria)",
         "help": "Share of check-ups with a recorded preventive treatment.",
         "metric": "intervention_coverage",
     },
     "postnatal": {
-        "label": "Came back after birth",
+        "label": "Women who came back after birth",
         "help": "Share of births with a recorded postnatal visit.",
         "metric": "postnatal_linkage",
     },

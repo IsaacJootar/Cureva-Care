@@ -23,11 +23,11 @@ export default function GoalsPage() {
       allowedRoles={["facility_lead", "organisation_user"]}
     >
       {!goals ? (
-        <div style={{ display: "flex", flexDirection: "column", gap: 12, maxWidth: 720, margin: "0 auto" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           {Array.from({ length: 3 }).map((_, i) => <StatTileSkeleton key={i} />)}
         </div>
       ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 16, maxWidth: 720, margin: "0 auto" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           <div style={{ fontSize: 12, color: "var(--cv-text-secondary)", background: "var(--cv-accent-soft)", border: "1px solid var(--cv-card-border)", borderRadius: 9, padding: "10px 13px" }}>
             {assessable === 0
               ? "No data yet to measure against your goals."
