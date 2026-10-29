@@ -10,6 +10,7 @@ import { Modal } from "@/components/ui/Dialog";
 import { Button } from "@/components/ui/Button";
 import { StatTile } from "@/components/ui/StatTile";
 import { ChartCard, LineChart, LeagueTable, type LineSeries, type LeagueRow } from "@/components/ui/Charts";
+import { prettyDate } from "@/lib/date";
 
 const EVENT_LABEL: Record<string, string> = {
   ANC: "Pregnancy check-up",
@@ -97,7 +98,7 @@ export default function SurveillancePage() {
                       <span style={{ fontSize: 11, color: "var(--cv-danger-text)", fontWeight: 600 }}>{c.outcomes.join(", ")}</span>
                     </div>
                     <div style={{ fontSize: 11, color: "var(--cv-text-muted)", marginTop: 3 }}>
-                      {c.facility} · {c.delivery_date ?? "—"}
+                      {c.facility} · {prettyDate(c.delivery_date)}
                       {c.antenatal_risk.length > 0 && <> · warning signs during pregnancy: <span style={{ color: "var(--cv-warning-text)" }}>{c.antenatal_risk.join(", ")}</span></>}
                     </div>
                   </button>
@@ -136,7 +137,7 @@ export default function SurveillancePage() {
                 <div key={i} style={{ position: "relative", paddingBottom: 14 }}>
                   <span style={{ position: "absolute", left: -16, top: 3, width: 9, height: 9, borderRadius: "50%", background: e.severe && e.severe.length ? "var(--cv-danger-icon)" : "var(--cv-accent-solid)" }} />
                   {i < timeline.events.length - 1 && <span style={{ position: "absolute", left: -12, top: 12, bottom: 0, width: 1, background: "var(--cv-hairline)" }} />}
-                  <div style={{ fontSize: 11, color: "var(--cv-text-muted)" }}>{e.date ?? "—"} · <strong style={{ color: "var(--cv-text-secondary)" }}>{EVENT_LABEL[e.type] ?? e.type}</strong></div>
+                  <div style={{ fontSize: 11, color: "var(--cv-text-muted)" }}>{prettyDate(e.date)} · <strong style={{ color: "var(--cv-text-secondary)" }}>{EVENT_LABEL[e.type] ?? e.type}</strong></div>
                   <div style={{ fontSize: 12, color: "var(--cv-text-primary)" }}>{e.summary}</div>
                 </div>
               ))}
