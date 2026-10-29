@@ -193,10 +193,9 @@ function NgoReport({ s }: { s: Record<string, Record<string, unknown>> }) {
         <LeagueTable rows={geoRows} maxRows={12} />
       </Card>
       <Card>
-        <h3 className="cv-h3">Data quality (RDQA)</h3>
+        <h3 className="cv-h3">Reporting reliability</h3>
         <div style={{ display: "flex", gap: 24, flexWrap: "wrap" }}>
-          <Stat label="Mean score" value={rdqa.mean_score ?? "—"} />
-          <Stat label="Mean confidence" value={rdqa.mean_confidence != null ? `${Math.round(rdqa.mean_confidence * 100)}%` : "—"} />
+          <Stat label="Reliability score" value={rdqa.mean_score ?? "—"} />
           <Stat label="Facilities" value={rdqa.facilities_assessed ?? 0} />
           <Stat label="Open flags" value={rdqa.total_open_flags ?? 0} />
         </div>

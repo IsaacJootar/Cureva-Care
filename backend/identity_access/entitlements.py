@@ -19,7 +19,7 @@ INTEL_MODULES = [
     {"key": "benchmarking", "label": "Benchmarking", "href": "/benchmarking", "order": 3},
     {"key": "surveillance", "label": "Deaths & stillbirths", "href": "/surveillance", "order": 4},
     {"key": "risk", "label": "Risk & alerts", "href": "/risk", "order": 5},
-    {"key": "rdqa", "label": "Data quality (RDQA)", "href": "/rdqa", "order": 6},
+    {"key": "rdqa", "label": "Reporting reliability", "href": "/rdqa", "order": 6},
     {"key": "reports", "label": "Reports", "href": "/reports", "order": 7},
     {"key": "records", "label": "Records", "href": "/records", "order": 8},
     {"key": "facilities", "label": "Facilities", "href": "/facilities", "order": 9},
