@@ -30,10 +30,14 @@ MODULE_KEYS = {m["key"] for m in INTEL_MODULES}
 
 # Sensible default composition for the three seeded tiers (admin-editable after).
 DEFAULT_TIERS = [
+    # Essentials — understand your own program. Professional — the full
+    # analytical picture (coverage, comparison, mortality). Enterprise — act on
+    # individuals + premium/predictive tools. Sensitivity is handled separately
+    # by access level, so no tier hides the mortality outcome a program needs.
     {"name": "Essentials", "slug": "essentials", "order": 1,
-     "modules": ["overview", "care_journey", "reports"]},
+     "modules": ["overview", "care_journey", "targets", "rdqa", "reports"]},
     {"name": "Professional", "slug": "professional", "order": 2,
-     "modules": ["overview", "care_journey", "coverage", "targets", "benchmarking", "rdqa", "facilities", "reports"]},
+     "modules": ["overview", "care_journey", "coverage", "targets", "benchmarking", "surveillance", "rdqa", "facilities", "reports"]},
     {"name": "Enterprise", "slug": "enterprise", "order": 3,
      "modules": ["overview", "care_journey", "coverage", "targets", "benchmarking", "surveillance", "risk", "rdqa", "records", "facilities", "reports"]},
 ]
