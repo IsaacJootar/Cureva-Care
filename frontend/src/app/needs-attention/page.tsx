@@ -31,7 +31,7 @@ export default function NeedsAttentionPage() {
       allowedRoles={["facility_lead"]}
     >
       {!items ? (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 14 }}>
+        <div className="cv-stat-grid">
           {Array.from({ length: 3 }).map((_, i) => <StatTileSkeleton key={i} />)}
         </div>
       ) : items.length === 0 ? (

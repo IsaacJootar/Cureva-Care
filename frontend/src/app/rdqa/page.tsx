@@ -40,7 +40,7 @@ export default function ReportingReliabilityPage() {
       allowedRoles={["facility_lead", "organisation_user"]}
     >
       <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14 }}>
+        <div className="cv-stat-grid">
           <StatTile status={o.mean_score != null && o.mean_score >= 80 ? "success" : "warning"} label="Reliability score" value={o.mean_score ?? "—"} />
           <StatTile status="neutral" label="Fields filled in (avg)" value={pct(completeness)} />
           <StatTile status="neutral" label="Facilities assessed" value={o.facilities_assessed ?? 0} />
@@ -60,7 +60,7 @@ export default function ReportingReliabilityPage() {
             <p style={{ fontSize: 12, color: "var(--cv-text-muted)" }}>No published data to assess yet.</p>
           ) : (
             <div style={{ overflowX: "auto" }}>
-              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 11.5 }}>
+              <table style={{ width: "100%", minWidth: 560, borderCollapse: "collapse", fontSize: 11.5 }}>
                 <thead>
                   <tr style={{ textAlign: "left", color: "var(--cv-text-muted)" }}>
                     <th style={{ padding: "6px 8px" }}>Facility</th>

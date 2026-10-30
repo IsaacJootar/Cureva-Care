@@ -313,6 +313,14 @@ h2,
   transform: translateX(2px);
 }
 
+/* Stat-tile rows: cards size themselves and wrap to fit any width, instead of a
+   fixed column count that overflows on phones (and breaks with 5+ cards). */
+.cv-stat-grid {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(155px, 1fr));
+}
+
 /* Top bar: on phones, stack the page controls under the title and let them use
    the full width, rather than squeezing the subtitle into a sliver and pushing
    the dropdowns off-screen. */

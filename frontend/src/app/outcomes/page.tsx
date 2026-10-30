@@ -52,7 +52,7 @@ export default function OutcomesPage() {
       }
     >
       {!s ? (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 14, maxWidth: 900, margin: "0 auto" }}>
+        <div className="cv-stat-grid" style={{ maxWidth: 900, margin: "0 auto" }}>
           {Array.from({ length: 4 }).map((_, i) => <StatTileSkeleton key={i} />)}
         </div>
       ) : (
@@ -60,7 +60,7 @@ export default function OutcomesPage() {
           <div style={{ fontSize: 11.5, color: "var(--cv-text-muted)" }}>
             Across <strong>{facilities}</strong> facilit{facilities === 1 ? "y" : "ies"} · {range.label}.
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 14 }}>
+          <div className="cv-stat-grid">
             <StatTile status="success" icon={<HeartPulseIcon size={14} />} label="Live births" value={s.outcomes.live_births} />
             <StatTile status={s.outcomes.still_births > 0 ? "danger" : "success"} icon={<HeartPulseIcon size={14} />} label="Stillbirths" value={s.outcomes.still_births} />
             <StatTile status={s.outcomes.maternal_deaths > 0 ? "danger" : "success"} icon={<HeartPulseIcon size={14} />} label="Maternal deaths" value={s.outcomes.maternal_deaths} />

@@ -66,7 +66,7 @@ export default function UsersPage() {
       action={<Button leftIcon={<PlusIcon size={15} />} onClick={() => { setEditTarget(null); setFormOpen(true); }}>Create user</Button>}
     >
       {!users ? (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 14 }}>
+        <div className="cv-stat-grid">
           {Array.from({ length: 3 }).map((_, i) => <StatTileSkeleton key={i} />)}
         </div>
       ) : users.length === 0 ? (

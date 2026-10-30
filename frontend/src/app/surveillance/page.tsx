@@ -59,7 +59,7 @@ export default function SurveillancePage() {
       action={<ScopeFilter value={scope} onChange={setScope} />}
     >
       <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14 }}>
+        <div className="cv-stat-grid">
           <StatTile status={cases && cases.count > 0 ? "danger" : "success"} label="Deaths & stillbirths" value={cases?.count ?? 0} />
           <StatTile status="neutral" label="Stillbirths" value={cases?.by_type?.["Stillbirth"] ?? 0} />
           <StatTile status="neutral" label="Newborn deaths (first week)" value={cases?.by_type?.["Newborn death (first 7 days)"] ?? 0} />

@@ -93,7 +93,7 @@ export default function RiskPage() {
               <p style={{ fontSize: 12, color: "var(--cv-text-muted)" }}>No pregnancies with a recorded risk marker. 🎉</p>
             ) : (
               <div style={{ overflowX: "auto" }}>
-                <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 11.5 }}>
+                <table style={{ width: "100%", minWidth: 480, borderCollapse: "collapse", fontSize: 11.5 }}>
                   <thead>
                     <tr style={{ textAlign: "left", color: "var(--cv-text-muted)" }}>
                       <th style={{ padding: "6px 8px" }}>Woman</th>

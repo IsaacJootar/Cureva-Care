@@ -42,12 +42,12 @@ export default function OverviewPage() {
       action={<ScopeFilter value={scope} onChange={setScope} />}
     >
       {!ws || !s ? (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 14 }}>
+        <div className="cv-stat-grid">
           {Array.from({ length: 4 }).map((_, i) => <StatTileSkeleton key={i} />)}
         </div>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-          <div style={{ display: "grid", gridTemplateColumns: `repeat(${isOrg ? 5 : 4}, 1fr)`, gap: 14 }}>
+          <div className="cv-stat-grid">
             {isOrg && (
               <StatTile status="neutral" icon={<BuildingIcon size={14} />} label="Facilities" value={ws.facility_count} />
             )}

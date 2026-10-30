@@ -52,7 +52,7 @@ export default function FacilitiesPage() {
       allowedRoles={["facility_lead", "organisation_user"]}
     >
       {!data ? (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 14 }}>
+        <div className="cv-stat-grid">
           {Array.from({ length: 3 }).map((_, i) => <StatTileSkeleton key={i} />)}
         </div>
       ) : data.facilities.length === 0 ? (

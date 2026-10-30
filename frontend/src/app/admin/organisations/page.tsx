@@ -84,7 +84,7 @@ export default function OrganisationsPage() {
       }
     >
       {orgs === null ? (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 14 }}>
+        <div className="cv-stat-grid">
           <StatTileSkeleton />
           <StatTileSkeleton />
           <StatTileSkeleton />
