@@ -146,9 +146,26 @@ export interface RiskRegistry { rows: RiskRow[]; count: number; access_level: st
 export interface AlertItem { kind: string; severity: "high" | "medium" | "low"; title: string; detail: string; facility_id: string | null; threshold: number }
 export interface Alerts { alerts: AlertItem[] }
 
-export const getRiskPyramid = () => apiGet<RiskPyramid>("/risk/pyramid");
-export const getRiskRegistry = (tier?: string) => apiGet<RiskRegistry>(`/risk/registry${tier ? `?tier=${tier}` : ""}`);
-export const getAlerts = () => apiGet<Alerts>("/alerts");
+// Dashboard scope selector: narrow the caller's scope to one facility or one
+// state (never wider — the server intersects with the grant).
+export interface ScopeSel { facility?: string; state?: string }
+export interface ScopeOptions {
+  facilities: { id: string; name: string; state: string; state_id: string }[];
+  states: { id: string; name: string }[];
+}
+export const getScopeOptions = () => apiGet<ScopeOptions>("/scope-options");
+function scopeQS(s?: ScopeSel, extra: Record<string, string> = {}): string {
+  const p = new URLSearchParams(extra);
+  if (s?.facility) p.set("facility", s.facility);
+  else if (s?.state) p.set("state", s.state);
+  const q = p.toString();
+  return q ? `?${q}` : "";
+}
+
+export const getRiskPyramid = (scope?: ScopeSel) => apiGet<RiskPyramid>(`/risk/pyramid${scopeQS(scope)}`);
+export const getRiskRegistry = (tier?: string, scope?: ScopeSel) =>
+  apiGet<RiskRegistry>(`/risk/registry${scopeQS(scope, tier ? { tier } : {})}`);
+export const getAlerts = (scope?: ScopeSel) => apiGet<Alerts>(`/alerts${scopeQS(scope)}`);
 
 // --- WS6: RDQA-as-a-service ---
 export interface RdqaCard {
@@ -166,8 +183,12 @@ export const getRdqaScorecard = () => apiGet<RdqaScorecard>("/rdqa/scorecard");
 export const getRdqaTrend = () => apiGet<RdqaTrend>("/rdqa/trend");
 
 export const getWorkspace = () => apiGet<Workspace>("/workspace");
-export const getSummary = (from?: string, to?: string) =>
-  apiGet<Summary>(`/maternal-summary${from || to ? `?from=${from ?? ""}&to=${to ?? ""}` : ""}`);
+export const getSummary = (from?: string, to?: string, scope?: ScopeSel) => {
+  const extra: Record<string, string> = {};
+  if (from) extra.from = from;
+  if (to) extra.to = to;
+  return apiGet<Summary>(`/maternal-summary${scopeQS(scope, extra)}`);
+};
 export const getFacilitiesOverview = () =>
   apiGet<{ facilities: FacilityRow[]; stale_days: number }>("/facilities-overview");
 export const getRecords = (page = 1) =>

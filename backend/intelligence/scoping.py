@@ -48,6 +48,50 @@ def resolve_org_access_level(organisation_id) -> str:
     return best
 
 
+def resolve_scope(user, request) -> dict:
+    """caller_scope, optionally narrowed by a ?facility= or ?state= filter from
+    the dashboard scope selector. The filter can only INTERSECT the caller's
+    allowed facilities — it can never widen access (07-security). Returns the
+    same shape as caller_scope."""
+    scope = caller_scope(user)
+    allowed = scope["facility_ids"]
+    if allowed is None:
+        return scope
+    ids = set(allowed)
+    facility = request.query_params.get("facility")
+    state = request.query_params.get("state")
+    if facility:
+        ids = {f for f in ids if str(f) == str(facility)}
+    elif state:
+        ids = set(
+            Facility.objects.filter(id__in=ids, ward__local_government__state_id=state)
+            .values_list("id", flat=True)
+        )
+    return {"facility_ids": ids, "access_level": scope["access_level"]}
+
+
+def scope_options(user) -> dict:
+    """The facilities (and the distinct states they fall in) that the caller may
+    view — powers the dashboard scope selector."""
+    scope = caller_scope(user)
+    allowed = scope["facility_ids"]
+    if not allowed:
+        return {"facilities": [], "states": []}
+    facs = (
+        Facility.objects.filter(id__in=allowed)
+        .select_related("ward__local_government__state")
+        .order_by("ward__local_government__state__name", "name")
+    )
+    facilities, states, seen = [], [], set()
+    for f in facs:
+        st = f.ward.local_government.state
+        facilities.append({"id": str(f.id), "name": f.name, "state": st.name, "state_id": str(st.id)})
+        if st.id not in seen:
+            seen.add(st.id)
+            states.append({"id": str(st.id), "name": st.name})
+    return {"facilities": facilities, "states": states}
+
+
 def caller_scope(user) -> dict:
     """Returns {'facility_ids': set|None, 'access_level': str}. facility_ids is
     None for a caller with no dashboard scope (e.g. a Systems admin)."""

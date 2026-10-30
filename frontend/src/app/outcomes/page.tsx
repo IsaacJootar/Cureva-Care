@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { getSummary, type Summary } from "@/lib/dashboard";
+import { getSummary, type ScopeSel, type Summary } from "@/lib/dashboard";
 import { AppShell } from "@/components/layout/AppShell";
 import { BarGroup, ChartPanel } from "@/components/ui/Charts";
+import { ScopeFilter } from "@/components/dashboard/ScopeFilter";
 import { SelectField } from "@/components/ui/Field";
 import { StatTile } from "@/components/ui/StatTile";
 import { StatTileSkeleton } from "@/components/ui/Feedback";
@@ -21,13 +22,14 @@ function periodRange(p: Period): { from?: string; to?: string; label: string } {
 
 export default function OutcomesPage() {
   const [period, setPeriod] = useState<Period>("all");
+  const [scope, setScope] = useState<ScopeSel>({});
   const [s, setS] = useState<Summary | null>(null);
   const range = useMemo(() => periodRange(period), [period]);
 
   useEffect(() => {
     setS(null);
-    getSummary(range.from, range.to).then(setS).catch(() => setS(null));
-  }, [range.from, range.to]);
+    getSummary(range.from, range.to, scope).then(setS).catch(() => setS(null));
+  }, [range.from, range.to, scope]);
 
   const facilities = s?.scope?.facility_count ?? 0;
 
@@ -37,12 +39,15 @@ export default function OutcomesPage() {
       subtitle="Documented maternal, birth, and newborn outcomes"
       allowedRoles={["facility_lead", "organisation_user"]}
       action={
-        <div style={{ width: 170 }}>
-          <SelectField id="period" label="" value={period} onChange={(e) => setPeriod(e.target.value as Period)}>
-            <option value="all">All recorded dates</option>
-            <option value="year">This year</option>
-            <option value="90d">Last 3 months</option>
-          </SelectField>
+        <div style={{ display: "flex", gap: 8 }}>
+          <ScopeFilter value={scope} onChange={setScope} />
+          <div style={{ width: 160 }}>
+            <SelectField id="period" label="" value={period} onChange={(e) => setPeriod(e.target.value as Period)}>
+              <option value="all">All recorded dates</option>
+              <option value="year">This year</option>
+              <option value="90d">Last 3 months</option>
+            </SelectField>
+          </div>
         </div>
       }
     >
@@ -53,7 +58,7 @@ export default function OutcomesPage() {
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 18, maxWidth: 900, margin: "0 auto" }}>
           <div style={{ fontSize: 11.5, color: "var(--cv-text-muted)" }}>
-            Combined across all <strong>{facilities}</strong> facilit{facilities === 1 ? "y" : "ies"} in your scope · {range.label}.
+            Across <strong>{facilities}</strong> facilit{facilities === 1 ? "y" : "ies"} · {range.label}.
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 14 }}>
             <StatTile status="success" icon={<HeartPulseIcon size={14} />} label="Live births" value={s.outcomes.live_births} />

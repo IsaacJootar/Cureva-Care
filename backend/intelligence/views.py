@@ -29,7 +29,7 @@ from .risk import risk_pyramid, risk_registry
 from .surveillance import case_timeline, facility_clusters, severe_cases, severe_trend
 from .models import WorklistAction
 from .rules import evaluate_worklist
-from .scoping import caller_scope
+from .scoping import caller_scope, resolve_scope, scope_options
 from .trends import compute_trends
 
 IDENTITY_FIELDS = {"card_number", "name", "woman_name", "phone", "cl_phone"}
@@ -49,7 +49,7 @@ class MaternalSummaryView(APIView):
     permission_classes = [IsDashboardViewer, HasModule]
 
     def get(self, request):
-        scope = caller_scope(request.user)
+        scope = resolve_scope(request.user, request)
         date_from = _parse_date(request.query_params.get("from"))
         date_to = _parse_date(request.query_params.get("to"))
         summary = maternal_summary(scope["facility_ids"], date_from, date_to)
@@ -232,7 +232,7 @@ class RiskPyramidView(APIView):
     permission_classes = [IsDashboardViewer, HasModule]
 
     def get(self, request):
-        scope = caller_scope(request.user)
+        scope = resolve_scope(request.user, request)
         data = risk_pyramid(scope["facility_ids"])
         data["facility_count"] = len(scope["facility_ids"] or [])
         return Response(data)
@@ -244,7 +244,7 @@ class RiskRegistryView(APIView):
     permission_classes = [IsDashboardViewer, HasModule]
 
     def get(self, request):
-        scope = caller_scope(request.user)
+        scope = resolve_scope(request.user, request)
         tier = request.query_params.get("tier")
         return Response(risk_registry(scope["facility_ids"], scope["access_level"], tier))
 
@@ -255,7 +255,7 @@ class AlertsView(APIView):
     permission_classes = [IsDashboardViewer, HasModule]
 
     def get(self, request):
-        scope = caller_scope(request.user)
+        scope = resolve_scope(request.user, request)
         return Response({"alerts": evaluate_alerts(scope["facility_ids"])})
 
 
@@ -652,3 +652,14 @@ class TargetsView(APIView):
             metadata={"key": key, "target_pct": t.target_pct, "is_active": t.is_active},
         )
         return Response({"key": key, "target_pct": t.target_pct, "is_active": t.is_active})
+
+
+# --- Scope selector options (shared across dashboards) ----------------------
+class ScopeOptionsView(APIView):
+    """GET /scope-options — the facilities (and their states) the caller may view,
+    to populate the dashboard scope selector."""
+
+    permission_classes = [IsDashboardViewer]
+
+    def get(self, request):
+        return Response(scope_options(request.user))

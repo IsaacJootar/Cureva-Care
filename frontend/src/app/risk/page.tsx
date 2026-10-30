@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getAlerts, getRiskPyramid, getRiskRegistry, type Alerts, type RiskPyramid, type RiskRegistry } from "@/lib/dashboard";
+import { getAlerts, getRiskPyramid, getRiskRegistry, type Alerts, type RiskPyramid, type RiskRegistry, type ScopeSel } from "@/lib/dashboard";
 import { AppShell } from "@/components/layout/AppShell";
 import { ChartCard, StackedBars } from "@/components/ui/Charts";
+import { ScopeFilter } from "@/components/dashboard/ScopeFilter";
 import { AlertTriangleIcon } from "@/components/icons";
 
 const TIER_COLOR: Record<string, string> = {
@@ -17,12 +18,14 @@ export default function RiskPage() {
   const [pyr, setPyr] = useState<RiskPyramid | null>(null);
   const [reg, setReg] = useState<RiskRegistry | null>(null);
   const [alerts, setAlerts] = useState<Alerts | null>(null);
+  const [scope, setScope] = useState<ScopeSel>({});
 
   useEffect(() => {
-    getRiskPyramid().then(setPyr).catch(() => setPyr(null));
-    getRiskRegistry().then(setReg).catch(() => setReg(null));
-    getAlerts().then(setAlerts).catch(() => setAlerts(null));
-  }, []);
+    setPyr(null); setReg(null); setAlerts(null);
+    getRiskPyramid(scope).then(setPyr).catch(() => setPyr(null));
+    getRiskRegistry(undefined, scope).then(setReg).catch(() => setReg(null));
+    getAlerts(scope).then(setAlerts).catch(() => setAlerts(null));
+  }, [scope]);
 
   const aggregate = reg?.access_level === "aggregate";
   const tiers = pyr?.tiers ?? {};
@@ -32,6 +35,7 @@ export default function RiskPage() {
       title="Risk & alerts"
       subtitle="Open pregnancies to follow up — as of today"
       allowedRoles={["facility_lead", "organisation_user"]}
+      action={<ScopeFilter value={scope} onChange={setScope} />}
     >
       <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
         {pyr && (
