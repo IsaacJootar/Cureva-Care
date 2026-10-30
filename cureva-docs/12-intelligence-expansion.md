@@ -231,7 +231,7 @@ we're done."
 - [x] 0 · RDQA reframe — shipped 2026-10-29 (commit fc36c8d)
 - [x] M1 · Coverage & Reach — shipped 2026-10-29 (commit 9a2b564)
 - [x] M7 · Goals & Targets — shipped 2026-10-29
-- [ ] M6 · Equity
+- [x] M6 · Equity — shipped 2026-10-30
 - [ ] M4 · Quality of Care
 - [ ] M5 · Referral Pathways & Outcomes
 - [ ] M2 · Death Reviews (MPDSR)

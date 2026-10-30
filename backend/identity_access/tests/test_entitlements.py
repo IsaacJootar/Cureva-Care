@@ -40,11 +40,13 @@ def client_for(user):
 
 @pytest.fixture
 def essentials(db):
-    # The seed migration created the three tiers; fall back to creating it.
-    return SubscriptionTier.objects.get_or_create(
+    # A tier with a KNOWN composition, independent of whatever the seed/rebalance
+    # migrations ship, so these entitlement assertions stay deterministic.
+    tier, _ = SubscriptionTier.objects.update_or_create(
         slug="essentials",
         defaults={"name": "Essentials", "modules": ["overview", "care_journey", "reports"], "order": 1},
-    )[0]
+    )
+    return tier
 
 
 @pytest.mark.django_db

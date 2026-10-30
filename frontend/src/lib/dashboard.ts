@@ -248,3 +248,31 @@ export interface Goal {
   on_track: boolean | null;
 }
 export const getGoals = () => apiGet<{ goals: Goal[]; access_level: string }>("/goals");
+
+// --- M6: Equity ---
+export interface EquityGroup {
+  group: string;
+  numerator: number;
+  denominator: number;
+  rate: number | null;
+  low_confidence: boolean;
+}
+export interface EquityGap {
+  best: string; best_rate: number; worst: string; worst_rate: number; points: number;
+}
+export interface EquityBreakdown {
+  dimension: string;
+  metric: string;
+  metric_label: string;
+  dimensions: { key: string; label: string }[];
+  metrics: { key: string; label: string }[];
+  groups: EquityGroup[];
+  gap: EquityGap | null;
+  access_level: string;
+}
+export const getEquityBreakdown = (opts: { dimension?: string; metric?: string; scope?: ScopeSel } = {}) => {
+  const extra: Record<string, string> = {};
+  if (opts.dimension) extra.dimension = opts.dimension;
+  if (opts.metric) extra.metric = opts.metric;
+  return apiGet<EquityBreakdown>(`/equity-breakdown${scopeQS(opts.scope, extra)}`);
+};

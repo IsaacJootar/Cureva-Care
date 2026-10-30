@@ -19,6 +19,7 @@ from identity_access.permissions import IsFacilityLead
 
 from .benchmarking import METRICS, equity_by_parity, facility_league, geo_rollup
 from .coverage import INDICATORS as COVERAGE_INDICATORS, coverage
+from .equity import equity_breakdown
 from .targets import TARGET_CATALOGUE, target_progress
 from .models import CoverageDenominator, ProgramTarget
 from .alerts import evaluate_alerts
@@ -663,3 +664,21 @@ class ScopeOptionsView(APIView):
 
     def get(self, request):
         return Response(scope_options(request.user))
+
+
+# --- Equity (expansion M6) --------------------------------------------------
+class EquityBreakdownView(APIView):
+    """GET /equity-breakdown — a coverage metric sliced by sub-group (past
+    births / age / area) with the equity gap, scoped to the caller."""
+
+    permission_classes = [IsDashboardViewer, HasModule]
+
+    def get(self, request):
+        scope = resolve_scope(request.user, request)
+        dimension = request.query_params.get("dimension", "parity")
+        metric = request.query_params.get("metric", "screening")
+        date_from = _parse_date(request.query_params.get("from"))
+        date_to = _parse_date(request.query_params.get("to"))
+        data = equity_breakdown(scope["facility_ids"], dimension, metric, date_from, date_to)
+        data["access_level"] = scope["access_level"]
+        return Response(data)

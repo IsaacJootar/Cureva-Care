@@ -117,10 +117,14 @@ class Command(BaseCommand):
             pnc = delivered and i < p["pnc"]
             month = (i % 10) + 1
 
-            woman = Woman.objects.create(facility=fac, name=f"Demo W{i + 1}", stable_identifier=f"{fac.id}-{i + 1}", age=20 + (i % 18))
+            # Spread age across bands (incl. a few teens and 35+) and parity so
+            # the equity breakdowns show real variation, not one "Unknown" group.
+            age = [18, 24, 28, 31, 37][i % 5]
+            parity = [0, 1, 2, 4, 6][i % 5]
+            woman = Woman.objects.create(facility=fac, name=f"Demo W{i + 1}", stable_identifier=f"{fac.id}-{i + 1}", age=age)
             ep = PregnancyEpisode.objects.create(woman=woman, facility=fac, booking_date=date(2026, month, 5), booking_gestational_age_weeks=10 if early else 16)
             for c in range(5 if anc4 else 2):
-                data = {"iron_folate_given": "yes", "tetanus_given": "yes"}
+                data = {"iron_folate_given": "yes", "tetanus_given": "yes", "parity": parity}
                 if screened:
                     data.update({"hiv_result": "NR", "syphilis_result": "NR", "haemoglobin": "12"})
                 if high and c == 0:
