@@ -31,6 +31,33 @@ function niceMax(m: number): number {
   return step * pow;
 }
 
+// Evenly spaced, clean (usually integer) axis ticks from 0 up past the max, so a
+// count axis never shows uneven labels like 0,1,3,4,5. Returns the tick values
+// (the last is the axis top used for scaling).
+function axisTicks(max: number): number[] {
+  if (max <= 0) return [0, 1];
+  const raw = max / 4;
+  const pow = Math.pow(10, Math.floor(Math.log10(raw)));
+  const norm = raw / pow;
+  const step = (norm <= 1 ? 1 : norm <= 2 ? 2 : norm <= 5 ? 5 : 10) * pow;
+  let top = Math.ceil(max / step) * step;
+  if (top <= max) top += step; // headroom so the line never hugs the ceiling
+  const ticks: number[] = [];
+  for (let v = 0; v <= top + 1e-9; v += step) ticks.push(Math.round(v * 1000) / 1000);
+  return ticks;
+}
+
+const MONTHS_SHORT = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+// Short axis label for a bucket: "2026-03" -> "Mar"; else the raw value.
+function shortBucket(x: string): string {
+  const m = /^\d{4}-(\d{2})$/.exec(x);
+  if (m) {
+    const mi = parseInt(m[1], 10) - 1;
+    if (mi >= 0 && mi < 12) return MONTHS_SHORT[mi];
+  }
+  return x;
+}
+
 // A metric with its rate AND its denominator + completeness — never a bare
 // percentage (rule #5). A thin meter visualises the rate.
 export function MetricMeter({ label, ratio, tooltip }: { label: string; ratio: Ratio; tooltip?: string }) {
@@ -170,12 +197,12 @@ export function LineChart({
   const n = xs.length;
   const allY = series.flatMap((s) => s.points.map((p) => p.y)).filter((v): v is number => v != null);
   const dataMax = allY.length ? Math.max(...allY) : 1;
-  const yMax = yMaxProp ?? (unit === "percent" ? 100 : niceMax(dataMax));
+  const gridVals = unit === "percent" ? [0, 25, 50, 75, 100] : axisTicks(yMaxProp ?? dataMax);
+  const yMax = yMaxProp ?? gridVals[gridVals.length - 1];
 
   const px = (i: number) => (n <= 1 ? (x0 + x1) / 2 : x0 + (i / (n - 1)) * plotW);
   const py = (v: number) => y1 - (v / yMax) * plotH;
 
-  const gridVals = Array.from(new Set([0, 0.25, 0.5, 0.75, 1].map((f) => Math.round(yMax * f))));
   const labelEvery = n <= 8 ? 1 : Math.ceil(n / 7);
 
   function pathFor(pts: LinePoint[]): string {
@@ -227,11 +254,13 @@ export function LineChart({
             <text x={x0 - 6} y={py(v) + 3} textAnchor="end" fontSize={10} fill="var(--cv-text-muted)">{fmt(v)}</text>
           </g>
         ))}
-        {xs.map((x, i) =>
-          i % labelEvery === 0 ? (
-            <text key={`x${i}`} x={px(i)} y={H - 10} textAnchor="middle" fontSize={10} fill="var(--cv-text-muted)">{x}</text>
-          ) : null,
-        )}
+        {xs.map((x, i) => {
+          if (i % labelEvery !== 0 && i !== n - 1) return null;
+          const anchor = i === 0 ? "start" : i === n - 1 ? "end" : "middle";
+          return (
+            <text key={`x${i}`} x={px(i)} y={H - 10} textAnchor={anchor} fontSize={10} fill="var(--cv-text-muted)">{shortBucket(x)}</text>
+          );
+        })}
         {active != null && (
           <line x1={px(active)} x2={px(active)} y1={y0} y2={y1} stroke="var(--cv-text-muted)" strokeWidth={1} strokeDasharray="3 3" opacity={0.6} />
         )}
