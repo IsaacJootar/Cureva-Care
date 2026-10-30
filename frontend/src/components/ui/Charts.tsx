@@ -1,8 +1,19 @@
 "use client";
 
-import { useRef, type ReactNode } from "react";
+import { useRef, useState, type ReactNode } from "react";
 import { Tooltip } from "./Feedback";
 import { downloadCSV, svgToPng } from "@/lib/chartExport";
+
+const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+// Make an axis bucket readable: "2026-03" -> "March 2026"; else leave as-is.
+function prettyBucket(x: string): string {
+  const m = /^(\d{4})-(\d{2})$/.exec(x);
+  if (m) {
+    const mi = parseInt(m[2], 10) - 1;
+    if (mi >= 0 && mi < 12) return `${MONTHS[mi]} ${m[1]}`;
+  }
+  return x;
+}
 
 interface Ratio {
   numerator: number;
@@ -182,9 +193,34 @@ export function LineChart({
   const single = series.length === 1;
   const fmt = (v: number) => (unit === "percent" ? `${v}%` : `${v}`);
 
+  // Interactive tooltip: find the nearest point to the pointer (works on hover
+  // AND tap), so a customer can read a plain-English value at any point.
+  const [active, setActive] = useState<number | null>(null);
+  const svgRef = useRef<SVGSVGElement>(null);
+
+  function locate(clientX: number) {
+    const el = svgRef.current;
+    if (!el || n === 0) return;
+    const rect = el.getBoundingClientRect();
+    const dataX = ((clientX - rect.left) / rect.width) * W; // into viewBox coords
+    const i = n <= 1 ? 0 : Math.round(((dataX - x0) / plotW) * (n - 1));
+    setActive(Math.max(0, Math.min(n - 1, i)));
+  }
+
+  const tipLeftPct = active != null ? (px(active) / W) * 100 : 0;
+  const flip = tipLeftPct > 62; // keep the tooltip on-screen near the right edge
+
   return (
-    <div>
-      <svg viewBox={`0 0 ${W} ${H}`} style={{ width: "100%", height: "auto", display: "block" }} role="img">
+    <div style={{ position: "relative" }}>
+      <svg
+        ref={svgRef}
+        viewBox={`0 0 ${W} ${H}`}
+        style={{ width: "100%", height: "auto", display: "block", touchAction: "pan-y" }}
+        role="img"
+        onPointerMove={(e) => locate(e.clientX)}
+        onPointerDown={(e) => locate(e.clientX)}
+        onPointerLeave={() => setActive(null)}
+      >
         {gridVals.map((v, gi) => (
           <g key={`g${gi}`}>
             <line x1={x0} x2={x1} y1={py(v)} y2={py(v)} stroke="var(--cv-hairline)" strokeWidth={1} />
@@ -195,6 +231,9 @@ export function LineChart({
           i % labelEvery === 0 ? (
             <text key={`x${i}`} x={px(i)} y={H - 10} textAnchor="middle" fontSize={10} fill="var(--cv-text-muted)">{x}</text>
           ) : null,
+        )}
+        {active != null && (
+          <line x1={px(active)} x2={px(active)} y1={y0} y2={y1} stroke="var(--cv-text-muted)" strokeWidth={1} strokeDasharray="3 3" opacity={0.6} />
         )}
         {series.map((s, si) => {
           const color = SERIES[si % SERIES.length];
@@ -210,15 +249,40 @@ export function LineChart({
               <path d={pathFor(s.points)} fill="none" stroke={color} strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />
               {s.points.map((p, i) =>
                 p.y == null ? null : (
-                  <circle key={`c${i}`} cx={px(i)} cy={py(p.y)} r={2.6} fill={color}>
-                    <title>{`${p.x}: ${fmt(p.y)}`}</title>
-                  </circle>
+                  <circle key={`c${i}`} cx={px(i)} cy={py(p.y)} r={active === i ? 4.5 : 2.6} fill={color} />
                 ),
               )}
             </g>
           );
         })}
+        {/* Full-width capture strip so hover/tap anywhere reads the nearest point. */}
+        <rect x={x0} y={y0} width={plotW} height={plotH} fill="transparent" />
       </svg>
+
+      {active != null && xs[active] != null && (
+        <div
+          style={{
+            position: "absolute", top: 6, [flip ? "right" : "left"]: `${flip ? 100 - tipLeftPct : tipLeftPct}%`,
+            transform: flip ? "translateX(-8px)" : "translateX(8px)",
+            background: "var(--cv-card-bg)", border: "1px solid var(--cv-card-border)",
+            borderRadius: 8, boxShadow: "var(--cv-menu-shadow)", padding: "8px 10px",
+            pointerEvents: "none", zIndex: 5, minWidth: 140, maxWidth: 220,
+          }}
+        >
+          <div style={{ fontSize: 11.5, fontWeight: 700, color: "var(--cv-text-primary)", marginBottom: 4 }}>{prettyBucket(xs[active])}</div>
+          {series.map((s, si) => {
+            const v = s.points[active]?.y;
+            return (
+              <div key={s.name} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11.5, color: "var(--cv-text-secondary)", marginTop: 2 }}>
+                <span style={{ width: 9, height: 9, borderRadius: "50%", background: SERIES[si % SERIES.length], flexShrink: 0 }} />
+                <span style={{ flex: 1 }}>{s.name}</span>
+                <span className="cv-num" style={{ fontWeight: 700, color: "var(--cv-text-primary)" }}>{v == null ? "no data" : fmt(v)}</span>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
       {series.length > 1 && (
         <div style={{ display: "flex", gap: 14, flexWrap: "wrap", marginTop: 8 }}>
           {series.map((s, si) => (
