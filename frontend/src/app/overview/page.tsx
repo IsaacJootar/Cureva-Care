@@ -2,10 +2,11 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { getWorkspace, type Workspace } from "@/lib/dashboard";
+import { getWorkspace, type ScopeSel, type Workspace } from "@/lib/dashboard";
 import { AppShell } from "@/components/layout/AppShell";
 import { Funnel, ChartPanel } from "@/components/ui/Charts";
 import { TrendsPanel } from "@/components/dashboard/TrendsPanel";
+import { ScopeFilter } from "@/components/dashboard/ScopeFilter";
 import { StatTile } from "@/components/ui/StatTile";
 import { StatTileSkeleton, StatusPill } from "@/components/ui/Feedback";
 import { Table, Td, Th } from "@/components/ui/Table";
@@ -13,10 +14,12 @@ import { ActivityIcon, AlertTriangleIcon, BuildingIcon, CheckIcon, FileTextIcon,
 
 export default function OverviewPage() {
   const [ws, setWs] = useState<Workspace | null>(null);
+  const [scope, setScope] = useState<ScopeSel>({});
 
   useEffect(() => {
-    getWorkspace().then(setWs).catch(() => setWs(null));
-  }, []);
+    setWs(null);
+    getWorkspace(scope).then(setWs).catch(() => setWs(null));
+  }, [scope]);
 
   const isOrg = ws?.role === "organisation_user";
   const s = ws?.summary;
@@ -36,6 +39,7 @@ export default function OverviewPage() {
       title="Overview"
       subtitle={ws ? (isOrg ? scopeLine(ws.scope_breakdown) : "Your facility's operating picture") : "Loading…"}
       allowedRoles={["facility_lead", "organisation_user"]}
+      action={<ScopeFilter value={scope} onChange={setScope} />}
     >
       {!ws || !s ? (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 14 }}>
@@ -70,7 +74,7 @@ export default function OverviewPage() {
             </ChartPanel>
           </div>
 
-          <TrendsPanel />
+          <TrendsPanel scope={scope} />
 
           {ws.facilities.length > 1 && (
             <div>

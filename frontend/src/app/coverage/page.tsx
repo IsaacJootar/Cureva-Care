@@ -1,11 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { getCoverage, type Coverage } from "@/lib/dashboard";
+import { getCoverage, type Coverage, type ScopeSel } from "@/lib/dashboard";
 import { AppShell } from "@/components/layout/AppShell";
 import { SelectField } from "@/components/ui/Field";
 import { ChartCard, LeagueTable, MetricMeter, type LeagueRow } from "@/components/ui/Charts";
 import { NigeriaMap, type MapDatum } from "@/components/dashboard/NigeriaMap";
+import { ScopeFilter } from "@/components/dashboard/ScopeFilter";
 
 const YEARS = [2027, 2026, 2025, 2024];
 
@@ -18,13 +19,14 @@ export default function CoveragePage() {
   const [year, setYear] = useState(2026);
   const [level, setLevel] = useState<"lga" | "state">("lga");
   const [indicator, setIndicator] = useState("anc1");
+  const [scope, setScope] = useState<ScopeSel>({});
   const [cov, setCov] = useState<Coverage | null>(null);
   const [stateCov, setStateCov] = useState<Coverage | null>(null);
 
   const load = useCallback(() => {
-    getCoverage({ year, level, indicator }).then(setCov).catch(() => setCov(null));
-    getCoverage({ year, level: "state", indicator }).then(setStateCov).catch(() => setStateCov(null));
-  }, [year, level, indicator]);
+    getCoverage({ year, level, indicator, scope }).then(setCov).catch(() => setCov(null));
+    getCoverage({ year, level: "state", indicator, scope }).then(setStateCov).catch(() => setStateCov(null));
+  }, [year, level, indicator, scope]);
   useEffect(() => { load(); }, [load]);
 
   const catalogue = cov?.indicator_catalogue ?? [
@@ -50,9 +52,9 @@ export default function CoveragePage() {
 
   const sources = cov?.sources ?? [];
   const missing = cov?.areas_missing_denominator ?? [];
-  const estimateNote =
-    `Coverage compares recorded activity to an estimated number of expected pregnancies/births — these are estimates` +
-    (sources.length ? `, from ${sources.join(", ")}` : "") + ".";
+  const estimateNote = sources.length
+    ? `Reach is estimated, using ${sources.join(", ")}.`
+    : "Reach is estimated from population data.";
 
   return (
     <AppShell
@@ -61,6 +63,7 @@ export default function CoveragePage() {
       allowedRoles={["facility_lead", "organisation_user"]}
       action={
         <div style={{ display: "flex", gap: 8 }}>
+          <ScopeFilter value={scope} onChange={setScope} />
           <div style={{ width: 150 }}>
             <SelectField id="indicator" label="" value={indicator} onChange={(e) => setIndicator(e.target.value)}>
               {catalogue.map((c) => <option key={c.key} value={c.key}>{c.label}</option>)}

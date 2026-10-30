@@ -63,7 +63,7 @@ class CareJourneyView(APIView):
     permission_classes = [IsDashboardViewer, HasModule]
 
     def get(self, request):
-        scope = caller_scope(request.user)
+        scope = resolve_scope(request.user, request)
         date_from = _parse_date(request.query_params.get("from"))
         date_to = _parse_date(request.query_params.get("to"))
         summary = maternal_summary(scope["facility_ids"], date_from, date_to)
@@ -77,7 +77,7 @@ class TrendsView(APIView):
     permission_classes = [IsDashboardViewer, HasModule]
 
     def get(self, request):
-        scope = caller_scope(request.user)
+        scope = resolve_scope(request.user, request)
         date_from = _parse_date(request.query_params.get("from"))
         date_to = _parse_date(request.query_params.get("to"))
         bucket = request.query_params.get("bucket", "month")
@@ -92,7 +92,7 @@ class BenchmarkingView(APIView):
     permission_classes = [IsDashboardViewer, HasModule]
 
     def get(self, request):
-        scope = caller_scope(request.user)
+        scope = resolve_scope(request.user, request)
         metric = request.query_params.get("metric", "deliveries")
         date_from = _parse_date(request.query_params.get("from"))
         date_to = _parse_date(request.query_params.get("to"))
@@ -108,7 +108,7 @@ class GeoRollupView(APIView):
     permission_classes = [IsDashboardViewer, HasModule]
 
     def get(self, request):
-        scope = caller_scope(request.user)
+        scope = resolve_scope(request.user, request)
         metric = request.query_params.get("metric", "deliveries")
         level = request.query_params.get("level", "state")
         date_from = _parse_date(request.query_params.get("from"))
@@ -124,7 +124,7 @@ class EquityView(APIView):
     permission_classes = [IsDashboardViewer, HasModule]
 
     def get(self, request):
-        scope = caller_scope(request.user)
+        scope = resolve_scope(request.user, request)
         date_from = _parse_date(request.query_params.get("from"))
         date_to = _parse_date(request.query_params.get("to"))
         data = equity_by_parity(scope["facility_ids"], date_from, date_to)
@@ -138,7 +138,7 @@ class ContinuumFunnelView(APIView):
     permission_classes = [IsDashboardViewer, HasModule]
 
     def get(self, request):
-        scope = caller_scope(request.user)
+        scope = resolve_scope(request.user, request)
         date_from = _parse_date(request.query_params.get("from"))
         date_to = _parse_date(request.query_params.get("to"))
         data = care_funnel(scope["facility_ids"], date_from, date_to)
@@ -153,7 +153,7 @@ class DropoffView(APIView):
     permission_classes = [IsDashboardViewer, HasModule]
 
     def get(self, request):
-        scope = caller_scope(request.user)
+        scope = resolve_scope(request.user, request)
         kind = request.query_params.get("kind", "delivered_no_pnc")
         date_from = _parse_date(request.query_params.get("from"))
         date_to = _parse_date(request.query_params.get("to"))
@@ -168,7 +168,7 @@ class CohortView(APIView):
     permission_classes = [IsDashboardViewer, HasModule]
 
     def get(self, request):
-        scope = caller_scope(request.user)
+        scope = resolve_scope(request.user, request)
         date_from = _parse_date(request.query_params.get("from"))
         date_to = _parse_date(request.query_params.get("to"))
         data = cohort_retention(scope["facility_ids"], date_from, date_to)
@@ -183,7 +183,7 @@ class SurveillanceCasesView(APIView):
     permission_classes = [IsDashboardViewer, HasModule]
 
     def get(self, request):
-        scope = caller_scope(request.user)
+        scope = resolve_scope(request.user, request)
         date_from = _parse_date(request.query_params.get("from"))
         date_to = _parse_date(request.query_params.get("to"))
         return Response(severe_cases(scope["facility_ids"], scope["access_level"], date_from, date_to))
@@ -196,7 +196,7 @@ class CaseTimelineView(APIView):
     permission_classes = [IsDashboardViewer, HasModule]
 
     def get(self, request, episode_id):
-        scope = caller_scope(request.user)
+        scope = resolve_scope(request.user, request)
         if scope["access_level"] == AccessLevel.AGGREGATE:
             return Response({"detail": "Aggregate access does not include case-level timelines."}, status=403)
         return Response(case_timeline(episode_id, scope["facility_ids"], scope["access_level"]))
@@ -208,7 +208,7 @@ class SevereTrendView(APIView):
     permission_classes = [IsDashboardViewer, HasModule]
 
     def get(self, request):
-        scope = caller_scope(request.user)
+        scope = resolve_scope(request.user, request)
         date_from = _parse_date(request.query_params.get("from"))
         date_to = _parse_date(request.query_params.get("to"))
         return Response(severe_trend(scope["facility_ids"], date_from, date_to))
@@ -220,7 +220,7 @@ class ClustersView(APIView):
     permission_classes = [IsDashboardViewer, HasModule]
 
     def get(self, request):
-        scope = caller_scope(request.user)
+        scope = resolve_scope(request.user, request)
         date_from = _parse_date(request.query_params.get("from"))
         date_to = _parse_date(request.query_params.get("to"))
         return Response(facility_clusters(scope["facility_ids"], date_from, date_to))
@@ -265,7 +265,7 @@ class RDQAScorecardView(APIView):
     permission_classes = [IsDashboardViewer, HasModule]
 
     def get(self, request):
-        scope = caller_scope(request.user)
+        scope = resolve_scope(request.user, request)
         date_from = _parse_date(request.query_params.get("from"))
         date_to = _parse_date(request.query_params.get("to"))
         return Response(rdqa_scorecard(scope["facility_ids"], date_from, date_to))
@@ -277,7 +277,7 @@ class RDQATrendView(APIView):
     permission_classes = [IsDashboardViewer, HasModule]
 
     def get(self, request):
-        scope = caller_scope(request.user)
+        scope = resolve_scope(request.user, request)
         return Response(rdqa_trend(scope["facility_ids"]))
 
 
@@ -288,7 +288,7 @@ class WorkspaceView(APIView):
     permission_classes = [IsDashboardViewer, HasModule]
 
     def get(self, request):
-        scope = caller_scope(request.user)
+        scope = resolve_scope(request.user, request)
         facility_ids = list(scope["facility_ids"] or [])
         facilities = Facility.objects.filter(id__in=facility_ids).select_related(
             "ward__local_government__state"
@@ -332,7 +332,7 @@ class FacilitiesOverviewView(APIView):
     permission_classes = [IsDashboardViewer, HasModule]
 
     def get(self, request):
-        scope = caller_scope(request.user)
+        scope = resolve_scope(request.user, request)
         facility_ids = list(scope["facility_ids"] or [])
         stale_days = int(get_setting(STALE_FACILITY_ALERT_DAYS))
         cutoff = timezone.now() - timedelta(days=stale_days)
@@ -436,7 +436,7 @@ class RecordsView(APIView):
     permission_classes = [IsDashboardViewer, HasModule]
 
     def get(self, request):
-        scope = caller_scope(request.user)
+        scope = resolve_scope(request.user, request)
         if scope["access_level"] == AccessLevel.AGGREGATE:
             return Response(
                 {"detail": "Aggregate access does not include row-level records."},
@@ -495,7 +495,7 @@ class CoverageView(APIView):
     permission_classes = [IsDashboardViewer, HasModule]
 
     def get(self, request):
-        scope = caller_scope(request.user)
+        scope = resolve_scope(request.user, request)
         try:
             year = int(request.query_params.get("year") or date.today().year)
         except (TypeError, ValueError):
@@ -601,7 +601,7 @@ class GoalsView(APIView):
     permission_classes = [IsDashboardViewer, HasModule]
 
     def get(self, request):
-        scope = caller_scope(request.user)
+        scope = resolve_scope(request.user, request)
         date_from = _parse_date(request.query_params.get("from"))
         date_to = _parse_date(request.query_params.get("to"))
         data = target_progress(scope["facility_ids"], date_from, date_to)

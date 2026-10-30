@@ -1,20 +1,23 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getSummary, type Summary } from "@/lib/dashboard";
+import { getSummary, type ScopeSel, type Summary } from "@/lib/dashboard";
 import { AppShell } from "@/components/layout/AppShell";
 import { ChartPanel, MetricMeter } from "@/components/ui/Charts";
 import { StatTileSkeleton } from "@/components/ui/Feedback";
 import { ContinuumSection } from "@/components/dashboard/ContinuumSection";
+import { ScopeFilter } from "@/components/dashboard/ScopeFilter";
 
 export default function CareJourneyPage() {
   const [s, setS] = useState<Summary | null>(null);
+  const [scope, setScope] = useState<ScopeSel>({});
   useEffect(() => {
-    getSummary().then(setS).catch(() => setS(null));
-  }, []);
+    setS(null);
+    getSummary(undefined, undefined, scope).then(setS).catch(() => setS(null));
+  }, [scope]);
 
   return (
-    <AppShell title="Care journey" subtitle="From registration to after-birth care" allowedRoles={["facility_lead", "organisation_user"]}>
+    <AppShell title="Care journey" subtitle="From registration to after-birth care" allowedRoles={["facility_lead", "organisation_user"]} action={<ScopeFilter value={scope} onChange={setScope} />}>
       {!s ? (
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18 }}><StatTileSkeleton /><StatTileSkeleton /></div>
       ) : (
@@ -30,7 +33,7 @@ export default function CareJourneyPage() {
             <MetricMeter label="Referrals followed up" ratio={s.metrics.referral_closure} tooltip="When a woman is referred to a bigger hospital, the share where we know the outcome." />
           </ChartPanel>
 
-          <ContinuumSection />
+          <ContinuumSection scope={scope} />
         </div>
       )}
     </AppShell>

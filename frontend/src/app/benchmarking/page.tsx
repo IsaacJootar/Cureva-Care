@@ -3,12 +3,13 @@
 import { useCallback, useEffect, useState } from "react";
 import {
   getBenchmarking, getEquity, getGeo,
-  type Benchmarking, type Equity, type GeoRollup, type MetricDef,
+  type Benchmarking, type Equity, type GeoRollup, type MetricDef, type ScopeSel,
 } from "@/lib/dashboard";
 import { AppShell } from "@/components/layout/AppShell";
 import { SelectField } from "@/components/ui/Field";
 import { ChartCard, LeagueTable, MetricMeter, type LeagueRow } from "@/components/ui/Charts";
 import { NigeriaMap, type MapDatum } from "@/components/dashboard/NigeriaMap";
+import { ScopeFilter } from "@/components/dashboard/ScopeFilter";
 
 const NOTE = "Based on what facilities have recorded, not population estimates. Very small numbers are flagged.";
 
@@ -20,19 +21,20 @@ function fmtRate(rate: number | null, num: number, den: number | null) {
 export default function BenchmarkingPage() {
   const [metric, setMetric] = useState("deliveries");
   const [level, setLevel] = useState<"ward" | "lga" | "state">("state");
+  const [scope, setScope] = useState<ScopeSel>({});
   const [bench, setBench] = useState<Benchmarking | null>(null);
   const [geo, setGeo] = useState<GeoRollup | null>(null);
   const [stateGeo, setStateGeo] = useState<GeoRollup | null>(null);
   const [equity, setEquity] = useState<Equity | null>(null);
 
   const load = useCallback(() => {
-    getBenchmarking(metric).then(setBench).catch(() => setBench(null));
-    getGeo(metric, level).then(setGeo).catch(() => setGeo(null));
-    getGeo(metric, "state").then(setStateGeo).catch(() => setStateGeo(null));
-  }, [metric, level]);
+    getBenchmarking(metric, scope).then(setBench).catch(() => setBench(null));
+    getGeo(metric, level, scope).then(setGeo).catch(() => setGeo(null));
+    getGeo(metric, "state", scope).then(setStateGeo).catch(() => setStateGeo(null));
+  }, [metric, level, scope]);
 
   useEffect(() => { load(); }, [load]);
-  useEffect(() => { getEquity().then(setEquity).catch(() => setEquity(null)); }, []);
+  useEffect(() => { getEquity(scope).then(setEquity).catch(() => setEquity(null)); }, [scope]);
 
   const metrics: MetricDef[] = bench?.available_metrics ?? [];
   const isRate = bench?.kind === "rate";
@@ -61,11 +63,14 @@ export default function BenchmarkingPage() {
       subtitle="Compare facilities and regions, and see where care differs"
       allowedRoles={["facility_lead", "organisation_user"]}
       action={
-        <div style={{ width: 230 }}>
-          <SelectField id="metric" label="" value={metric} onChange={(e) => setMetric(e.target.value)}>
-            {metrics.length === 0 && <option value="deliveries">Deliveries</option>}
-            {metrics.map((m) => <option key={m.key} value={m.key}>{m.label}</option>)}
-          </SelectField>
+        <div style={{ display: "flex", gap: 8 }}>
+          <ScopeFilter value={scope} onChange={setScope} />
+          <div style={{ width: 210 }}>
+            <SelectField id="metric" label="" value={metric} onChange={(e) => setMetric(e.target.value)}>
+              {metrics.length === 0 && <option value="deliveries">Deliveries</option>}
+              {metrics.map((m) => <option key={m.key} value={m.key}>{m.label}</option>)}
+            </SelectField>
+          </div>
         </div>
       }
     >

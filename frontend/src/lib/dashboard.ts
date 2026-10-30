@@ -78,8 +78,12 @@ export interface Trends {
   deltas: Record<string, number | null>;
   access_level: string;
 }
-export const getTrends = (bucket: "month" | "week" = "month", from?: string, to?: string) =>
-  apiGet<Trends>(`/trends?bucket=${bucket}${from ? `&from=${from}` : ""}${to ? `&to=${to}` : ""}`);
+export const getTrends = (bucket: "month" | "week" = "month", from?: string, to?: string, scope?: ScopeSel) => {
+  const extra: Record<string, string> = { bucket };
+  if (from) extra.from = from;
+  if (to) extra.to = to;
+  return apiGet<Trends>(`/trends${scopeQS(scope, extra)}`);
+};
 
 // --- WS2: Benchmarking & Equity ---
 export interface MetricDef { key: string; kind: "count" | "rate"; label: string; invert?: boolean }
@@ -98,10 +102,11 @@ export interface GeoRollup { metric: string; level: "ward" | "lga" | "state"; ki
 export interface EquityBand { band: string; contacts: number; screening_coverage: Ratio; intervention_coverage: Ratio }
 export interface Equity { dimension: string; bands: EquityBand[] }
 
-export const getBenchmarking = (metric = "deliveries") => apiGet<Benchmarking>(`/benchmarking?metric=${metric}`);
-export const getGeo = (metric = "deliveries", level: "ward" | "lga" | "state" = "state") =>
-  apiGet<GeoRollup>(`/geo?metric=${metric}&level=${level}`);
-export const getEquity = () => apiGet<Equity>("/equity");
+export const getBenchmarking = (metric = "deliveries", scope?: ScopeSel) =>
+  apiGet<Benchmarking>(`/benchmarking${scopeQS(scope, { metric })}`);
+export const getGeo = (metric = "deliveries", level: "ward" | "lga" | "state" = "state", scope?: ScopeSel) =>
+  apiGet<GeoRollup>(`/geo${scopeQS(scope, { metric, level })}`);
+export const getEquity = (scope?: ScopeSel) => apiGet<Equity>(`/equity${scopeQS(scope)}`);
 
 // --- WS3: Continuum & cohorts ---
 export interface FunnelStep { label: string; value: number; drop_from_previous: number; share_of_booked: number | null }
@@ -114,9 +119,9 @@ export interface Dropoff { kind: string; label: string; count: number; rows: Dro
 export interface CohortSeries { label: string; points: TrendRatePoint[] }
 export interface Cohorts { cohorts: string[]; series: Record<string, CohortSeries>; access_level: string }
 
-export const getContinuumFunnel = () => apiGet<CareFunnel>("/continuum/funnel");
-export const getDropoff = (kind: string) => apiGet<Dropoff>(`/continuum/dropoff?kind=${kind}`);
-export const getCohorts = () => apiGet<Cohorts>("/continuum/cohorts");
+export const getContinuumFunnel = (scope?: ScopeSel) => apiGet<CareFunnel>(`/continuum/funnel${scopeQS(scope)}`);
+export const getDropoff = (kind: string, scope?: ScopeSel) => apiGet<Dropoff>(`/continuum/dropoff${scopeQS(scope, { kind })}`);
+export const getCohorts = (scope?: ScopeSel) => apiGet<Cohorts>(`/continuum/cohorts${scopeQS(scope)}`);
 
 // --- WS4: MPDSR severe-outcome surveillance ---
 export interface SevereCase {
@@ -131,10 +136,10 @@ export interface SevereTrend { buckets: string[]; series: Record<string, TrendCo
 export interface ClusterRow { facility_id: string; name: string; region: string; severe: number; deliveries: number; rate: number | null }
 export interface Clusters { facilities: ClusterRow[] }
 
-export const getSevereCases = () => apiGet<SevereCases>("/surveillance/cases");
+export const getSevereCases = (scope?: ScopeSel) => apiGet<SevereCases>(`/surveillance/cases${scopeQS(scope)}`);
 export const getCaseTimeline = (episodeId: string) => apiGet<CaseTimeline>(`/surveillance/cases/${episodeId}`);
-export const getSevereTrend = () => apiGet<SevereTrend>("/surveillance/trend");
-export const getClusters = () => apiGet<Clusters>("/surveillance/clusters");
+export const getSevereTrend = (scope?: ScopeSel) => apiGet<SevereTrend>(`/surveillance/trend${scopeQS(scope)}`);
+export const getClusters = (scope?: ScopeSel) => apiGet<Clusters>(`/surveillance/clusters${scopeQS(scope)}`);
 
 // --- WS5: Risk intelligence & early-warning ---
 export interface RiskPyramid { tiers: Record<string, number>; total: number; facility_count?: number; ruleset_version?: number; clinical_owner?: string }
@@ -182,7 +187,7 @@ export interface RdqaTrend { points: TrendRatePoint[] }
 export const getRdqaScorecard = () => apiGet<RdqaScorecard>("/rdqa/scorecard");
 export const getRdqaTrend = () => apiGet<RdqaTrend>("/rdqa/trend");
 
-export const getWorkspace = () => apiGet<Workspace>("/workspace");
+export const getWorkspace = (scope?: ScopeSel) => apiGet<Workspace>(`/workspace${scopeQS(scope)}`);
 export const getSummary = (from?: string, to?: string, scope?: ScopeSel) => {
   const extra: Record<string, string> = {};
   if (from) extra.from = from;
@@ -223,13 +228,12 @@ export interface Coverage {
   access_level: string;
 }
 
-export const getCoverage = (opts: { year?: number; level?: string; indicator?: string } = {}) => {
-  const p = new URLSearchParams();
-  if (opts.year) p.set("year", String(opts.year));
-  if (opts.level) p.set("level", opts.level);
-  if (opts.indicator) p.set("indicator", opts.indicator);
-  const q = p.toString();
-  return apiGet<Coverage>(`/coverage${q ? `?${q}` : ""}`);
+export const getCoverage = (opts: { year?: number; level?: string; indicator?: string; scope?: ScopeSel } = {}) => {
+  const extra: Record<string, string> = {};
+  if (opts.year) extra.year = String(opts.year);
+  if (opts.level) extra.level = opts.level;
+  if (opts.indicator) extra.indicator = opts.indicator;
+  return apiGet<Coverage>(`/coverage${scopeQS(opts.scope, extra)}`);
 };
 
 // --- M7: Goals & targets ---

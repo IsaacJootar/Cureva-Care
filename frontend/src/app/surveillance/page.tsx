@@ -3,8 +3,9 @@
 import { useEffect, useState } from "react";
 import {
   getCaseTimeline, getClusters, getSevereCases, getSevereTrend,
-  type CaseTimeline, type Clusters, type SevereCase, type SevereCases, type SevereTrend,
+  type CaseTimeline, type Clusters, type ScopeSel, type SevereCase, type SevereCases, type SevereTrend,
 } from "@/lib/dashboard";
+import { ScopeFilter } from "@/components/dashboard/ScopeFilter";
 import { AppShell } from "@/components/layout/AppShell";
 import { Modal } from "@/components/ui/Dialog";
 import { Button } from "@/components/ui/Button";
@@ -24,12 +25,14 @@ export default function SurveillancePage() {
   const [clusters, setClusters] = useState<Clusters | null>(null);
   const [open, setOpen] = useState<SevereCase | null>(null);
   const [timeline, setTimeline] = useState<CaseTimeline | null>(null);
+  const [scope, setScope] = useState<ScopeSel>({});
 
   useEffect(() => {
-    getSevereCases().then(setCases).catch(() => setCases(null));
-    getSevereTrend().then(setTrend).catch(() => setTrend(null));
-    getClusters().then(setClusters).catch(() => setClusters(null));
-  }, []);
+    setCases(null); setTrend(null); setClusters(null);
+    getSevereCases(scope).then(setCases).catch(() => setCases(null));
+    getSevereTrend(scope).then(setTrend).catch(() => setTrend(null));
+    getClusters(scope).then(setClusters).catch(() => setClusters(null));
+  }, [scope]);
 
   function openCase(c: SevereCase) {
     setOpen(c);
@@ -53,6 +56,7 @@ export default function SurveillancePage() {
       title="Deaths & stillbirths"
       subtitle="Each one, traced back through her record (MPDSR)"
       allowedRoles={["facility_lead", "organisation_user"]}
+      action={<ScopeFilter value={scope} onChange={setScope} />}
     >
       <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14 }}>

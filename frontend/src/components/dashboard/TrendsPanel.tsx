@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { getTrends, type TrendMetric, type Trends } from "@/lib/dashboard";
+import { getTrends, type ScopeSel, type TrendMetric, type Trends } from "@/lib/dashboard";
 import { ChartCard, DeltaBadge, LineChart, type LineSeries } from "@/components/ui/Charts";
 
 // WS1 — Time & Trends. Turns the point-in-time metrics into trend lines with a
@@ -32,15 +32,15 @@ function csvFor(t: Trends, keys: string[]) {
 
 const NOTE = "Based on what facilities have recorded, not population estimates.";
 
-export function TrendsPanel() {
+export function TrendsPanel({ scope }: { scope?: ScopeSel } = {}) {
   const [bucket, setBucket] = useState<"month" | "week">("month");
   const [data, setData] = useState<Trends | null>(null);
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(() => {
     setLoading(true);
-    getTrends(bucket).then(setData).catch(() => setData(null)).finally(() => setLoading(false));
-  }, [bucket]);
+    getTrends(bucket, undefined, undefined, scope).then(setData).catch(() => setData(null)).finally(() => setLoading(false));
+  }, [bucket, scope]);
 
   useEffect(() => { load(); }, [load]);
 

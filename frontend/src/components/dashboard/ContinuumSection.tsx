@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import {
   getCohorts, getContinuumFunnel, getDropoff,
-  type CareFunnel, type Cohorts, type Dropoff,
+  type CareFunnel, type Cohorts, type Dropoff, type ScopeSel,
 } from "@/lib/dashboard";
 import { ChartCard, LineChart, type LineSeries } from "@/components/ui/Charts";
 
@@ -11,20 +11,20 @@ import { ChartCard, LineChart, type LineSeries } from "@/components/ui/Charts";
 // access-scoped line-list of named women to follow up, plus booking-cohort
 // retention over time.
 
-export function ContinuumSection() {
+export function ContinuumSection({ scope }: { scope?: ScopeSel } = {}) {
   const [funnel, setFunnel] = useState<CareFunnel | null>(null);
   const [cohorts, setCohorts] = useState<Cohorts | null>(null);
   const [kind, setKind] = useState("delivered_no_pnc");
   const [drop, setDrop] = useState<Dropoff | null>(null);
 
   useEffect(() => {
-    getContinuumFunnel().then(setFunnel).catch(() => setFunnel(null));
-    getCohorts().then(setCohorts).catch(() => setCohorts(null));
-  }, []);
+    getContinuumFunnel(scope).then(setFunnel).catch(() => setFunnel(null));
+    getCohorts(scope).then(setCohorts).catch(() => setCohorts(null));
+  }, [scope]);
 
   const loadDrop = useCallback(() => {
-    getDropoff(kind).then(setDrop).catch(() => setDrop(null));
-  }, [kind]);
+    getDropoff(kind, scope).then(setDrop).catch(() => setDrop(null));
+  }, [kind, scope]);
   useEffect(() => { loadDrop(); }, [loadDrop]);
 
   const total = funnel?.total ?? 0;
