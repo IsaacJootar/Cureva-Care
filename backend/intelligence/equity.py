@@ -120,14 +120,18 @@ def equity_breakdown(facility_ids, dimension="parity", metric="screening", date_
     # Equity gap: best vs worst among real groups with an adequate sample.
     # "Unknown" is the missing-data catch-all, never a comparison group.
     adequate = [r for r in rows if not r["low_confidence"] and r["rate"] is not None and r["group"] != "Unknown"]
+    base["comparable_groups"] = len(adequate)
     if len(adequate) >= 2:
         best = max(adequate, key=lambda r: r["rate"])
         worst = min(adequate, key=lambda r: r["rate"])
-        base["gap"] = {
-            "best": best["group"], "best_rate": best["rate"],
-            "worst": worst["group"], "worst_rate": worst["rate"],
-            "points": round((best["rate"] - worst["rate"]) * 100, 1),
-        }
+        points = round((best["rate"] - worst["rate"]) * 100, 1)
+        # Only a real gap: different groups, and an actual difference.
+        if best["group"] != worst["group"] and points > 0:
+            base["gap"] = {
+                "best": best["group"], "best_rate": best["rate"],
+                "worst": worst["group"], "worst_rate": worst["rate"],
+                "points": points,
+            }
 
     base["groups"] = rows
     return base

@@ -268,6 +268,7 @@ export interface EquityBreakdown {
   metrics: { key: string; label: string }[];
   groups: EquityGroup[];
   gap: EquityGap | null;
+  comparable_groups?: number;
   access_level: string;
 }
 export const getEquityBreakdown = (opts: { dimension?: string; metric?: string; scope?: ScopeSel } = {}) => {

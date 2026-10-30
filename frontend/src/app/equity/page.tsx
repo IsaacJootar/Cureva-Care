@@ -34,7 +34,7 @@ export default function EquityPage() {
   return (
     <AppShell
       title="Equity"
-      subtitle="Who is being left behind — the same care, measured across groups"
+      subtitle="Is every group getting the same care — or is one being left behind?"
       allowedRoles={["facility_lead", "organisation_user"]}
       action={
         <div style={{ display: "flex", gap: 8 }}>
@@ -48,18 +48,21 @@ export default function EquityPage() {
       }
     >
       <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-        {/* Equity-gap headline */}
+        {/* Headline: a real gap, "care looks even", or not enough data. */}
         {gap ? (
           <div style={{ background: gap.points >= 15 ? "var(--cv-warning-bg)" : "var(--cv-accent-soft)", border: "1px solid var(--cv-card-border)", borderRadius: 10, padding: "12px 14px" }}>
             <div style={{ fontSize: 12.5, color: "var(--cv-text-primary)" }}>
-              <strong>{gap.points}-point gap</strong> on &ldquo;{data?.metric_label}&rdquo;:
-              {" "}<strong>{gap.worst}</strong> ({Math.round(gap.worst_rate * 100)}%) is behind
-              {" "}<strong>{gap.best}</strong> ({Math.round(gap.best_rate * 100)}%).
+              <strong>{gap.worst}</strong> are getting the least: only {Math.round(gap.worst_rate * 100)}%
+              {" "}vs {Math.round(gap.best_rate * 100)}% for <strong>{gap.best}</strong> — a <strong>{gap.points}-point gap</strong>.
             </div>
+          </div>
+        ) : data && (data.comparable_groups ?? 0) >= 2 ? (
+          <div style={{ background: "var(--cv-success-bg)", border: "1px solid var(--cv-card-border)", borderRadius: 10, padding: "12px 14px", fontSize: 12.5, color: "var(--cv-text-primary)" }}>
+            Care looks even across these groups — no group is clearly being left behind.
           </div>
         ) : data ? (
           <div style={{ fontSize: 11.5, color: "var(--cv-text-muted)" }}>
-            Not enough data in two or more groups to measure a gap yet.
+            Not enough recorded check-ups in two or more groups to compare yet.
           </div>
         ) : null}
 
