@@ -233,7 +233,9 @@ class RiskPyramidView(APIView):
 
     def get(self, request):
         scope = caller_scope(request.user)
-        return Response(risk_pyramid(scope["facility_ids"]))
+        data = risk_pyramid(scope["facility_ids"])
+        data["facility_count"] = len(scope["facility_ids"] or [])
+        return Response(data)
 
 
 class RiskRegistryView(APIView):

@@ -137,7 +137,7 @@ export const getSevereTrend = () => apiGet<SevereTrend>("/surveillance/trend");
 export const getClusters = () => apiGet<Clusters>("/surveillance/clusters");
 
 // --- WS5: Risk intelligence & early-warning ---
-export interface RiskPyramid { tiers: Record<string, number>; total: number; ruleset_version?: number; clinical_owner?: string }
+export interface RiskPyramid { tiers: Record<string, number>; total: number; facility_count?: number; ruleset_version?: number; clinical_owner?: string }
 export interface RiskRow {
   episode_id: string; tier: string; markers: string[]; woman: { internal_id: string; name: string } | null;
   woman_internal_id: string; booking_date: string | null; last_anc: string | null; days_since_anc: number | null;

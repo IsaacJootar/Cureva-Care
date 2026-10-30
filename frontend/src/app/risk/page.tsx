@@ -34,6 +34,11 @@ export default function RiskPage() {
       allowedRoles={["facility_lead", "organisation_user"]}
     >
       <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+        {pyr && (
+          <div style={{ fontSize: 11.5, color: "var(--cv-text-muted)" }}>
+            Combined across all <strong>{pyr.facility_count ?? 0}</strong> facilit{(pyr.facility_count ?? 0) === 1 ? "y" : "ies"} in your scope · as of today.
+          </div>
+        )}
         <ChartCard title="Alerts" subtitle="Based on recorded check-ups · WHO guidance · not a diagnosis">
           {!alerts ? (
             <p style={{ fontSize: 12, color: "var(--cv-text-muted)" }}>Loading…</p>
