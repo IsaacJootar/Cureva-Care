@@ -8,18 +8,15 @@ import { ChartCard } from "@/components/ui/Charts";
 import { StatTileSkeleton } from "@/components/ui/Feedback";
 import { ScopeFilter } from "@/components/dashboard/ScopeFilter";
 
-// Turn a rate into plain words: 0.25 -> "1 in 4", 0.89 -> "9 in 10".
+// Turn a rate into plain words, ALWAYS out of 10 so groups are directly
+// comparable at a glance: 0.89 -> "9 in 10", 0.83 -> "8 in 10", 0.25 -> "3 in 10".
 function inWords(rate: number | null): string {
   if (rate == null) return "no data";
-  if (rate >= 0.995) return "nearly all";
-  if (rate <= 0.005) return "almost none";
-  let best = { num: Math.round(rate * 10), den: 10, err: 1 };
-  for (const den of [2, 3, 4, 5, 10]) {
-    const num = Math.round(rate * den);
-    const err = Math.abs(rate - num / den);
-    if (num > 0 && num < den && err < best.err - 1e-9) best = { num, den, err };
-  }
-  return `${best.num} in ${best.den}`;
+  if (rate >= 0.95) return "nearly all";
+  if (rate <= 0) return "none";
+  const n = Math.round(rate * 10);
+  if (n <= 0) return "fewer than 1 in 10";
+  return `${n} in 10`;
 }
 
 export default function EquityPage() {
