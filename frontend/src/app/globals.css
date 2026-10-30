@@ -313,6 +313,28 @@ h2,
   transform: translateX(2px);
 }
 
+/* Top bar: on phones, stack the page controls under the title and let them use
+   the full width, rather than squeezing the subtitle into a sliver and pushing
+   the dropdowns off-screen. */
+@media (max-width: 680px) {
+  .cv-topbar {
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+  .cv-topbar-actions {
+    width: 100%;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: 8px;
+  }
+  /* Filter/period controls fill the row and wrap instead of overflowing. */
+  .cv-topbar-actions > div {
+    flex: 1 1 160px;
+    min-width: 0;
+    flex-wrap: wrap;
+  }
+}
+
 /* Print / Save-as-PDF: hide the app chrome, print only the report area. */
 @media print {
   aside,

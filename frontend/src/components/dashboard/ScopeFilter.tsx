@@ -20,7 +20,7 @@ export function ScopeFilter({ value, onChange }: { value: ScopeSel; onChange: (s
   const multiState = opts.states.length > 1;
 
   return (
-    <div style={{ width: 230 }}>
+    <div style={{ width: 230, maxWidth: "100%" }}>
       <SelectField
         id="scope"
         label=""

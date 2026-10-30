@@ -21,6 +21,7 @@ export function TopBar({
 }) {
   return (
     <header
+      className="cv-topbar"
       style={{
         position: "sticky",
         top: 0,
@@ -36,7 +37,7 @@ export function TopBar({
         gap: 16,
       }}
     >
-      <div style={{ minWidth: 0 }}>
+      <div style={{ minWidth: 0, flex: "1 1 auto" }}>
         <h1 style={{ fontSize: 21, color: "var(--cv-text-primary)", margin: 0, lineHeight: 1.1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
           {title}
         </h1>
@@ -44,7 +45,7 @@ export function TopBar({
           <p style={{ fontSize: 12, color: "var(--cv-text-muted)", margin: "3px 0 0" }}>{subtitle}</p>
         )}
       </div>
-      <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
+      <div className="cv-topbar-actions" style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
         {chips}
         <ThemeToggle />
         <button
