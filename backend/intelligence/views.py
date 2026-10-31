@@ -20,6 +20,7 @@ from identity_access.permissions import IsFacilityLead
 from .benchmarking import METRICS, equity_by_parity, facility_league, geo_rollup
 from .coverage import INDICATORS as COVERAGE_INDICATORS, coverage
 from .equity import equity_breakdown
+from .quality import quality_scorecard
 from .targets import TARGET_CATALOGUE, target_progress
 from .models import CoverageDenominator, ProgramTarget
 from .alerts import evaluate_alerts
@@ -680,5 +681,21 @@ class EquityBreakdownView(APIView):
         date_from = _parse_date(request.query_params.get("from"))
         date_to = _parse_date(request.query_params.get("to"))
         data = equity_breakdown(scope["facility_ids"], dimension, metric, date_from, date_to)
+        data["access_level"] = scope["access_level"]
+        return Response(data)
+
+
+# --- Quality of care (expansion M4) -----------------------------------------
+class QualityView(APIView):
+    """GET /quality — WHO-essential care standards: share done, overall score,
+    per-facility score, and the ranked gaps to fix. Scoped to the caller."""
+
+    permission_classes = [IsDashboardViewer, HasModule]
+
+    def get(self, request):
+        scope = resolve_scope(request.user, request)
+        date_from = _parse_date(request.query_params.get("from"))
+        date_to = _parse_date(request.query_params.get("to"))
+        data = quality_scorecard(scope["facility_ids"], date_from, date_to)
         data["access_level"] = scope["access_level"]
         return Response(data)

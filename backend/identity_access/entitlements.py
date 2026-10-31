@@ -20,6 +20,7 @@ INTEL_MODULES = [
     {"key": "targets", "label": "Goals & targets", "href": "/goals", "order": 4},
     {"key": "benchmarking", "label": "Benchmarking", "href": "/benchmarking", "order": 5},
     {"key": "equity", "label": "Equity", "href": "/equity", "order": 6},
+    {"key": "quality", "label": "Quality of care", "href": "/quality", "order": 7},
     {"key": "surveillance", "label": "Deaths & stillbirths", "href": "/surveillance", "order": 6},
     {"key": "risk", "label": "Risk & alerts", "href": "/risk", "order": 7},
     {"key": "rdqa", "label": "Reporting reliability", "href": "/rdqa", "order": 8},
@@ -38,9 +39,9 @@ DEFAULT_TIERS = [
     {"name": "Essentials", "slug": "essentials", "order": 1,
      "modules": ["overview", "care_journey", "targets", "rdqa", "reports"]},
     {"name": "Professional", "slug": "professional", "order": 2,
-     "modules": ["overview", "care_journey", "coverage", "targets", "benchmarking", "equity", "surveillance", "rdqa", "facilities", "reports"]},
+     "modules": ["overview", "care_journey", "coverage", "targets", "benchmarking", "equity", "quality", "surveillance", "rdqa", "facilities", "reports"]},
     {"name": "Enterprise", "slug": "enterprise", "order": 3,
-     "modules": ["overview", "care_journey", "coverage", "targets", "benchmarking", "equity", "surveillance", "risk", "rdqa", "records", "facilities", "reports"]},
+     "modules": ["overview", "care_journey", "coverage", "targets", "benchmarking", "equity", "quality", "surveillance", "risk", "rdqa", "records", "facilities", "reports"]},
 ]
 
 
@@ -76,6 +77,7 @@ PATH_MODULES = [
     ("/coverage", "coverage"),
     ("/goals", "targets"),
     ("/equity-breakdown", "equity"),
+    ("/quality", "quality"),
     ("/benchmarking", "benchmarking"),
     ("/geo", "benchmarking"),
     ("/equity", "benchmarking"),

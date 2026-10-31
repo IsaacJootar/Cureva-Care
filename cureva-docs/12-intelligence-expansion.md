@@ -232,7 +232,7 @@ we're done."
 - [x] M1 · Coverage & Reach — shipped 2026-10-29 (commit 9a2b564)
 - [x] M7 · Goals & Targets — shipped 2026-10-29
 - [x] M6 · Equity — shipped 2026-10-30
-- [ ] M4 · Quality of Care
+- [x] M4 · Quality of Care — shipped 2026-10-31
 - [ ] M5 · Referral Pathways & Outcomes
 - [ ] M2 · Death Reviews (MPDSR)
 - [ ] M3 · Early Warning

@@ -125,6 +125,11 @@ class Command(BaseCommand):
             ep = PregnancyEpisode.objects.create(woman=woman, facility=fac, booking_date=date(2026, month, 5), booking_gestational_age_weeks=10 if early else 16)
             for c in range(5 if anc4 else 2):
                 data = {"iron_folate_given": "yes", "tetanus_given": "yes", "parity": parity}
+                # Most visits record BP + malaria prevention; a minority don't (a real gap).
+                if i % 4 != 0:
+                    data["blood_pressure"] = "120/80"
+                if i % 3 != 0:
+                    data["iptp_given"] = "yes"
                 if screened:
                     data.update({"hiv_result": "NR", "syphilis_result": "NR", "haemoglobin": "12"})
                 if high and c == 0:
@@ -137,6 +142,7 @@ class Command(BaseCommand):
                     episode=ep, woman=woman, facility=fac, source_row=row("Delivery"), data={},
                     delivery_date=date(2026, month, 20), still_birth=still,
                     maternal_outcome=("died" if died else "alive"), birth_weight_kg=(2.2 if i % 4 == 0 else 3.1),
+                    attendant_category=("midwife" if i % 5 != 0 else "traditional birth attendant"),
                 )
                 if pnc:
                     PNCContact.objects.create(episode=ep, woman=woman, facility=fac, source_row=row("PNC"), data={}, visit_date=date(2026, month, 27))

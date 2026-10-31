@@ -277,3 +277,18 @@ export const getEquityBreakdown = (opts: { dimension?: string; metric?: string; 
   if (opts.metric) extra.metric = opts.metric;
   return apiGet<EquityBreakdown>(`/equity-breakdown${scopeQS(opts.scope, extra)}`);
 };
+
+// --- M4: Quality of care ---
+export interface QualityStandard {
+  key: string; label: string; numerator: number; denominator: number; rate: number | null;
+}
+export interface QualityGap extends QualityStandard { action: string }
+export interface QualityFacility { facility_id: string; name: string; region: string; score: number | null }
+export interface QualityScorecard {
+  overall_score: number | null;
+  standards: QualityStandard[];
+  by_facility: QualityFacility[];
+  gaps: QualityGap[];
+  access_level: string;
+}
+export const getQuality = (scope?: ScopeSel) => apiGet<QualityScorecard>(`/quality${scopeQS(scope)}`);
