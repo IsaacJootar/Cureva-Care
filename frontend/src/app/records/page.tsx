@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { ApiError } from "@/lib/api";
 import { getRecords, type RecordRow } from "@/lib/dashboard";
+import { prettyDateShort } from "@/lib/date";
 import { AppShell } from "@/components/layout/AppShell";
 import { EmptyState, StatusPill, StatTileSkeleton } from "@/components/ui/Feedback";
 import { Pagination, Table, Td, Th } from "@/components/ui/Table";
@@ -43,7 +44,7 @@ export default function RecordsPage() {
   return (
     <AppShell
       title="Records"
-      subtitle={data ? `${data.count} verified records` : "Loading…"}
+      subtitle={data ? `The actual register entries behind every chart — ${data.count} verified rows you can check and export` : "Loading…"}
       allowedRoles={["facility_lead", "organisation_user"]}
     >
       {!data ? (
@@ -69,7 +70,7 @@ export default function RecordsPage() {
                 return (
                   <tr key={r.id}>
                     <Td style={{ color: "var(--cv-text-primary)", fontWeight: 600 }}>{r.register_family}</Td>
-                    <Td className="cv-num">{r.service_date ?? "—"}</Td>
+                    <Td className="cv-num">{prettyDateShort(r.service_date)}</Td>
                     <Td>
                       {keyVals.map(([k, v]) => (
                         <span key={k} style={{ marginRight: 10, fontSize: 11.5 }}>
