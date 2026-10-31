@@ -41,6 +41,9 @@ export const XIcon = (p: IconProps) => (
 export const TargetIcon = (p: IconProps) => (
   <svg {...base(p)}><circle cx="12" cy="12" r="9" /><circle cx="12" cy="12" r="5" /><circle cx="12" cy="12" r="1.5" /></svg>
 );
+export const ArrowRightIcon = (p: IconProps) => (
+  <svg {...base(p)}><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+);
 export const ChevronDownIcon = (p: IconProps) => (
   <svg {...base(p)}><path d="m6 9 6 6 6-6" /></svg>
 );

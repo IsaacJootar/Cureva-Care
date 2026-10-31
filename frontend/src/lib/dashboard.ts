@@ -292,3 +292,17 @@ export interface QualityScorecard {
   access_level: string;
 }
 export const getQuality = (scope?: ScopeSel) => apiGet<QualityScorecard>(`/quality${scopeQS(scope)}`);
+
+// --- M5: Referral pathways & outcomes ---
+export interface ReferralFunnelStep { label: string; value: number; share: number | null }
+export interface ReferralLost { woman_internal_id: string; reason: string | null; destination: string | null; date: string | null; days_open: number | null }
+export interface ReferralFacility { facility_id: string; name: string; region: string; total: number; outcome_known: number; rate: number | null }
+export interface Referrals {
+  total: number; arrived: number; outcome_known: number; unknown: number;
+  funnel: ReferralFunnelStep[];
+  by_facility: ReferralFacility[];
+  destinations: { name: string; count: number }[];
+  lost: ReferralLost[];
+  access_level: string;
+}
+export const getReferrals = (scope?: ScopeSel) => apiGet<Referrals>(`/referrals${scopeQS(scope)}`);

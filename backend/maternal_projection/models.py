@@ -247,6 +247,9 @@ class Referral(models.Model):
     destination = models.TextField(null=True, blank=True)
     date = models.DateField(null=True, blank=True)
     status = models.CharField(max_length=16, choices=Status.choices, default=Status.OPEN)
+    # Did the woman reach the referral facility? Optional (expansion M5) — blank
+    # means it wasn't recorded, which is itself the signal of a broken loop.
+    arrived = models.BooleanField(null=True, blank=True)
     outcome = models.TextField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 

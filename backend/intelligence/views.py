@@ -21,6 +21,7 @@ from .benchmarking import METRICS, equity_by_parity, facility_league, geo_rollup
 from .coverage import INDICATORS as COVERAGE_INDICATORS, coverage
 from .equity import equity_breakdown
 from .quality import quality_scorecard
+from .referrals import referrals_summary
 from .targets import TARGET_CATALOGUE, target_progress
 from .models import CoverageDenominator, ProgramTarget
 from .alerts import evaluate_alerts
@@ -698,4 +699,23 @@ class QualityView(APIView):
         date_to = _parse_date(request.query_params.get("to"))
         data = quality_scorecard(scope["facility_ids"], date_from, date_to)
         data["access_level"] = scope["access_level"]
+        return Response(data)
+
+
+# --- Referral pathways & outcomes (expansion M5) ----------------------------
+class ReferralsView(APIView):
+    """GET /referrals — did referred women arrive and what happened; where the
+    loop breaks down; which facilities close it. Scoped to the caller."""
+
+    permission_classes = [IsDashboardViewer, HasModule]
+
+    def get(self, request):
+        scope = resolve_scope(request.user, request)
+        date_from = _parse_date(request.query_params.get("from"))
+        date_to = _parse_date(request.query_params.get("to"))
+        data = referrals_summary(scope["facility_ids"], date_from, date_to)
+        data["access_level"] = scope["access_level"]
+        # Woman-level "went nowhere" list only for de-identified+ access.
+        if scope["access_level"] == AccessLevel.AGGREGATE:
+            data["lost"] = []
         return Response(data)
