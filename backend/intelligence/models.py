@@ -69,6 +69,49 @@ class CoverageDenominator(models.Model):
         indexes = [models.Index(fields=["area_type", "year"])]
 
 
+class DeathReview(models.Model):
+    """A structured review of one maternal/perinatal death (expansion M2, MPDSR).
+
+    Attached to the BirthEvent that carries the death (stillbirth / newborn death
+    / mother died). Captured by a Facility lead for their own facility; the model
+    carries a reviewer FK so a dedicated Reviewer role can be switched on later
+    without a schema change. Avoidability and cause are a human judgement recorded
+    here — never inferred by us. Organisations only ever see the aggregates.
+    """
+
+    class Avoidable(models.TextChoices):
+        UNKNOWN = "unknown", "Not yet assessed"
+        AVOIDABLE = "avoidable", "Avoidable"
+        PROBABLY = "probably", "Probably avoidable"
+        NOT_AVOIDABLE = "not_avoidable", "Not avoidable"
+
+    class ActionStatus(models.TextChoices):
+        OPEN = "open", "To do"
+        IN_PROGRESS = "in_progress", "In progress"
+        DONE = "done", "Done"
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    birth_event = models.OneToOneField(
+        "maternal_projection.BirthEvent", on_delete=models.CASCADE, related_name="death_review"
+    )
+    facility = models.ForeignKey("identity_access.Facility", on_delete=models.CASCADE, related_name="death_reviews")
+    cause = models.CharField(max_length=60, blank=True, default="")          # a cause key
+    avoidable = models.CharField(max_length=20, choices=Avoidable.choices, default=Avoidable.UNKNOWN)
+    factors = models.JSONField(default=list, blank=True)                     # contributing-factor keys
+    notes = models.TextField(blank=True, default="")
+    action = models.TextField(blank=True, default="")
+    action_owner = models.CharField(max_length=120, blank=True, default="")
+    action_status = models.CharField(max_length=20, choices=ActionStatus.choices, default=ActionStatus.OPEN)
+    reviewed_by = models.ForeignKey(
+        "identity_access.User", on_delete=models.SET_NULL, null=True, blank=True, related_name="death_reviews"
+    )
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        indexes = [models.Index(fields=["facility", "avoidable"])]
+
+
 class ProgramTarget(models.Model):
     """A configurable program goal the dashboards track progress against
     (expansion M7) — SDG 3.1 / national coverage targets. Keyed to a computable

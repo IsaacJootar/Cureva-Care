@@ -20,6 +20,8 @@ from identity_access.permissions import IsFacilityLead
 from .benchmarking import METRICS, equity_by_parity, facility_league, geo_rollup
 from .coverage import INDICATORS as COVERAGE_INDICATORS, coverage
 from .equity import equity_breakdown
+from .mpdsr import CAUSE_LABEL, FACTOR_LABEL, mpdsr_summary, review_queue
+from .models import DeathReview
 from .quality import quality_scorecard
 from .referrals import referrals_summary
 from .targets import TARGET_CATALOGUE, target_progress
@@ -719,3 +721,85 @@ class ReferralsView(APIView):
         if scope["access_level"] == AccessLevel.AGGREGATE:
             data["lost"] = []
         return Response(data)
+
+
+# --- Death reviews / MPDSR (expansion M2) -----------------------------------
+class MpdsrSummaryView(APIView):
+    """GET /mpdsr — aggregate review status: how many deaths reviewed, how many
+    avoidable, what keeps contributing, whether actions get done. Safe for orgs
+    (aggregates only; no woman-level data)."""
+
+    permission_classes = [IsDashboardViewer, HasModule]
+
+    def get(self, request):
+        scope = resolve_scope(request.user, request)
+        date_from = _parse_date(request.query_params.get("from"))
+        date_to = _parse_date(request.query_params.get("to"))
+        data = mpdsr_summary(scope["facility_ids"], date_from, date_to)
+        data["access_level"] = scope["access_level"]
+        return Response(data)
+
+
+class MpdsrQueueView(APIView):
+    """GET /mpdsr/queue — the deaths to review and their review state. Facility
+    lead only (woman-level, their own facility)."""
+
+    permission_classes = [IsFacilityLead, HasModule]
+
+    def get(self, request):
+        fids = [request.user.facility_id] if request.user.facility_id else []
+        date_from = _parse_date(request.query_params.get("from"))
+        date_to = _parse_date(request.query_params.get("to"))
+        return Response(review_queue(fids, date_from, date_to))
+
+
+class MpdsrReviewView(APIView):
+    """PUT /mpdsr/reviews/{birth_event_id} — create/update one death's review.
+    Facility lead only, and only for a death in their own facility."""
+
+    permission_classes = [IsFacilityLead]
+
+    def put(self, request, birth_event_id):
+        from maternal_projection.models import BirthEvent
+
+        b = BirthEvent.objects.filter(pk=birth_event_id).first()
+        if b is None:
+            return Response(status=404)
+        if str(b.facility_id) != str(request.user.facility_id):
+            return Response({"detail": "You can only review deaths in your own facility."}, status=403)
+
+        d = request.data
+        cause = (d.get("cause") or "").strip()
+        if cause and cause not in CAUSE_LABEL:
+            return Response({"detail": "Unknown cause."}, status=400)
+        avoidable = d.get("avoidable") or DeathReview.Avoidable.UNKNOWN
+        if avoidable not in DeathReview.Avoidable.values:
+            return Response({"detail": "Unknown avoidability."}, status=400)
+        factors = d.get("factors") or []
+        if not isinstance(factors, list) or any(f not in FACTOR_LABEL for f in factors):
+            return Response({"detail": "Unknown contributing factor."}, status=400)
+        action_status = d.get("action_status") or DeathReview.ActionStatus.OPEN
+        if action_status not in DeathReview.ActionStatus.values:
+            return Response({"detail": "Unknown action status."}, status=400)
+
+        review, _ = DeathReview.objects.update_or_create(
+            birth_event=b,
+            defaults={
+                "facility_id": b.facility_id,
+                "cause": cause,
+                "avoidable": avoidable,
+                "factors": factors,
+                "notes": (d.get("notes") or "").strip(),
+                "action": (d.get("action") or "").strip(),
+                "action_owner": (d.get("action_owner") or "").strip()[:120],
+                "action_status": action_status,
+                "reviewed_by": request.user,
+                "reviewed_at": timezone.now(),
+            },
+        )
+        AuditEvent.objects.create(
+            actor=request.user, event_type="death_review_saved",
+            subject_type="death_review", subject_id=review.id,
+            metadata={"avoidable": avoidable, "birth_event_id": str(birth_event_id)},
+        )
+        return Response({"status": "saved"})

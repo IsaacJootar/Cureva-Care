@@ -1,5 +1,5 @@
 // Dashboard/reporting API helpers (Facility lead + Organisation user).
-import { apiGet } from "./api";
+import { apiGet, apiPut } from "./api";
 
 export interface Ratio {
   numerator: number;
@@ -306,3 +306,30 @@ export interface Referrals {
   access_level: string;
 }
 export const getReferrals = (scope?: ScopeSel) => apiGet<Referrals>(`/referrals${scopeQS(scope)}`);
+
+// --- M2: Death reviews (MPDSR) ---
+export interface MpdsrCount { key: string; label: string; count: number }
+export interface MpdsrSummary {
+  total_deaths: number; reviewed: number; awaiting: number;
+  avoidable: MpdsrCount[]; factors: MpdsrCount[]; actions: MpdsrCount[]; actions_total?: number;
+  access_level: string;
+}
+export interface MpdsrCatalogue {
+  causes: { key: string; label: string }[];
+  factors: { key: string; label: string }[];
+  avoidable_options: { key: string; label: string }[];
+  action_status_options: { key: string; label: string }[];
+}
+export interface MpdsrReview {
+  cause: string; avoidable: string; factors: string[]; notes: string;
+  action: string; action_owner: string; action_status: string; reviewed_at?: string | null;
+}
+export interface MpdsrDeath {
+  birth_event_id: string; episode_id: string | null;
+  woman: { internal_id: string; name: string | null } | null;
+  outcomes: string[]; delivery_date: string | null; reviewed: boolean; review: MpdsrReview | null;
+}
+export const getMpdsrSummary = (scope?: ScopeSel) => apiGet<MpdsrSummary>(`/mpdsr${scopeQS(scope)}`);
+export const getMpdsrQueue = () => apiGet<{ deaths: MpdsrDeath[]; catalogue: MpdsrCatalogue }>("/mpdsr/queue");
+export const saveMpdsrReview = (birthEventId: string, body: Partial<MpdsrReview>) =>
+  apiPut<{ status: string }>(`/mpdsr/reviews/${birthEventId}`, body);
