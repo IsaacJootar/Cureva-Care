@@ -341,3 +341,13 @@ export const getMpdsrSummary = (scope?: ScopeSel) => apiGet<MpdsrSummary>(`/mpds
 export const getMpdsrQueue = () => apiGet<{ deaths: MpdsrDeath[]; catalogue: MpdsrCatalogue }>("/mpdsr/queue");
 export const saveMpdsrReview = (birthEventId: string, body: Partial<MpdsrReview>) =>
   apiPut<{ status: string }>(`/mpdsr/reviews/${birthEventId}`, body);
+
+// --- M3: Early warning ---
+export type WarningType = "gone_quiet" | "activity_falling" | "severe_rising";
+export interface Warning {
+  facility_id: string; name: string; region: string;
+  type: WarningType; severity: "high" | "medium" | "low";
+  headline: string; detail: string;
+}
+export interface EarlyWarning { watch: Warning[]; window: string[]; access_level: string }
+export const getEarlyWarning = (scope?: ScopeSel) => apiGet<EarlyWarning>(`/early-warning${scopeQS(scope)}`);

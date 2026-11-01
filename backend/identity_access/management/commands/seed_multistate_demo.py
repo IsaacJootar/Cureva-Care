@@ -60,6 +60,10 @@ class Command(BaseCommand):
             seeded = self._seed_facility(fac, officer, p)
             self.stdout.write(f"  {state_name}: {'seeded ' + str(seeded) + ' pregnancies' if seeded else 'already seeded'}")
 
+        # Shape three facilities so Early warning has a real example of each
+        # signal (otherwise the uniform demo data trips nothing). Idempotent.
+        self._engineer_early_warning_signals(facilities)
+
         # Organisation on the Enterprise plan, granted all three states.
         tier = SubscriptionTier.objects.filter(slug="enterprise").first()
         org, _ = Organisation.objects.get_or_create(
@@ -87,6 +91,32 @@ class Command(BaseCommand):
             "\nDemo ready. Login: multi@cureva.care / Cureva-test1 "
             "(National Safe Motherhood Initiative — Enterprise, 3 states)."
         ))
+
+    def _engineer_early_warning_signals(self, facilities):
+        """Give the Early warning watch list one clear example of each signal,
+        by nudging the most recent month(s) of three facilities. Idempotent —
+        each change is a no-op once applied.
+
+          Rivers  → went quiet  (stopped reporting after August)
+          Lagos   → activity falling (antenatal visits collapse in the latest month)
+          Kano    → severe outcomes rising (recent stillbirths cluster)
+        """
+        _, _, rivers = facilities["Rivers"]
+        for model, field in ((ANCContact, "service_date"), (BirthEvent, "delivery_date"), (PNCContact, "visit_date")):
+            model.objects.filter(facility=rivers, **{f"{field}__year": 2026, f"{field}__month__in": [9, 10]}).delete()
+
+        _, _, lagos = facilities["Lagos"]
+        oct_anc = list(ANCContact.objects.filter(
+            facility=lagos, service_date__year=2026, service_date__month=10,
+        ).values_list("id", flat=True))
+        if len(oct_anc) > 1:  # leave a trickle so it reads as "falling", not "stopped"
+            ANCContact.objects.filter(id__in=oct_anc[1:]).delete()
+
+        _, _, kano = facilities["Kano"]
+        BirthEvent.objects.filter(
+            facility=kano, delivery_date__year=2026, delivery_date__month__in=[9, 10],
+            still_birth=False,
+        ).update(still_birth=True)
 
     def _seed_facility(self, fac, officer, p):
         if Woman.objects.filter(facility=fac, name__startswith="Demo ").exists():

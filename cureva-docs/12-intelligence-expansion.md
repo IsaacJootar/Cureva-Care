@@ -235,4 +235,4 @@ we're done."
 - [x] M4 · Quality of Care — shipped 2026-10-31
 - [x] M5 · Referral Pathways & Outcomes — shipped 2026-10-31
 - [x] M2 · Death Reviews (MPDSR) — shipped 2026-11-01
-- [ ] M3 · Early Warning
+- [x] M3 · Early Warning — shipped 2026-11-01

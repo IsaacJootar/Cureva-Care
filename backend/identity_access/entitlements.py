@@ -23,6 +23,7 @@ INTEL_MODULES = [
     {"key": "quality", "label": "Quality of care", "href": "/quality", "order": 7},
     {"key": "referrals", "label": "Referral outcomes", "href": "/referrals", "order": 8},
     {"key": "mpdsr", "label": "Death reviews (MPDSR)", "href": "/mpdsr", "order": 9},
+    {"key": "early_warning", "label": "Early warning", "href": "/early-warning", "order": 10},
     {"key": "surveillance", "label": "Deaths & stillbirths", "href": "/surveillance", "order": 6},
     {"key": "risk", "label": "Risk & alerts", "href": "/risk", "order": 7},
     {"key": "rdqa", "label": "Reporting reliability", "href": "/rdqa", "order": 8},
@@ -43,7 +44,7 @@ DEFAULT_TIERS = [
     {"name": "Professional", "slug": "professional", "order": 2,
      "modules": ["overview", "care_journey", "coverage", "targets", "benchmarking", "equity", "quality", "surveillance", "rdqa", "facilities", "reports"]},
     {"name": "Enterprise", "slug": "enterprise", "order": 3,
-     "modules": ["overview", "care_journey", "coverage", "targets", "benchmarking", "equity", "quality", "surveillance", "risk", "referrals", "mpdsr", "rdqa", "records", "facilities", "reports"]},
+     "modules": ["overview", "care_journey", "coverage", "targets", "benchmarking", "equity", "quality", "surveillance", "risk", "referrals", "mpdsr", "early_warning", "rdqa", "records", "facilities", "reports"]},
 ]
 
 
@@ -82,6 +83,7 @@ PATH_MODULES = [
     ("/quality", "quality"),
     ("/referrals", "referrals"),
     ("/mpdsr", "mpdsr"),
+    ("/early-warning", "early_warning"),
     ("/benchmarking", "benchmarking"),
     ("/geo", "benchmarking"),
     ("/equity", "benchmarking"),

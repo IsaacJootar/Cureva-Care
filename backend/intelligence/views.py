@@ -19,6 +19,7 @@ from identity_access.permissions import IsFacilityLead
 
 from .benchmarking import METRICS, equity_by_parity, facility_league, geo_rollup
 from .coverage import INDICATORS as COVERAGE_INDICATORS, coverage
+from .early_warning import early_warnings
 from .equity import equity_breakdown
 from .mpdsr import CAUSE_LABEL, FACTOR_LABEL, mpdsr_summary, review_queue
 from .models import DeathReview
@@ -813,3 +814,18 @@ class MpdsrReviewView(APIView):
             metadata={"avoidable": avoidable, "birth_event_id": str(birth_event_id)},
         )
         return Response({"status": "saved"})
+
+
+# --- Early warning (expansion M3) -------------------------------------------
+class EarlyWarningView(APIView):
+    """GET /early-warning — a watch list of facilities whose numbers are heading
+    the wrong way (falling activity, rising deaths, reporting gone quiet). Simple,
+    explainable trends — a prompt to look, not a verdict. Scoped to the caller."""
+
+    permission_classes = [IsDashboardViewer, HasModule]
+
+    def get(self, request):
+        scope = resolve_scope(request.user, request)
+        data = early_warnings(scope["facility_ids"])
+        data["access_level"] = scope["access_level"]
+        return Response(data)
