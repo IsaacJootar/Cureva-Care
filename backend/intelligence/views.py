@@ -736,7 +736,17 @@ class MpdsrSummaryView(APIView):
         date_from = _parse_date(request.query_params.get("from"))
         date_to = _parse_date(request.query_params.get("to"))
         data = mpdsr_summary(scope["facility_ids"], date_from, date_to)
-        data["access_level"] = scope["access_level"]
+        level = scope["access_level"]
+        data["access_level"] = level
+        # Actions tracker: aggregate access gets counts only (no list); de-identified
+        # sees the list without the woman's identity; identifiable (the facility's
+        # own lead) sees her name.
+        if level == AccessLevel.AGGREGATE:
+            data["actions_list"] = []
+        elif level == AccessLevel.DE_IDENTIFIED:
+            for a in data.get("actions_list", []):
+                a["woman_name"] = None
+                a["woman_internal_id"] = None
         return Response(data)
 
 

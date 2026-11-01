@@ -104,7 +104,7 @@ def mpdsr_summary(facility_ids, date_from=None, date_to=None) -> dict:
     """Aggregates only — safe for organisations."""
     facility_ids = list(facility_ids or [])
     if not facility_ids:
-        return {"total_deaths": 0, "reviewed": 0, "awaiting": 0, "avoidable": [], "factors": [], "actions": []}
+        return {"total_deaths": 0, "reviewed": 0, "awaiting": 0, "avoidable": [], "factors": [], "actions": [], "actions_list": []}
     deaths = _death_births(facility_ids, date_from, date_to)
     total = len(deaths)
     reviews = list(DeathReview.objects.filter(birth_event_id__in=[b.id for b in deaths]))
@@ -115,11 +115,17 @@ def mpdsr_summary(facility_ids, date_from=None, date_to=None) -> dict:
     reviewed = len(reviewed_map)
 
     # Avoidability breakdown (over reviewed deaths).
+    from identity_access.models import Facility
+    fac_name = {str(f.id): f.name for f in Facility.objects.filter(id__in=facility_ids)}
+    death_by_id = {b.id: b for b in deaths}
+
     av_counts = {k: 0 for k, _ in DeathReview.Avoidable.choices}
     factor_counts = {f["key"]: 0 for f in FACTORS}
     action_counts = {k: 0 for k, _ in DeathReview.ActionStatus.choices}
     actions_total = 0
-    for r in reviewed_map.values():
+    actions_list = []
+    _status_rank = {"open": 0, "in_progress": 1, "done": 2}
+    for be_id, r in reviewed_map.items():
         av_counts[r.avoidable] = av_counts.get(r.avoidable, 0) + 1
         for fk in (r.factors or []):
             if fk in factor_counts:
@@ -127,6 +133,23 @@ def mpdsr_summary(facility_ids, date_from=None, date_to=None) -> dict:
         if (r.action or "").strip():
             actions_total += 1
             action_counts[r.action_status] = action_counts.get(r.action_status, 0) + 1
+            b = death_by_id.get(be_id)
+            actions_list.append({
+                "birth_event_id": str(be_id),
+                "action": r.action.strip(),
+                "action_owner": r.action_owner,
+                "action_status": r.action_status,
+                "action_status_label": ACTION_STATUS_LABEL.get(r.action_status, r.action_status),
+                "cause": r.cause,
+                "cause_label": CAUSE_LABEL.get(r.cause, "") if r.cause else "",
+                "outcomes": _severe_types(b) if b else [],
+                "facility_name": fac_name.get(str(r.facility_id), ""),
+                "woman_name": b.woman.name if (b and b.woman_id) else None,
+                "woman_internal_id": b.woman.internal_id if (b and b.woman_id) else None,
+                "reviewed_at": r.reviewed_at,
+            })
+    # Open actions first, then in-progress, then done.
+    actions_list.sort(key=lambda a: _status_rank.get(a["action_status"], 9))
 
     avoidable = [{"key": k, "label": AVOIDABLE_LABEL[k], "count": av_counts[k]} for k, _ in DeathReview.Avoidable.choices]
     factors = sorted(
@@ -143,4 +166,5 @@ def mpdsr_summary(facility_ids, date_from=None, date_to=None) -> dict:
         "factors": factors,
         "actions": actions,
         "actions_total": actions_total,
+        "actions_list": actions_list,
     }

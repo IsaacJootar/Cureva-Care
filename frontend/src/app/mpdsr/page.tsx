@@ -17,6 +17,12 @@ import { SelectField } from "@/components/ui/Field";
 import { ScopeFilter } from "@/components/dashboard/ScopeFilter";
 import { useToast } from "@/components/ui/Toast";
 
+function statusStyle(status: string): { color: string; background: string } {
+  if (status === "done") return { color: "var(--cv-success-text)", background: "var(--cv-success-bg)" };
+  if (status === "in_progress") return { color: "var(--cv-text-primary)", background: "var(--cv-accent-soft)" };
+  return { color: "var(--cv-warning-text)", background: "var(--cv-warning-bg)" }; // open / to do
+}
+
 export default function MpdsrPage() {
   const { user } = useAuth();
   const isLead = user?.role === "facility_lead";
@@ -92,11 +98,38 @@ export default function MpdsrPage() {
                 </ChartCard>
               )}
 
-              <ChartCard title="Are the follow-up actions getting done?" subtitle="Status of the actions set during reviews">
-                <LeagueTable
-                  rows={summary.actions.filter((x) => x.count > 0).map((x): LeagueRow => ({ label: x.label, value: x.count, display: `${x.count}` }))}
-                  maxRows={6}
-                />
+              <ChartCard
+                title="Follow-up actions"
+                subtitle="What was committed to after each death, and whether it's getting done — to-do first"
+                exportCsv={summary.actions_list.length > 0 ? {
+                  name: "mpdsr-actions",
+                  header: ["Action", "For", "Owner", "Status"],
+                  rows: summary.actions_list.map((a) => [a.action, a.woman_name ?? a.cause_label ?? a.outcomes.join(", "), a.action_owner, a.action_status_label]),
+                } : undefined}
+              >
+                {summary.actions_list.length === 0 ? (
+                  <p style={{ fontSize: 12, color: "var(--cv-text-muted)" }}>
+                    {summary.actions_total && summary.actions_total > 0
+                      ? "Actions are recorded but not shown at your access level."
+                      : "No follow-up actions have been set yet."}
+                  </p>
+                ) : (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                    {summary.actions_list.map((a) => (
+                      <div key={a.birth_event_id} style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, padding: "10px 12px", border: "1px solid var(--cv-card-border)", borderRadius: 8 }}>
+                        <div style={{ minWidth: 0 }}>
+                          <div style={{ fontSize: 12.5, color: "var(--cv-text-primary)" }}>{a.action}</div>
+                          <div style={{ fontSize: 11, color: "var(--cv-text-muted)", marginTop: 2 }}>
+                            {[a.woman_name, a.cause_label || a.outcomes.join(", "), a.facility_name, a.action_owner ? `owner: ${a.action_owner}` : null].filter(Boolean).join(" · ")}
+                          </div>
+                        </div>
+                        <span style={{ flexShrink: 0, fontSize: 10.5, fontWeight: 600, padding: "3px 9px", borderRadius: 20, ...statusStyle(a.action_status) }}>
+                          {a.action_status_label}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </ChartCard>
             </>
           ) : (

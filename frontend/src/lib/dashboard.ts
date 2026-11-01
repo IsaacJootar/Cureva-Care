@@ -309,9 +309,17 @@ export const getReferrals = (scope?: ScopeSel) => apiGet<Referrals>(`/referrals$
 
 // --- M2: Death reviews (MPDSR) ---
 export interface MpdsrCount { key: string; label: string; count: number }
+export interface MpdsrActionItem {
+  birth_event_id: string; action: string; action_owner: string;
+  action_status: string; action_status_label: string;
+  cause: string; cause_label: string; outcomes: string[];
+  facility_name: string; woman_name: string | null; woman_internal_id: string | null;
+  reviewed_at: string | null;
+}
 export interface MpdsrSummary {
   total_deaths: number; reviewed: number; awaiting: number;
   avoidable: MpdsrCount[]; factors: MpdsrCount[]; actions: MpdsrCount[]; actions_total?: number;
+  actions_list: MpdsrActionItem[];
   access_level: string;
 }
 export interface MpdsrCatalogue {
